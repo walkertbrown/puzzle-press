@@ -15,6 +15,8 @@
   "workers_dev": true,
   // Non-secret config. Secrets (STRIPE_KEY) are set with `wrangler secret put`.
   "vars": {
-    "PAY_URL": ""
+    // Public Stripe Payment Link — customers click it, so it is not a secret.
+    // TEST MODE link; swap for the live link before selling for real.
+    "PAY_URL": "https://buy.stripe.com/test_6oU8wR4Z026hf3lgFVeIw00"
   }
 }
