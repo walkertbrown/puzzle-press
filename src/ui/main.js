@@ -90,8 +90,11 @@ function regenerate() {
   shown = 0;
   showPuzzle();
   const perPage = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }));
-  const pages = planPages(s.count, perPage).total;
-  el.meta.textContent = `${s.count} puzzles · ${TRIMS[s.trim].label} · ${pages} pages`;
+  const effective = effectiveCount(s.count);
+  const pages = planPages(effective, perPage).total;
+  el.meta.textContent =
+    `${effective} puzzle${effective === 1 ? "" : "s"} · ${TRIMS[s.trim].label} · ${pages} pages` +
+    (effective < s.count ? ` · free tier, ${s.count} once unlocked` : "");
   const spine = spineWidthInches(pages, s.paper);
   el.coverNote.textContent =
     `Cover: ${(coverGeometry({ trim: s.trim, pageCount: pages, paper: s.paper }).width / 72).toFixed(3)}" × ` +
@@ -125,6 +128,12 @@ function showPuzzle() {
   el.navLabel.textContent = `${shown + 1} / ${book.puzzles.length} (preview)`;
   el.prev.disabled = shown === 0;
   el.next.disabled = shown >= book.puzzles.length - 1;
+}
+
+// The free tier caps a book at FREE_LIMIT puzzles, so page counts, spine width
+// and cover size must all be quoted for the book you would actually get.
+function effectiveCount(requested) {
+  return getLicense() ? requested : Math.min(requested, FREE_LIMIT);
 }
 
 // ---------- tier ----------
@@ -171,9 +180,8 @@ async function download() {
   const s = settings();
   if (s.pools.length === 0) return;
   const lic = getLicense();
-  let count = s.count;
-  if (!lic && count > FREE_LIMIT) {
-    count = FREE_LIMIT;
+  let count = effectiveCount(s.count);
+  if (!lic && s.count > FREE_LIMIT) {
     el.status.textContent = `Free tier: making ${FREE_LIMIT} of ${s.count} puzzles.`;
   }
   el.download.disabled = true;
@@ -300,6 +308,7 @@ el.verify.addEventListener("click", async () => {
     setLicense(await verifyEmail(email));
     el.dialog.close();
     refreshTier();
+    regenerate(); // numbers on screen change the moment the cap lifts
   } catch (err) {
     el.unlockErr.textContent = err.message;
   } finally {
