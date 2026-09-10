@@ -1,0 +1,312 @@
+// Render a generated book to a KDP-ready PDF with pdf-lib.
+//
+// renderBook(book, { title, subtitle, author, trim, bleed, licensed, fonts })
+//   -> Uint8Array (PDF bytes)
+//
+// Page order: title, copyright, puzzles (one per page, starting on a
+// right-hand page), "Solutions" divider on a right-hand page, solutions
+// 4-up, then blank "Notes" pages to reach KDP's 24-page minimum and an even
+// count. Page numbers sit on the outside bottom corner.
+
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+import { pageGeometry, marginsForPage, MIN_PAGES } from "./kdp.js";
+
+const BLACK = rgb(0, 0, 0);
+const GREY = rgb(0.45, 0.45, 0.45);
+const SHADE = rgb(0.82, 0.82, 0.82);
+const WATERMARK = "Made with Puzzle Press — free preview";
+
+export async function renderBook(book, opts = {}) {
+  const {
+    title = "Word Search",
+    subtitle = "",
+    author = "",
+    trim = "6x9",
+    bleed = false,
+    licensed = false,
+    fonts = null, // { regular: Uint8Array, bold: Uint8Array } — required for embedding
+  } = opts;
+
+  const puzzles = book.puzzles;
+  const solutionsPerPage = opts.solutionsPerPage ?? solutionsThatFit(pageGeometry({ trim, bleed }));
+  const plan = planPages(puzzles.length, solutionsPerPage);
+  const geom = pageGeometry({ trim, bleed, pageCount: plan.total });
+
+  const doc = await PDFDocument.create();
+  doc.setTitle(title);
+  if (author) doc.setAuthor(author);
+  doc.setProducer("Puzzle Press");
+  doc.setCreator("Puzzle Press");
+
+  let regular, bold;
+  if (fonts) {
+    doc.registerFontkit(fontkit);
+    regular = await doc.embedFont(fonts.regular, { subset: true });
+    bold = await doc.embedFont(fonts.bold, { subset: true });
+  } else {
+    // Standard fonts are not embedded; KDP will warn. Fine for tests only.
+    regular = await doc.embedFont(StandardFonts.Helvetica);
+    bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  }
+  const F = { regular, bold };
+
+  const ctx = { doc, geom, F, licensed, pageNo: 0 };
+
+  // 1–2: title + copyright
+  drawTitlePage(ctx, { title, subtitle, author });
+  drawCopyrightPage(ctx, { title, author });
+
+  // Puzzles
+  for (const p of puzzles) drawPuzzlePage(ctx, p);
+
+  // Solutions divider must be right-hand (odd). Pad with a blank if needed.
+  if (ctx.pageNo % 2 === 1) drawBlankPage(ctx);
+  drawDividerPage(ctx, "Solutions");
+  for (let i = 0; i < puzzles.length; i += solutionsPerPage) {
+    drawSolutionsPage(ctx, puzzles.slice(i, i + solutionsPerPage), solutionsPerPage);
+  }
+
+  // Pad to minimum and even.
+  while (ctx.pageNo < MIN_PAGES || ctx.pageNo % 2 === 1) drawNotesPage(ctx);
+
+  return doc.save();
+}
+
+// Two columns of solution grids, three rows when each grid can still be at
+// least ~2.1" (a 15×15 grid at 7pt letters, the usual size in printed
+// books), otherwise two. Fewer solution pages means a cheaper print cost
+// per copy for the seller.
+export function solutionsThatFit(geom) {
+  const h = geom.height - geom.margin.top - geom.margin.bottom - 28;
+  const gap = 14;
+  const sideAt3 = (h - 2 * gap) / 3 - 16;
+  return sideAt3 >= 150 ? 6 : 4;
+}
+
+// Page count before rendering, so the gutter is chosen for the final size.
+export function planPages(puzzleCount, solutionsPerPage = 4) {
+  let n = 2 + puzzleCount; // title, copyright, puzzles
+  if (n % 2 === 1) n += 1; // blank before divider
+  n += 1; // divider
+  n += Math.ceil(puzzleCount / solutionsPerPage);
+  while (n < MIN_PAGES || n % 2 === 1) n += 1;
+  return { total: n };
+}
+
+// ---------- page helpers ----------
+
+function newPage(ctx) {
+  ctx.pageNo += 1;
+  const page = ctx.doc.addPage([ctx.geom.width, ctx.geom.height]);
+  const m = marginsForPage(ctx.geom, ctx.pageNo);
+  const box = {
+    x: m.left,
+    y: m.bottom,
+    w: ctx.geom.width - m.left - m.right,
+    h: ctx.geom.height - m.top - m.bottom,
+    rightHand: m.rightHand,
+  };
+  return { page, box };
+}
+
+function footer(ctx, page, box, { number = true } = {}) {
+  const size = 9;
+  const y = box.y + 2;
+  if (number) {
+    const text = String(ctx.pageNo);
+    const w = ctx.F.regular.widthOfTextAtSize(text, size);
+    const x = box.rightHand ? box.x + box.w - w : box.x;
+    page.drawText(text, { x, y, size, font: ctx.F.regular, color: GREY });
+  }
+  if (!ctx.licensed) {
+    const s = 7;
+    const w = ctx.F.regular.widthOfTextAtSize(WATERMARK, s);
+    page.drawText(WATERMARK, { x: box.x + (box.w - w) / 2, y: y + 12, size: s, font: ctx.F.regular, color: GREY });
+  }
+}
+
+function centered(page, text, { x, w, y, size, font, color = BLACK }) {
+  const tw = font.widthOfTextAtSize(text, size);
+  page.drawText(text, { x: x + (w - tw) / 2, y, size, font, color });
+}
+
+// Shrink a font size until the text fits a width.
+function fitSize(font, text, maxWidth, start, min = 8) {
+  let s = start;
+  while (s > min && font.widthOfTextAtSize(text, s) > maxWidth) s -= 1;
+  return s;
+}
+
+function drawTitlePage(ctx, { title, subtitle, author }) {
+  const { page, box } = newPage(ctx);
+  const size = fitSize(ctx.F.bold, title, box.w, 36, 18);
+  const lines = wrap(ctx.F.bold, title, box.w, size);
+  let y = box.y + box.h * 0.62;
+  for (const line of lines) {
+    centered(page, line, { x: box.x, w: box.w, y, size, font: ctx.F.bold });
+    y -= size * 1.2;
+  }
+  if (subtitle) {
+    const ss = fitSize(ctx.F.regular, subtitle, box.w, 16, 10);
+    for (const line of wrap(ctx.F.regular, subtitle, box.w, ss)) {
+      y -= ss * 0.4;
+      centered(page, line, { x: box.x, w: box.w, y, size: ss, font: ctx.F.regular, color: GREY });
+      y -= ss * 1.2;
+    }
+  }
+  if (author) centered(page, author, { x: box.x, w: box.w, y: box.y + box.h * 0.2, size: 14, font: ctx.F.regular });
+  footer(ctx, page, box, { number: false });
+}
+
+function drawCopyrightPage(ctx, { title, author }) {
+  const { page, box } = newPage(ctx);
+  const year = new Date().getFullYear();
+  const lines = [
+    `${title}`,
+    author ? `Copyright © ${year} ${author}` : `Copyright © ${year}`,
+    "All rights reserved.",
+    "",
+    "No part of this book may be reproduced in any form",
+    "without written permission from the author.",
+  ];
+  let y = box.y + 80;
+  for (const line of lines.reverse()) {
+    if (line) centered(page, line, { x: box.x, w: box.w, y, size: 9, font: ctx.F.regular, color: GREY });
+    y += 13;
+  }
+  footer(ctx, page, box, { number: false });
+}
+
+function drawBlankPage(ctx) {
+  const { page, box } = newPage(ctx);
+  footer(ctx, page, box, { number: false });
+}
+
+function drawNotesPage(ctx) {
+  const { page, box } = newPage(ctx);
+  page.drawText("Notes", { x: box.x, y: box.y + box.h - 18, size: 16, font: ctx.F.bold });
+  const gap = 24;
+  for (let y = box.y + box.h - 48; y > box.y + 24; y -= gap) {
+    page.drawLine({ start: { x: box.x, y }, end: { x: box.x + box.w, y }, thickness: 0.5, color: SHADE });
+  }
+  footer(ctx, page, box);
+}
+
+function drawDividerPage(ctx, text) {
+  const { page, box } = newPage(ctx);
+  centered(page, text, { x: box.x, w: box.w, y: box.y + box.h / 2, size: 32, font: ctx.F.bold });
+  footer(ctx, page, box);
+}
+
+function drawPuzzlePage(ctx, puzzle) {
+  const { page, box } = newPage(ctx);
+  const F = ctx.F;
+
+  // Header
+  const headSize = 20;
+  const head = `Puzzle ${puzzle.index}`;
+  page.drawText(head, { x: box.x, y: box.y + box.h - headSize, size: headSize, font: F.bold });
+  const sub = puzzle.title;
+  const subSize = 12;
+  const subW = F.regular.widthOfTextAtSize(sub, subSize);
+  page.drawText(sub, { x: box.x + box.w - subW, y: box.y + box.h - headSize + 3, size: subSize, font: F.regular, color: GREY });
+
+  // Word bank size decides how much height the grid can have.
+  const words = puzzle.words;
+  const bankSize = box.w < 360 ? 10 : box.w < 480 ? 11 : 13;
+  const cols = bankColumns(F.regular, words, box.w, bankSize);
+  const rows = Math.ceil(words.length / cols);
+  const bankLine = bankSize * 1.45;
+  const bankH = rows * bankLine + 18;
+
+  const topY = box.y + box.h - headSize - 16;
+  const gridAvailH = topY - (box.y + 28) - bankH;
+  const gridSide = Math.min(box.w, gridAvailH);
+  const gridX = box.x + (box.w - gridSide) / 2;
+  const gridTop = topY;
+  drawGrid(page, F, puzzle, { x: gridX, top: gridTop, side: gridSide, solution: false });
+
+  // Word bank
+  const bankTop = gridTop - gridSide - 20;
+  const colW = box.w / cols;
+  words.forEach((w, i) => {
+    const c = i % cols;
+    const r = Math.floor(i / cols);
+    page.drawText(w, { x: box.x + c * colW, y: bankTop - r * bankLine - bankSize, size: bankSize, font: F.regular });
+  });
+
+  footer(ctx, page, box);
+}
+
+function bankColumns(font, words, width, size) {
+  const longest = Math.max(...words.map((w) => font.widthOfTextAtSize(w, size)), 1) + 14;
+  return Math.max(1, Math.min(4, Math.floor(width / longest)));
+}
+
+function drawGrid(page, F, puzzle, { x, top, side, solution }) {
+  const n = puzzle.size;
+  const cell = side / n;
+  const letterSize = cell * 0.62;
+  const shaded = new Set();
+  if (solution) {
+    for (const p of puzzle.placements) {
+      for (let i = 0; i < p.word.length; i++) shaded.add(`${p.row + p.dr * i},${p.col + p.dc * i}`);
+    }
+  }
+  const font = solution ? F.bold : F.regular;
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const cx = x + c * cell;
+      const cy = top - (r + 1) * cell;
+      const hit = shaded.has(`${r},${c}`);
+      if (hit) page.drawRectangle({ x: cx, y: cy, width: cell, height: cell, color: SHADE });
+      const ch = puzzle.grid[r][c];
+      const w = font.widthOfTextAtSize(ch, letterSize);
+      page.drawText(ch, {
+        x: cx + (cell - w) / 2,
+        y: cy + cell * 0.27,
+        size: letterSize,
+        font: solution && !hit ? F.regular : font,
+        color: solution && !hit ? GREY : BLACK,
+      });
+    }
+  }
+  // Thin frame
+  page.drawRectangle({ x, y: top - side, width: side, height: side, borderWidth: 0.75, borderColor: BLACK });
+}
+
+function drawSolutionsPage(ctx, puzzles, perPage) {
+  const { page, box } = newPage(ctx);
+  const F = ctx.F;
+  const cols = perPage <= 2 ? 1 : 2;
+  const rows = Math.ceil(perPage / cols);
+  const gap = 14;
+  const cellW = (box.w - gap * (cols - 1)) / cols;
+  const cellH = (box.h - 28 - gap * (rows - 1)) / rows;
+  const side = Math.min(cellW, cellH - 16);
+  puzzles.forEach((p, i) => {
+    const c = i % cols;
+    const r = Math.floor(i / cols);
+    const x = box.x + c * (cellW + gap) + (cellW - side) / 2;
+    const top = box.y + box.h - r * (cellH + gap);
+    page.drawText(`Puzzle ${p.index}`, { x, y: top - 10, size: 10, font: F.bold });
+    drawGrid(page, F, p, { x, top: top - 16, side, solution: true });
+  });
+  footer(ctx, page, box);
+}
+
+function wrap(font, text, maxWidth, size) {
+  const words = text.split(/\s+/);
+  const lines = [];
+  let cur = "";
+  for (const w of words) {
+    const next = cur ? `${cur} ${w}` : w;
+    if (font.widthOfTextAtSize(next, size) > maxWidth && cur) {
+      lines.push(cur);
+      cur = w;
+    } else cur = next;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
