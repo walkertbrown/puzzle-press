@@ -52,7 +52,7 @@ await card.setContent(shell(
      <div class="copy">
        <div class="kicker">Puzzle Press</div>
        <h1>Word search books,<br>ready for KDP.</h1>
-       <p>Puzzles, word banks and solutions laid out as one print-ready PDF — correct trim, gutter margins and embedded fonts.</p>
+       <p>Interior and cover, print-ready. Correct trim, gutter margins, embedded fonts, and a spine measured to your page count.</p>
        <div class="tag">puzzlepress.bananafest-destiny.com</div>
      </div>
      <div class="shot"><img src="${puzzle}"></div>

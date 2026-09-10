@@ -22,6 +22,9 @@ const page = await browser.newPage({ viewport: { width: W, height: H }, acceptDo
 const shoot = async (ms = 900) => frames.push({ png: await page.screenshot(), ms });
 
 await page.goto(base, { waitUntil: "networkidle" });
+// Run as a licensed user so the demo can show the cover, which is paid.
+await page.evaluate(() => localStorage.setItem("puzzlepress.license", JSON.stringify({ email: "demo@example.com", token: "demo", verifiedAt: Date.now() })));
+await page.reload({ waitUntil: "networkidle" });
 await page.waitForSelector(".grid div");
 
 // 1. Land on the tool itself.
@@ -52,6 +55,13 @@ const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 180000 
 const pdfPath = join(tmp, "demo.pdf");
 await dl.saveAs(pdfPath);
 await page.waitForTimeout(300);
+await shoot(1400);
+
+// 5b. And the cover, sized from the book that was just made.
+const [cdl] = await Promise.all([page.waitForEvent("download", { timeout: 180000 }), page.click("#downloadCover")]);
+const coverPath = join(tmp, "cover.pdf");
+await cdl.saveAs(coverPath);
+await page.waitForTimeout(300);
 await shoot(1600);
 
 await browser.close();
@@ -59,15 +69,16 @@ await browser.close();
 // 6. Finish on real pages from the PDF it just made.
 const shots = await chromium.launch();
 const viewer = await shots.newPage({ viewport: { width: W, height: H } });
-for (const [pageNo, caption] of [[3, "Every puzzle unique"], [4, "Solutions included"]]) {
-  const prefix = join(tmp, `pg${pageNo}`);
-  execFileSync("pdftoppm", ["-r", "110", "-f", String(pageNo), "-l", String(pageNo), "-png", pdfPath, prefix]);
-  const file = `${prefix}-0${pageNo}.png`;
+for (const [pageNo, caption, src] of [[3, "Every puzzle unique", pdfPath], [4, "Solutions included", pdfPath], [1, "And a cover, spine and all", coverPath]]) {
+  const prefix = join(tmp, `pg${src === coverPath ? "c" : ""}${pageNo}`);
+  execFileSync("pdftoppm", ["-r", "110", "-f", String(pageNo), "-l", String(pageNo), "-png", src, prefix]);
+  const file = `${prefix}-${src === coverPath ? pageNo : "0" + pageNo}.png`;
   const uri = `data:image/png;base64,${readFileSync(file).toString("base64")}`;
+  const wide = src === coverPath;
   await viewer.setContent(`<!doctype html><meta charset="utf-8"><style>
     body{margin:0;height:${H}px;display:flex;align-items:center;justify-content:center;gap:34px;
          background:linear-gradient(160deg,#eef1f6,#e2e7f0);font:600 26px system-ui,sans-serif;color:#1d3557}
-    img{height:${H - 70}px;border-radius:4px;background:#fff;box-shadow:0 16px 40px rgba(20,30,50,.22)}
+    img{${wide ? `width:${Math.round(W * 0.6)}px` : `height:${H - 70}px`};border-radius:4px;background:#fff;box-shadow:0 16px 40px rgba(20,30,50,.22)}
     span{max-width:9em}</style><img src="${uri}"><span>${caption}</span>`);
   await viewer.waitForTimeout(250);
   frames.push({ png: await viewer.screenshot(), ms: 1800 });
