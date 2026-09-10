@@ -58,10 +58,13 @@ Considered and rejected:
 1. `social-card.png` — the card, sets the frame
 2. `demo.gif` — the whole flow in seven beats; this is the one that converts
 3. `hero-book.png` — a puzzle page beside its solutions page
-4. A screenshot of the tool with the preview showing
-5. A solutions page close-up
+4. `gallery/04-the-tool.png` — the tool mid-use, preview showing
+5. `gallery/05-solutions.png` — a solutions page, close
 
-All are in `app/public/` and regenerate with `npm run images` / `npm run demo`.
+All are in `app/public/` and regenerate with `npm run images`, `npm run gallery`
+and `npm run demo`, so they never drift from what the product actually does.
+Live copies: /social-card.png, /demo.gif, /hero-book.png,
+/gallery/04-the-tool.png, /gallery/05-solutions.png
 
 ---
 
