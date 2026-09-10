@@ -238,3 +238,10 @@ el.verify.addEventListener("click", async () => {
 
 refreshTier();
 regenerate();
+
+// Stripe's payment link sends the buyer back to /?paid=1. Open the unlock
+// dialog so the next step is obvious.
+if (new URLSearchParams(location.search).get("paid") && !getLicense()) {
+  history.replaceState(null, "", location.pathname);
+  openUnlock();
+}

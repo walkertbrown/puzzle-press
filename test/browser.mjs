@@ -13,7 +13,8 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 1000 }, acceptDownloads: true });
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
-page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+// Expected: /api/verify answers 4xx/5xx for unknown emails; that is not a page error.
+page.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });
 
 await page.goto(base, { waitUntil: "networkidle" });
 await page.waitForSelector(".grid div");
@@ -34,6 +35,20 @@ const free = await downloadPdf("free.pdf");
 const freePdf = await PDFDocument.load(await (await import("node:fs")).promises.readFile(free.path));
 console.log("free:", free.filename, free.status, "pages", freePdf.getPageCount());
 if (freePdf.getPageCount() !== 24) throw new Error("free-tier book should be 24 pages");
+
+// 1b. Unlock dialog: shows the Buy link when the Worker injected a pay URL,
+// and a wrong email is refused without breaking the page.
+const payUrl = await page.evaluate(() => window.PUZZLE_PRESS_PAY_URL || "");
+await page.click("#unlockLink");
+await page.waitForSelector("#unlockDialog[open]");
+const buyLine = await page.textContent("#buyLine");
+console.log("pay url:", JSON.stringify(payUrl), "| dialog:", buyLine.trim());
+if (payUrl && !(await page.$("#buyLine a"))) throw new Error("Buy link missing although pay URL is set");
+await page.fill("#email", "nobody@example.com");
+await page.click("#verify");
+await page.waitForFunction(() => document.getElementById("unlockErr").textContent.length > 0);
+console.log("verify(nobody):", await page.textContent("#unlockErr"));
+await page.click("#closeDialog");
 
 // 2. Licensed: fake a licence record in localStorage, 60 puzzles, hard, 8.5x11, custom words.
 await page.evaluate(() => localStorage.setItem("puzzlepress.license", JSON.stringify({ email: "test@example.com", token: "dev", verifiedAt: Date.now() })));

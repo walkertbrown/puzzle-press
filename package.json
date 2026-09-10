@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
-    "playwright": "^1.55.0"
+    "playwright": "^1.55.0",
+    "wrangler": "^4.131.0"
   }
 }
