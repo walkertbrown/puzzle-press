@@ -13,7 +13,7 @@ const $ = (id) => document.getElementById(id);
 const el = {
   title: $("title"), subtitle: $("subtitle"), author: $("author"), trim: $("trim"), count: $("count"), bleed: $("bleed"),
   themes: $("themes"), custom: $("custom"), customTitle: $("customTitle"),
-  wpp: $("wpp"), difficulty: $("difficulty"), size: $("size"), seed: $("seed"),
+  wpp: $("wpp"), difficulty: $("difficulty"), size: $("size"), seed: $("seed"), largePrint: $("largePrint"),
   download: $("download"), reshuffle: $("reshuffle"), status: $("status"), tier: $("tier"), warnings: $("warnings"),
   meta: $("meta"), page: $("page"), prev: $("prev"), next: $("next"), navLabel: $("navLabel"),
   dialog: $("unlockDialog"), buyLine: $("buyLine"), email: $("email"), unlockErr: $("unlockErr"), verify: $("verify"), closeDialog: $("closeDialog"),
@@ -204,6 +204,24 @@ const debounced = () => {
   clearTimeout(timer);
   timer = setTimeout(regenerate, 150);
 };
+// Large print is the biggest sub-niche in puzzle books. It was always possible
+// (big trim, fewer words) but nobody found it, so make it one checkbox.
+const LARGE_PRINT = { trim: "8.5x11", size: "15", wpp: "14" };
+el.largePrint.addEventListener("change", () => {
+  if (!el.largePrint.checked) return;
+  el.trim.value = LARGE_PRINT.trim;
+  el.size.value = LARGE_PRINT.size;
+  el.wpp.value = LARGE_PRINT.wpp;
+  regenerate();
+});
+// Changing any of those by hand means you are no longer on the preset.
+for (const id of ["trim", "size", "wpp"]) {
+  el[id].addEventListener("change", () => {
+    const onPreset = el.trim.value === LARGE_PRINT.trim && el.size.value === LARGE_PRINT.size && el.wpp.value === LARGE_PRINT.wpp;
+    if (!onPreset) el.largePrint.checked = false;
+  });
+}
+
 for (const id of ["title", "subtitle", "author", "trim", "count", "bleed", "custom", "customTitle", "wpp", "difficulty", "size", "seed"]) {
   el[id].addEventListener("input", debounced);
   el[id].addEventListener("change", debounced);

@@ -10,7 +10,8 @@
     "sample": "node scripts/sample.mjs",
     "test:browser": "node test/browser.mjs",
     "images": "node scripts/images.mjs",
-    "demo": "node scripts/demo.mjs"
+    "demo": "node scripts/demo.mjs",
+    "gallery": "node scripts/gallery.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
