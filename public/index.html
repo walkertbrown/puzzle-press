@@ -124,7 +124,7 @@
   <div class="hero-inner">
     <div>
       <h2>A finished KDP puzzle book, in about a minute.</h2>
-      <p class="lede">Pick from 32 themes or paste your own words. Puzzle Press lays out the whole paperback interior — puzzles, word banks, solutions, page numbers — as one PDF that meets Amazon KDP's manuscript rules. No sign-up, nothing to install.</p>
+      <p class="lede">Pick from 32 themes or paste your own words. Puzzle Press lays out the whole paperback interior — puzzles, word banks, solutions, page numbers — as one PDF that meets Amazon KDP's manuscript rules, then makes a matching cover with the spine measured to your exact page count. No sign-up, nothing to install.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="#tool">Make a book free</a>
         <a class="btn btn-ghost" href="samples/sample-6x9.pdf" target="_blank" rel="noopener">See a finished book (PDF)</a>
@@ -132,6 +132,7 @@
       </div>
       <ul class="trust">
         <li>32 themes, or your own words</li>
+        <li>Interior <em>and</em> cover</li>
         <li>Large print option</li>
         <li>KDP trim sizes &amp; gutter margins</li>
         <li>Fonts embedded</li>
@@ -165,6 +166,13 @@
           <input type="number" id="count" value="50" min="1" max="200">
         </div>
       </div>
+      <label for="paper">Paper (sets the spine width on the cover)</label>
+      <select id="paper">
+        <option value="cream" selected>Black &amp; white on cream — usual for puzzle books</option>
+        <option value="white">Black &amp; white on white</option>
+        <option value="premiumColor">Premium colour</option>
+        <option value="standardColor">Standard colour</option>
+      </select>
       <div class="check"><input type="checkbox" id="largePrint"><label for="largePrint" style="margin:0"><strong>Large print</strong> — bigger letters, easier grids</label></div>
       <div class="check"><input type="checkbox" id="bleed"><label for="bleed" style="margin:0">Bleed (only if you add full-page images later)</label></div>
     </fieldset>
@@ -209,9 +217,11 @@ cherry"></textarea>
     </fieldset>
 
     <div class="actions">
-      <button class="primary" id="download">Download PDF</button>
+      <button class="primary" id="download">Download interior PDF</button>
+      <button id="downloadCover">Download cover</button>
       <button id="reshuffle">Reshuffle</button>
     </div>
+    <div class="status" id="coverNote"></div>
     <div class="status" id="status"></div>
     <div class="tier" id="tier"></div>
     <div class="warnings" id="warnings"></div>
@@ -270,6 +280,10 @@ cherry"></textarea>
         <h3>Minimum length handled</h3>
         <p>KDP needs at least 24 pages and an even page count. Short books get tidy lined Notes pages instead of a bounced upload.</p>
       </div>
+      <div>
+        <h3>A cover with the right spine</h3>
+        <p>Spine width is your page count times the paper thickness — get it wrong and the whole wrap is rejected. Puzzle Press knows the page count because it made the interior, so the cover comes out at the exact size, barcode area left clear.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -311,6 +325,7 @@ cherry"></textarea>
           <li>Every trim size and difficulty</li>
           <li>Solutions included</li>
           <li>Small "made with Puzzle Press" footer</li>
+          <li>Interior only</li>
         </ul>
       </div>
       <div class="col">
@@ -319,6 +334,7 @@ cherry"></textarea>
           <li>Unlimited puzzles per book</li>
           <li>Unlimited books, forever</li>
           <li>No footer line</li>
+          <li>Matching cover, spine sized to your book</li>
           <li>Sell what you make — I claim no rights to it</li>
         </ul>
         <p style="margin:14px 0 0"><a class="btn btn-primary" id="buyNow" href="#tool">Buy — $19</a></p>
@@ -338,6 +354,8 @@ cherry"></textarea>
       <p>Only if artwork runs off the edge of the page. A plain puzzle book does not — leave bleed off. Turning it on makes the PDF page slightly larger, which KDP expects for full-bleed interiors and flags as an error otherwise.</p></details>
     <details class="faq"><summary>Can I sell the books I make?</summary>
       <p>Yes. Books you generate are yours — publish them, sell them, give them away. I claim no rights to the output and no royalty on it.</p></details>
+    <details class="faq"><summary>Does it make the cover too?</summary>
+      <p>Yes — a full wrap with back cover, spine and front on one PDF, sized from the page count of the interior it just made. Spine width is page count times paper thickness, which is why the paper setting matters. KDP only allows text on the spine from 79 pages up, so shorter books get a blank one. The barcode area on the back is left clear. Cover generation is part of the paid unlock.</p></details>
     <details class="faq"><summary>How many puzzles should a book have?</summary>
       <p>Most published word search books run 50 to 100 puzzles. KDP needs at least 24 pages; a 40-puzzle book with solutions comfortably clears that. Notes pages are added automatically if a very short book would fall under.</p></details>
     <details class="faq"><summary>Does my word list get uploaded anywhere?</summary>

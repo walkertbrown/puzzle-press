@@ -2,6 +2,7 @@ import { THEMES } from "../generator/wordlists.js";
 import { generateBook } from "../generator/book.js";
 import { TRIMS } from "../pdf/kdp.js";
 import { renderBook, planPages, solutionsThatFit } from "../pdf/render.js";
+import { renderCover, coverGeometry, spineWidthInches, SPINE_TEXT_MIN_PAGES } from "../pdf/cover.js";
 import { pageGeometry } from "../pdf/kdp.js";
 import { FREE_LIMIT, PRICE_LABEL, getLicense, setLicense, verifyEmail } from "./license.js";
 
@@ -14,7 +15,7 @@ const el = {
   title: $("title"), subtitle: $("subtitle"), author: $("author"), trim: $("trim"), count: $("count"), bleed: $("bleed"),
   themes: $("themes"), custom: $("custom"), customTitle: $("customTitle"),
   wpp: $("wpp"), difficulty: $("difficulty"), size: $("size"), seed: $("seed"), largePrint: $("largePrint"),
-  download: $("download"), reshuffle: $("reshuffle"), status: $("status"), tier: $("tier"), warnings: $("warnings"),
+  download: $("download"), downloadCover: $("downloadCover"), coverNote: $("coverNote"), paper: $("paper"), reshuffle: $("reshuffle"), status: $("status"), tier: $("tier"), warnings: $("warnings"),
   meta: $("meta"), page: $("page"), prev: $("prev"), next: $("next"), navLabel: $("navLabel"),
   dialog: $("unlockDialog"), buyLine: $("buyLine"), email: $("email"), unlockErr: $("unlockErr"), verify: $("verify"), closeDialog: $("closeDialog"),
 };
@@ -60,6 +61,7 @@ function settings() {
     subtitle: el.subtitle.value.trim(),
     author: el.author.value.trim(),
     trim: el.trim.value,
+    paper: el.paper.value,
     bleed: el.bleed.checked,
     count: n(el.count.value, 1, 200, 50),
     wordsPerPuzzle: n(el.wpp.value, 5, 30, 15),
@@ -90,6 +92,12 @@ function regenerate() {
   const perPage = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }));
   const pages = planPages(s.count, perPage).total;
   el.meta.textContent = `${s.count} puzzles · ${TRIMS[s.trim].label} · ${pages} pages`;
+  const spine = spineWidthInches(pages, s.paper);
+  el.coverNote.textContent =
+    `Cover: ${(coverGeometry({ trim: s.trim, pageCount: pages, paper: s.paper }).width / 72).toFixed(3)}" × ` +
+    `${(coverGeometry({ trim: s.trim, pageCount: pages, paper: s.paper }).height / 72).toFixed(3)}" ` +
+    `(spine ${spine.toFixed(3)}")` +
+    (pages < SPINE_TEXT_MIN_PAGES ? ` — under ${SPINE_TEXT_MIN_PAGES} pages, so KDP wants the spine blank` : "");
   el.warnings.textContent = book.warnings.join("\n");
 }
 
@@ -193,6 +201,50 @@ async function download() {
   }
 }
 
+// The cover is the paid half: the free tier makes a real interior, but a
+// finished book needs a wrap sized to its own page count.
+async function downloadCover() {
+  if (!getLicense()) {
+    openUnlock();
+    return;
+  }
+  const s = settings();
+  if (s.pools.length === 0) return;
+  el.downloadCover.disabled = true;
+  try {
+    el.status.textContent = "Building the cover…";
+    await tick();
+    const perPage = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }));
+    const pages = planPages(s.count, perPage).total;
+    const one = generateBook({ ...s, count: 1 });
+    const fonts = await loadFonts();
+    const bytes = await renderCover({
+      title: s.title,
+      subtitle: s.subtitle,
+      author: s.author,
+      trim: s.trim,
+      paper: s.paper,
+      pageCount: pages,
+      puzzleCount: s.count,
+      samplePuzzle: one.puzzles[0],
+      seed: s.seed,
+      fonts,
+    });
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${slug(s.title)}-cover-${s.trim}.pdf`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    el.status.textContent = `Cover ready — sized for ${pages} pages on ${s.paper === "cream" ? "cream" : "white"} paper.`;
+  } catch (err) {
+    console.error(err);
+    el.status.textContent = `Could not build the cover: ${err.message}`;
+  } finally {
+    el.downloadCover.disabled = false;
+  }
+}
+
 const tick = () => new Promise((r) => setTimeout(r, 0));
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "book";
 const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -222,7 +274,7 @@ for (const id of ["trim", "size", "wpp"]) {
   });
 }
 
-for (const id of ["title", "subtitle", "author", "trim", "count", "bleed", "custom", "customTitle", "wpp", "difficulty", "size", "seed"]) {
+for (const id of ["title", "subtitle", "author", "trim", "paper", "count", "bleed", "custom", "customTitle", "wpp", "difficulty", "size", "seed"]) {
   el[id].addEventListener("input", debounced);
   el[id].addEventListener("change", debounced);
 }
@@ -234,6 +286,7 @@ el.reshuffle.addEventListener("click", () => {
 el.prev.addEventListener("click", () => { shown = Math.max(0, shown - 1); showPuzzle(); });
 el.next.addEventListener("click", () => { shown = Math.min(book.puzzles.length - 1, shown + 1); showPuzzle(); });
 el.download.addEventListener("click", download);
+el.downloadCover.addEventListener("click", downloadCover);
 el.closeDialog.addEventListener("click", () => el.dialog.close());
 el.verify.addEventListener("click", async () => {
   const email = el.email.value.trim();
