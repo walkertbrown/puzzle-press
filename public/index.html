@@ -3,8 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Puzzle Press — KDP word search book generator</title>
-<meta name="description" content="Make a complete, print-ready word search puzzle book for Amazon KDP in your browser. Correct trim size, margins and bleed, solutions included. Pay once.">
+<title>Word Search Book Generator for Amazon KDP — Puzzle Press</title>
+<meta name="description" content="Make a complete, print-ready word search puzzle book for Amazon KDP in your browser. Correct trim size, gutter margins, bleed and embedded fonts. Solutions included. $19 once, unlimited books.">
+<link rel="canonical" href="https://puzzlepress.bananafest-destiny.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Puzzle Press">
+<meta property="og:url" content="https://puzzlepress.bananafest-destiny.com/">
+<meta property="og:title" content="Word Search Book Generator for Amazon KDP">
+<meta property="og:description" content="A finished paperback interior in one click — puzzles, word banks, solutions, KDP-correct margins and embedded fonts. Try it free, no sign-up.">
+<meta property="og:image" content="https://puzzlepress.bananafest-destiny.com/social-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Word Search Book Generator for Amazon KDP">
+<meta name="twitter:description" content="A finished paperback interior in one click — puzzles, word banks, solutions, KDP-correct margins and embedded fonts.">
+<meta name="twitter:image" content="https://puzzlepress.bananafest-destiny.com/social-card.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d3557'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-weight='700' font-size='18' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
 <style>
   :root {
@@ -55,7 +68,42 @@
   .nav { display: flex; gap: 8px; align-items: center; justify-content: center; }
   .how { color: var(--muted); font-size: 14px; }
   .how ol { padding-left: 20px; margin: 6px 0; }
-  footer { color: var(--muted); font-size: 13px; text-align: center; padding: 24px; }
+  footer { color: var(--muted); font-size: 13px; text-align: center; padding: 32px 24px; border-top: 1px solid var(--line); background: var(--card); }
+  footer a { color: var(--muted); }
+
+  /* Hero */
+  .hero { background: var(--card); border-bottom: 1px solid var(--line); padding: 40px 24px 32px; }
+  .hero-inner { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 1.15fr 1fr; gap: 40px; align-items: center; }
+  @media (max-width: 860px) { .hero-inner { grid-template-columns: 1fr; gap: 24px; } }
+  .hero h2 { margin: 0 0 12px; font-size: clamp(26px, 3.6vw, 40px); line-height: 1.15; letter-spacing: -0.02em; }
+  .hero .lede { margin: 0 0 18px; font-size: 17px; color: var(--muted); max-width: 60ch; }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .hero-cta .note { font-size: 13px; color: var(--muted); }
+  .btn { display: inline-block; text-decoration: none; font: inherit; font-weight: 600; padding: 12px 20px; border-radius: 8px; border: 1px solid var(--accent); }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-ghost { background: transparent; color: var(--accent); }
+  .hero-shot { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: 0 8px 28px rgba(20,30,50,0.10); background: #fff; }
+  .hero-shot img { display: block; width: 100%; height: auto; }
+  .trust { margin: 22px 0 0; padding: 0; list-style: none; display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+  .trust li::before { content: "✓"; color: var(--ok); font-weight: 700; margin-right: 6px; }
+
+  /* Sections */
+  .band { padding: 40px 24px; border-bottom: 1px solid var(--line); }
+  .band.alt { background: var(--card); }
+  .band-inner { max-width: 1100px; margin: 0 auto; }
+  .band h2 { margin: 0 0 6px; font-size: 24px; letter-spacing: -0.01em; }
+  .band .sub { margin: 0 0 24px; color: var(--muted); max-width: 68ch; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .cols h3 { margin: 0 0 6px; font-size: 16px; }
+  .cols p { margin: 0; color: var(--muted); font-size: 14px; }
+  .price { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 12px; padding: 24px; background: var(--card); }
+  .price .amount { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; }
+  .price ul { margin: 0; padding-left: 20px; color: var(--muted); font-size: 14px; }
+  .price .col { flex: 1 1 220px; }
+  details.faq { border-bottom: 1px solid var(--line); padding: 14px 0; }
+  details.faq summary { cursor: pointer; font-weight: 600; }
+  details.faq p { color: var(--muted); margin: 10px 0 0; max-width: 76ch; }
+  #tool { scroll-margin-top: 12px; }
   dialog { border: 1px solid var(--line); border-radius: 12px; padding: 22px; max-width: 420px; width: calc(100% - 32px); }
   dialog::backdrop { background: rgba(0,0,0,0.35); }
   dialog h2 { margin: 0 0 8px; font-size: 18px; }
@@ -68,10 +116,34 @@
   <h1>Puzzle Press</h1>
   <p>Word search books for Amazon KDP, made in your browser.</p>
   <span class="spacer"></span>
+  <a href="#pricing">Pricing</a>
   <a href="samples/sample-6x9.pdf" target="_blank" rel="noopener">See a sample book (PDF)</a>
 </header>
 
-<main>
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <h2>A finished KDP puzzle book, in about a minute.</h2>
+      <p class="lede">Pick a theme or paste your own words. Puzzle Press lays out the whole paperback interior — puzzles, word banks, solutions, page numbers — as one PDF that meets Amazon KDP's manuscript rules. No sign-up, nothing to install.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#tool">Make a book free</a>
+        <a class="btn btn-ghost" href="samples/sample-6x9.pdf" target="_blank" rel="noopener">See a finished book (PDF)</a>
+        <span class="note">Free books up to 5 puzzles. $19 once for unlimited.</span>
+      </div>
+      <ul class="trust">
+        <li>KDP trim sizes &amp; gutter margins</li>
+        <li>Fonts embedded</li>
+        <li>Solutions included</li>
+        <li>Your words stay in your browser</li>
+      </ul>
+    </div>
+    <div class="hero-shot">
+      <img src="hero-book.png" width="1000" height="700" alt="A page from a generated word search book beside its solutions page" loading="eager">
+    </div>
+  </div>
+</section>
+
+<main id="tool">
   <section class="card" id="settings">
     <fieldset>
       <legend>Book</legend>
@@ -165,7 +237,145 @@ cherry"></textarea>
   </section>
 </main>
 
-<footer>Puzzle Press · Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc.</footer>
+<section class="band">
+  <div class="band-inner" style="text-align:center">
+    <h2>From word list to finished book</h2>
+    <p class="sub" style="margin-left:auto;margin-right:auto">No sign-up, no install, no waiting on a render queue. This is the whole thing, start to finish.</p>
+    <img src="demo.gif" width="900" height="620" alt="Choosing a Christmas theme, setting 60 puzzles on hard, and downloading the finished PDF" loading="lazy"
+         style="max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(20,30,50,.10)">
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="band-inner">
+    <h2>Why your manuscript won't come back rejected</h2>
+    <p class="sub">Most puzzle generators hand you a grid. KDP rejects a file for the boring reasons — wrong margins, fonts that aren't embedded, too few pages. Puzzle Press handles those before you upload.</p>
+    <div class="cols">
+      <div>
+        <h3>Gutter margins by page count</h3>
+        <p>KDP widens the inside margin as a book gets thicker. Puzzle Press counts your pages first, picks the right gutter, and swaps it to the correct side on left- and right-hand pages.</p>
+      </div>
+      <div>
+        <h3>Six trim sizes, bleed or not</h3>
+        <p>6×9, 8.5×11, 8×10, 7×10, 5.5×8.5, 5×8. Turn on bleed and the page grows by exactly what KDP asks for, with the safe area pulled in to match.</p>
+      </div>
+      <div>
+        <h3>Fonts embedded and subset</h3>
+        <p>An un-embedded font is one of the most common rejections. Every PDF carries its own fonts, so the file prints the same everywhere.</p>
+      </div>
+      <div>
+        <h3>Minimum length handled</h3>
+        <p>KDP needs at least 24 pages and an even page count. Short books get tidy lined Notes pages instead of a bounced upload.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="band-inner">
+    <h2>Why the puzzles hold up</h2>
+    <p class="sub">Anyone can scatter letters in a grid. These are the mistakes that earn one-star reviews, and each one is designed out.</p>
+    <div class="cols">
+      <div>
+        <h3>Every word appears exactly once</h3>
+        <p>Crossing words can spell a second copy of another answer by accident. Layouts that do it are thrown away and rebuilt, so a solver never finds two of the same word.</p>
+      </div>
+      <div>
+        <h3>No word hidden inside another</h3>
+        <p>DEER sitting inside REINDEER makes a puzzle unsolvable-feeling. They never share a grid — though both still appear across the book.</p>
+      </div>
+      <div>
+        <h3>Filler letters are screened</h3>
+        <p>Random fill occasionally spells something you would not want in a book for children or grandparents. Every grid is checked and refilled if it does.</p>
+      </div>
+      <div>
+        <h3>No repeated puzzles</h3>
+        <p>Every puzzle in a book draws its own word set. A 100-puzzle book is 100 different puzzles, not a shuffle of the same twenty.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="pricing">
+  <div class="band-inner">
+    <h2>Pricing</h2>
+    <p class="sub">Try it as long as you like before paying. The free tier makes real books — just shorter, with one small line in the footer.</p>
+    <div class="price">
+      <div class="col">
+        <div class="amount">Free</div>
+        <ul>
+          <li>Books up to 5 puzzles</li>
+          <li>Every trim size and difficulty</li>
+          <li>Solutions included</li>
+          <li>Small "made with Puzzle Press" footer</li>
+        </ul>
+      </div>
+      <div class="col">
+        <div class="amount">$19 <span style="font-size:15px;font-weight:400;color:var(--muted)">once</span></div>
+        <ul>
+          <li>Unlimited puzzles per book</li>
+          <li>Unlimited books, forever</li>
+          <li>No footer line</li>
+          <li>Sell what you make — I claim no rights to it</li>
+        </ul>
+        <p style="margin:14px 0 0"><a class="btn btn-primary" id="buyNow" href="#tool">Buy — $19</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="band-inner">
+    <h2>Questions people actually ask</h2>
+    <details class="faq"><summary>What margins does KDP need for my book?</summary>
+      <p>The outside, top and bottom need at least 0.25 inch (0.375 inch if you use bleed). The inside — the gutter — depends on thickness: 0.375 inch up to 150 pages, 0.5 inch to 300, 0.625 inch to 500, 0.75 inch to 700, and 0.875 inch beyond that. Puzzle Press works out your final page count and applies the right one automatically.</p></details>
+    <details class="faq"><summary>Which trim size should I pick?</summary>
+      <p>6×9 inches is the most common for puzzle books and the cheapest to print. 8.5×11 gives bigger grids and suits large-print books for older solvers. Both are available here, along with 8×10, 7×10, 5.5×8.5 and 5×8.</p></details>
+    <details class="faq"><summary>Do I need bleed?</summary>
+      <p>Only if artwork runs off the edge of the page. A plain puzzle book does not — leave bleed off. Turning it on makes the PDF page slightly larger, which KDP expects for full-bleed interiors and flags as an error otherwise.</p></details>
+    <details class="faq"><summary>Can I sell the books I make?</summary>
+      <p>Yes. Books you generate are yours — publish them, sell them, give them away. I claim no rights to the output and no royalty on it.</p></details>
+    <details class="faq"><summary>How many puzzles should a book have?</summary>
+      <p>Most published word search books run 50 to 100 puzzles. KDP needs at least 24 pages; a 40-puzzle book with solutions comfortably clears that. Notes pages are added automatically if a very short book would fall under.</p></details>
+    <details class="faq"><summary>Does my word list get uploaded anywhere?</summary>
+      <p>No. Puzzles and the PDF are built entirely in your browser. Nothing you type is sent to a server — the only thing that ever leaves your machine is the email you enter to unlock, which is checked against Stripe.</p></details>
+    <details class="faq"><summary>What if I lose the file?</summary>
+      <p>Generate it again. Each book has a seed shown in the settings — put the same seed and settings back in and you get the identical book.</p></details>
+  </div>
+</section>
+
+<footer>
+  <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app.</p>
+  <p>Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc.</p>
+</footer>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "Puzzle Press",
+      "url": "https://puzzlepress.bananafest-destiny.com/",
+      "applicationCategory": "DesignApplication",
+      "operatingSystem": "Any browser",
+      "description": "Generates print-ready word search puzzle books as PDFs that meet Amazon KDP paperback manuscript requirements.",
+      "offers": { "@type": "Offer", "price": "19.00", "priceCurrency": "USD" },
+      "publisher": { "@type": "Organization", "name": "Bananafest Destiny" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What margins does KDP need for my book?", "acceptedAnswer": { "@type": "Answer", "text": "Outside, top and bottom need at least 0.25 inch, or 0.375 inch with bleed. The inside gutter depends on page count: 0.375 inch up to 150 pages, 0.5 inch to 300, 0.625 inch to 500, 0.75 inch to 700, 0.875 inch beyond." } },
+        { "@type": "Question", "name": "Which trim size should I pick?", "acceptedAnswer": { "@type": "Answer", "text": "6x9 inches is the most common for puzzle books and cheapest to print. 8.5x11 gives bigger grids and suits large-print books." } },
+        { "@type": "Question", "name": "Do I need bleed?", "acceptedAnswer": { "@type": "Answer", "text": "Only if artwork runs off the edge of the page. A plain puzzle book does not need bleed." } },
+        { "@type": "Question", "name": "Can I sell the books I make?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Books you generate are yours to publish and sell. Puzzle Press claims no rights to the output." } },
+        { "@type": "Question", "name": "Does my word list get uploaded anywhere?", "acceptedAnswer": { "@type": "Answer", "text": "No. Puzzles and the PDF are built entirely in your browser." } }
+      ]
+    }
+  ]
+}
+</script>
 
 <dialog id="unlockDialog">
   <h2>Unlock full books</h2>
