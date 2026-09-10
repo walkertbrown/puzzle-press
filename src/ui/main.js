@@ -236,6 +236,16 @@ el.verify.addEventListener("click", async () => {
   }
 });
 
+// The pricing block's Buy button opens the same dialog as the tier link.
+document.getElementById("buyNow")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  if (getLicense()) {
+    document.getElementById("tool").scrollIntoView({ behavior: "smooth" });
+    return;
+  }
+  openUnlock();
+});
+
 refreshTier();
 regenerate();
 
