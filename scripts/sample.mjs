@@ -2,7 +2,9 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { generateBook } from "../src/generator/book.js";
 import { THEMES } from "../src/generator/wordlists.js";
-import { renderBook } from "../src/pdf/render.js";
+import { renderBook, planPages, solutionsThatFit } from "../src/pdf/render.js";
+import { renderCover } from "../src/pdf/cover.js";
+import { pageGeometry } from "../src/pdf/kdp.js";
 const fonts = {
   regular: readFileSync(new URL("../public/fonts/LiberationSans-Regular.ttf", import.meta.url)),
   bold: readFileSync(new URL("../public/fonts/LiberationSans-Bold.ttf", import.meta.url)),
@@ -11,3 +13,20 @@ const book = generateBook({ pools: [THEMES.garden, THEMES.kitchen], count: 20, w
 const bytes = await renderBook(book, { title: "Garden & Kitchen Word Search", subtitle: "20 puzzles with solutions — sample book", author: "Puzzle Press", trim: "6x9", licensed: true, fonts });
 writeFileSync(new URL("../public/samples/sample-6x9.pdf", import.meta.url), bytes);
 console.log("wrote public/samples/sample-6x9.pdf", bytes.length, "bytes,", book.warnings);
+
+// The matching cover, so a visitor can judge the paid half before paying.
+const pages = planPages(20, solutionsThatFit(pageGeometry({ trim: "6x9" }))).total;
+const cover = await renderCover({
+  title: "Garden & Kitchen Word Search",
+  subtitle: "20 puzzles with solutions — sample book",
+  author: "Puzzle Press",
+  trim: "6x9",
+  paper: "cream",
+  pageCount: pages,
+  puzzleCount: 20,
+  samplePuzzle: book.puzzles[0],
+  seed: "public-sample-1",
+  fonts,
+});
+writeFileSync(new URL("../public/samples/sample-cover-6x9.pdf", import.meta.url), cover);
+console.log("wrote public/samples/sample-cover-6x9.pdf", cover.length, "bytes, sized for", pages, "pages");
