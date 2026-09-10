@@ -10,6 +10,9 @@
     "run_worker_first": ["/config.js", "/api/*"]
   },
   "observability": { "enabled": true },
+  // Studio domain. Bananafest Destiny is the studio; products live on subdomains.
+  "routes": [{ "pattern": "puzzlepress.bananafest-destiny.com", "custom_domain": true }],
+  "workers_dev": true,
   // Non-secret config. Secrets (STRIPE_KEY) are set with `wrangler secret put`.
   "vars": {
     "PAY_URL": ""

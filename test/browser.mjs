@@ -9,7 +9,11 @@ const base = process.argv[2] || "http://127.0.0.1:8787";
 const out = new URL("../samples/browser/", import.meta.url);
 mkdirSync(out, { recursive: true });
 
-const browser = await chromium.launch();
+// HOST_MAP="example.com 1.2.3.4" pins DNS for the run — useful right after a
+// custom domain is created, while a local resolver still has the old answer.
+const browser = await chromium.launch({
+  args: process.env.HOST_MAP ? [`--host-resolver-rules=MAP ${process.env.HOST_MAP}`] : [],
+});
 const page = await browser.newPage({ viewport: { width: 1280, height: 1000 }, acceptDownloads: true });
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
