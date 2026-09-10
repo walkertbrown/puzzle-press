@@ -1,2 +1,3 @@
-# puzzle-press
-Puzzle Press — print-ready word-search books for Amazon KDP.
+# Puzzle Press
+
+A browser app that turns a word list into a print-ready word-search puzzle book PDF for Amazon KDP.
