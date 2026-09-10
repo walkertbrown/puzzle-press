@@ -20,9 +20,9 @@ Alternates:
 
 ## Description (260 char limit)
 
-> Pick a theme or paste your own words. Puzzle Press lays out the whole paperback interior — puzzles, word banks, solutions, page numbers — as one PDF that meets Amazon KDP's margin, bleed and font rules. Runs entirely in your browser. Free up to 5 puzzles.
+> Pick a theme or paste your own words. Puzzle Press lays out the whole paperback — puzzles, word banks, solutions, page numbers — then a matching cover with the spine measured to your exact page count. Runs in your browser. Free up to 5 puzzles.
 
-255 chars.
+244 chars.
 
 ## Links
 
@@ -74,7 +74,9 @@ Live copies: /social-card.png, /demo.gif, /hero-book.png,
 >
 > The hard part was never the puzzle. It's the book. KDP bounces manuscripts for boring reasons: the inside margin has to get wider as the book gets thicker, fonts have to be embedded, there's a 24-page minimum, the page count has to be even. Get one wrong and you're back in the upload queue.
 >
-> Puzzle Press does the whole interior. Pick themes or paste your own word list, choose a trim size, and you get a PDF with puzzles, word banks, a solutions section and page numbers — margins, gutter, bleed and embedded fonts already correct.
+> Puzzle Press does the whole interior. Pick from 32 themes or paste your own word list, choose a trim size, and you get a PDF with puzzles, word banks, a solutions section and page numbers — margins, gutter, bleed and embedded fonts already correct.
+>
+> Then it makes the cover, which is the part I expected to be easy and wasn't. A paperback spine is page count times paper thickness, so the cover can't be designed until the interior exists. Puzzle Press already knows the page count, because it just made the book — so the wrap comes out at the exact size, spine included, barcode area left clear. (Two of the top-ranked KDP spine calculators online add 0.06" to that number. Amazon's own documentation doesn't. That 0.06" is a hardcover rule, and it will get your cover rejected.)
 >
 > Four things I cared about in the puzzles themselves:
 >
@@ -83,7 +85,9 @@ Live copies: /social-card.png, /demo.gif, /hero-book.png,
 > • **Filler letters are screened**, so a random fill never spells something you'd rather not print in a book for kids or grandparents.
 > • **Every puzzle has its own word set.** A 100-puzzle book is 100 different puzzles, not a reshuffle of twenty.
 >
-> Free for books up to 5 puzzles — real books, just shorter, with a small footer line. $19 once removes both limits for good. No account, no subscription, and nothing you type ever leaves your browser.
+> There's also a large-print mode, which is the biggest sub-niche in puzzle books — one checkbox sets the trim, the grid and the word count so the letters come out around 23pt.
+>
+> Free for books up to 5 puzzles — real books, just shorter, with a small footer line. $19 once removes the limits for good and unlocks cover generation. No account, no subscription, and nothing you type ever leaves your browser.
 >
 > There's a full sample book (PDF) on the site if you'd rather see the output before touching the tool.
 >
@@ -108,7 +112,8 @@ your decision, not mine:
 - Likely questions, worth having answers ready for:
   - *Can I sell what it makes?* Yes, no rights claimed, no royalty.
   - *Does it do sudoku / mazes / crosswords?* Not yet. Same pipeline, planned as updates to this app.
-  - *What about large print?* Pick 8.5×11 with fewer words per puzzle — the grid scales to the page.
+  - *Does it make the cover?* Yes — full wrap, spine sized from the page count, barcode area kept clear. Part of the paid unlock.
+  - *What about large print?* There's a Large print checkbox — 8.5×11, 15×15 grid, ~23pt letters.
   - *Is my word list uploaded?* No. Generation and PDF rendering are entirely client-side.
 - Before launching, clear the Stripe product's **unit label** so checkout stops
   reading "$19.00 per unlimited".
