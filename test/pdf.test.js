@@ -65,8 +65,8 @@ test("renders a 6x9 book with the planned page count and embedded fonts", async 
   const dicts = pdf.context.enumerateIndirectObjects().map(([, obj]) => obj.toString());
   assert.ok(dicts.some((s) => s.includes("/FontFile2")), "TrueType font should be embedded");
   assert.ok(!dicts.some((s) => s.includes("/BaseFont /Helvetica")), "no un-embedded standard font");
-  mkdirSync(new URL("../samples/", import.meta.url), { recursive: true });
-  writeFileSync(new URL("../samples/sample-6x9.pdf", import.meta.url), bytes);
+  mkdirSync(new URL("../samples/test/", import.meta.url), { recursive: true });
+  writeFileSync(new URL("../samples/test/sample-6x9.pdf", import.meta.url), bytes);
 });
 
 test("renders an 8.5x11 hard book with bleed, licensed (no watermark)", async () => {
@@ -76,5 +76,5 @@ test("renders an 8.5x11 hard book with bleed, licensed (no watermark)", async ()
   assert.equal(pdf.getPageCount(), planPages(30, 6).total);
   assert.equal(pdf.getPage(0).getWidth(), 621); // 8.625in
   assert.equal(pdf.getPage(0).getHeight(), 810); // 11.25in
-  writeFileSync(new URL("../samples/sample-8.5x11-bleed.pdf", import.meta.url), bytes);
+  writeFileSync(new URL("../samples/test/sample-8.5x11-bleed.pdf", import.meta.url), bytes);
 });

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Puzzle Press — KDP word search book generator</title>
+<meta name="description" content="Make a complete, print-ready word search puzzle book for Amazon KDP in your browser. Correct trim size, margins and bleed, solutions included. Pay once.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d3557'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-weight='700' font-size='18' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --ink: #1a1a1a; --muted: #5c6470; --line: #d9dde3; --bg: #f6f7f9; --card: #fff;
+    --accent: #1d3557; --accent-ink: #fff; --ok: #2a7f3f; --warn: #a15c00; --warn-bg: #fff6e5;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  a { color: var(--accent); }
+  header { padding: 20px 24px; border-bottom: 1px solid var(--line); background: var(--card); display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 20px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--muted); }
+  header .spacer { flex: 1; }
+  main { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: 24px; padding: 24px; max-width: 1280px; margin: 0 auto; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+  fieldset { border: 0; padding: 0; margin: 0 0 18px; }
+  legend { font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 8px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 8px 0 3px; }
+  input[type=text], input[type=number], select, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: #fff; color: var(--ink); }
+  textarea { min-height: 96px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .themes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
+  .themes label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; color: var(--ink); }
+  .check { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 14px; }
+  button { font: inherit; border-radius: 8px; border: 1px solid var(--line); background: #fff; padding: 9px 14px; cursor: pointer; color: var(--ink); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; padding: 12px 18px; font-size: 16px; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+  .tier { margin-top: 12px; padding: 12px 14px; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 14px; }
+  .tier.licensed { background: #e9f7ec; color: var(--ok); }
+  .tier b { font-weight: 600; }
+  .warnings { margin: 12px 0 0; padding: 10px 12px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; font-size: 13px; white-space: pre-line; }
+  .warnings:empty { display: none; }
+  .status { color: var(--muted); font-size: 13px; min-height: 20px; }
+  .preview { display: flex; flex-direction: column; gap: 12px; }
+  .preview-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .preview-head h2 { margin: 0; font-size: 17px; }
+  .preview-head .meta { color: var(--muted); font-size: 13px; }
+  .page { background: #fff; border: 1px solid var(--line); box-shadow: 0 2px 12px rgba(0,0,0,0.06); padding: 6%; max-width: 560px; margin: 0 auto; width: 100%; }
+  .page h3 { margin: 0 0 12px; font-size: 20px; display: flex; justify-content: space-between; align-items: baseline; }
+  .page h3 span { font-weight: 400; font-size: 13px; color: var(--muted); }
+  .grid { display: grid; border: 1px solid #000; width: 100%; aspect-ratio: 1; font-family: "Liberation Sans", Arial, Helvetica, sans-serif; }
+  .grid div { display: flex; align-items: center; justify-content: center; font-size: clamp(9px, 2.6cqw, 22px); }
+  .page { container-type: inline-size; }
+  .bank { columns: 3; column-gap: 16px; margin-top: 16px; font-size: 13px; font-family: "Liberation Sans", Arial, sans-serif; text-transform: uppercase; }
+  .bank div { break-inside: avoid; }
+  .nav { display: flex; gap: 8px; align-items: center; justify-content: center; }
+  .how { color: var(--muted); font-size: 14px; }
+  .how ol { padding-left: 20px; margin: 6px 0; }
+  footer { color: var(--muted); font-size: 13px; text-align: center; padding: 24px; }
+  dialog { border: 1px solid var(--line); border-radius: 12px; padding: 22px; max-width: 420px; width: calc(100% - 32px); }
+  dialog::backdrop { background: rgba(0,0,0,0.35); }
+  dialog h2 { margin: 0 0 8px; font-size: 18px; }
+  dialog p { margin: 6px 0; color: var(--muted); font-size: 14px; }
+  .err { color: #b00020; font-size: 13px; min-height: 18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Puzzle Press</h1>
+  <p>Word search books for Amazon KDP, made in your browser.</p>
+  <span class="spacer"></span>
+  <a href="samples/sample-6x9.pdf" target="_blank" rel="noopener">See a sample book (PDF)</a>
+</header>
+
+<main>
+  <section class="card" id="settings">
+    <fieldset>
+      <legend>Book</legend>
+      <label for="title">Title</label>
+      <input type="text" id="title" value="Animal Word Search" maxlength="120">
+      <label for="subtitle">Subtitle</label>
+      <input type="text" id="subtitle" value="50 relaxing puzzles with solutions" maxlength="160">
+      <label for="author">Author</label>
+      <input type="text" id="author" placeholder="Your name or pen name" maxlength="80">
+      <div class="row">
+        <div>
+          <label for="trim">Trim size</label>
+          <select id="trim"></select>
+        </div>
+        <div>
+          <label for="count">Number of puzzles</label>
+          <input type="number" id="count" value="50" min="1" max="200">
+        </div>
+      </div>
+      <div class="check"><input type="checkbox" id="bleed"><label for="bleed" style="margin:0">Bleed (only if you add full-page images later)</label></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Words</legend>
+      <div class="themes" id="themes"></div>
+      <label for="custom">Your own list (one per line or comma-separated)</label>
+      <textarea id="custom" placeholder="apple
+banana
+cherry"></textarea>
+      <label for="customTitle">Name for your list (shown on each puzzle)</label>
+      <input type="text" id="customTitle" placeholder="e.g. Grandma's Garden" maxlength="60">
+    </fieldset>
+
+    <fieldset>
+      <legend>Puzzles</legend>
+      <div class="row">
+        <div>
+          <label for="wpp">Words per puzzle</label>
+          <input type="number" id="wpp" value="15" min="5" max="30">
+        </div>
+        <div>
+          <label for="difficulty">Difficulty</label>
+          <select id="difficulty">
+            <option value="easy">Easy — across and down</option>
+            <option value="medium" selected>Medium — plus diagonals</option>
+            <option value="hard">Hard — all directions, backwards too</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="size">Grid size (blank = automatic)</label>
+          <input type="number" id="size" placeholder="auto" min="8" max="30">
+        </div>
+        <div>
+          <label for="seed">Seed</label>
+          <input type="text" id="seed" value="" maxlength="40">
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button class="primary" id="download">Download PDF</button>
+      <button id="reshuffle">Reshuffle</button>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="tier" id="tier"></div>
+    <div class="warnings" id="warnings"></div>
+  </section>
+
+  <section class="preview">
+    <div class="preview-head">
+      <h2>Preview</h2>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div class="page" id="page"></div>
+    <div class="nav">
+      <button id="prev">‹ Previous</button>
+      <span id="navLabel"></span>
+      <button id="next">Next ›</button>
+    </div>
+    <div class="card how">
+      <b>How it works</b>
+      <ol>
+        <li>Pick themes or paste your own words. Set the trim size and number of puzzles.</li>
+        <li>Download the PDF. Fonts are embedded; margins, gutter and bleed follow KDP's manuscript rules.</li>
+        <li>Upload it as your paperback interior. Add a cover, publish.</li>
+      </ol>
+      Everything runs in your browser. Your word lists never leave your computer.
+    </div>
+  </section>
+</main>
+
+<footer>Puzzle Press · Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc.</footer>
+
+<dialog id="unlockDialog">
+  <h2>Unlock full books</h2>
+  <p>Pay once, make unlimited books with no watermark. After paying, enter the email you used at checkout.</p>
+  <p id="buyLine"></p>
+  <label for="email">Email used at checkout</label>
+  <input type="text" id="email" placeholder="you@example.com">
+  <div class="err" id="unlockErr"></div>
+  <div class="actions">
+    <button class="primary" id="verify">Unlock</button>
+    <button id="closeDialog">Close</button>
+  </div>
+</dialog>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
