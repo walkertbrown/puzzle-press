@@ -31,7 +31,27 @@ Alternates:
 
 ## Topics
 
-Publishing · Design Tools · Productivity · Writing
+Verified against Product Hunt's live topic pages on 2026-09-10. There is no
+"Publishing", "PDF" or "E-commerce" topic — those 404. Pick in this order and
+take as many as the submission form allows (it caps you at a handful):
+
+1. **Printing** — the best fit by a distance. Its own description is "tools to
+   create, sell, and output print-ready docs and products — from stickers, art
+   to journals and handouts". That is literally this product. And it holds only
+   **32 products**, so a launch here is visible instead of buried, and the topic
+   page keeps sending traffic long after launch day.
+2. **Design Tools** — 7,478 products, so no ranking hope, but it is credibly
+   what this is (a layout and output tool) and it is where PH regulars browse.
+3. **Writing** — where the self-publishing crowd sits. Adjacent rather than
+   exact, but the audience overlap is the point.
+
+Considered and rejected:
+- **Books** (5,108 products) — sounds perfect, is not. The listings are generic
+  software, so relevance is diluted and ranking is hopeless.
+- **Productivity** — enormous and generic. Invisible.
+- **Side Projects** — signals hobby. This is a paid product; do not undercut it.
+- **Adult Coloring Books** — genuinely adjacent (same low-content KDP niche) but
+  this is not a coloring book. Picking it would read as tag-stuffing.
 
 ## Gallery, in order
 
