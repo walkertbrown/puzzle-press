@@ -28,7 +28,25 @@ export function generateBook({
   // DEER and REINDEER can both live in the pool; they just cannot share a
   // puzzle. Nesting is resolved per draw, below.
   const cleanPools = pools
-    .map((p) => ({ title: p.title, words: normalizeWords(p.words) }))
+    .map((p) => {
+      const all = normalizeWords(p.words);
+      // A fixed grid size silently drops any word longer than the grid from
+      // every puzzle. Say so once, here, rather than losing the seller's words
+      // without a trace.
+      if (size) {
+        const tooLong = all.filter((w) => w.length > size);
+        if (tooLong.length) {
+          const longest = Math.max(...tooLong.map((w) => w.length));
+          warnings.push(
+            `${p.title}: ${tooLong.length === 1 ? "one word is" : tooLong.length + " words are"} longer than a ${size}×${size} grid ` +
+              `and will be left out — ${tooLong.slice(0, 4).join(", ")}${tooLong.length > 4 ? "…" : ""}. ` +
+              `Set the grid to ${longest} or larger, or leave grid size blank to size it automatically.`,
+          );
+        }
+        return { title: p.title, words: all.filter((w) => w.length <= size) };
+      }
+      return { title: p.title, words: all };
+    })
     .filter((p) => p.words.length >= 2);
 
   if (cleanPools.length === 0) return { puzzles: [], warnings: ["No usable word lists."] };
