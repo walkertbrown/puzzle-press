@@ -29,6 +29,12 @@ Alternates:
 - Website: https://puzzlepress.bananafest-destiny.com
 - Free tools worth linking separately, and good replies to "how do I price this?":
   /spine-calculator and /royalty-calculator
+- One page per type, for replies to "does it do sudoku?" / "mazes for kids?":
+  /word-search-book-generator, /sudoku-book-generator, /maze-book-generator
+  (each opens the tool with that type already chosen)
+- The guide, for anyone who says they have never published on KDP:
+  /how-to-make-a-puzzle-book
+- The video: https://youtu.be/ph6q2ih6cBs (60 s, real time, no narration)
 - Also try: the sample PDFs linked in the header (word search, sudoku and maze
   books, plus a cover) — people click those, and they do the selling
 
@@ -104,7 +110,7 @@ the vertical Short (`npm run video:short`) went out via Buffer the same day.
 >
 > It is free to use, and not in the crippled sense: make the entire book, all hundred puzzles, with solutions and a cover. The free version is marked rather than shortened — one small line in the footer of each page and a PREVIEW across the cover. $19 once removes both marks, forever. No account, no subscription, and nothing you type ever leaves your browser.
 >
-> There are sample books on the site — one of each kind, plus a cover — if you'd rather see the output before touching the tool.
+> There are sample books on the site — one of each kind, plus a cover — if you'd rather see the output before touching the tool. Or the 60-second video in the gallery, which is a real book being made in real time, nothing sped up.
 >
 > Happy to answer anything, including the KDP spec side — I went further down that rabbit hole than I expected to.
 
@@ -119,6 +125,25 @@ your decision, not mine:
 
 > One more thing: I didn't write this. It was built end to end by an AI agent working as an employee — it picked the idea, wrote the generator and the PDF engine, deployed it, and wrote this page. I answered factual questions and provided accounts. The build log, including every plan and what actually happened, is public: https://github.com/walkertbrown/vibe-cider
 
+## Before Tuesday — checklist
+
+Boss:
+- [ ] Search Console → URL inspection → Request indexing for
+      `/how-to-make-a-puzzle-book`, `/word-search-book-generator`,
+      `/sudoku-book-generator`, `/maze-book-generator` (calculators done 09-11).
+- [ ] Product Hunt: schedule the launch for Tue 2026-09-15 12:01am PT with the
+      copy above; video as gallery item 1.
+- [ ] Post the first comment right after it goes live; keep the type-page and
+      guide links handy for replies.
+- [ ] Pinterest appeal filed (if not already).
+
+Me (Monday, before the 6:30pm reminder):
+- [ ] `npm run test:livecheckout`, `test:paidreturn`, `test:browser`,
+      `test:typepages`, `test:privacy` against production.
+- [ ] `npm run traffic` for the honest pre-launch baseline, so Tuesday's
+      numbers mean something.
+- [ ] Retry one Pinterest pin; if the block has cleared, queue all five.
+
 ## Practical notes
 
 - Launch at **12:01am PT**, Tuesday to Thursday. A launch gets one 24-hour window.
@@ -126,12 +151,19 @@ your decision, not mine:
 - Be at the keyboard for the first few hours. Reply to every comment. Replies do more than the post.
 - Likely questions, worth having answers ready for:
   - *Can I sell what it makes?* Yes, no rights claimed, no royalty.
-  - *Does it do sudoku / mazes / crosswords?* Sudoku and mazes yes — four difficulties each, every puzzle verified to have exactly one solution. Crosswords not yet.
+  - *Does it do sudoku / mazes / crosswords?* Sudoku and mazes yes — four difficulties each, every puzzle verified to have exactly one solution. Crosswords not yet. Link the type page: /sudoku-book-generator or /maze-book-generator.
+  - *I've never published on KDP — where do I start?* /how-to-make-a-puzzle-book — trim sizes, the gutter table, spine, pricing, and the mistakes that get files rejected, with the numbers.
   - *Does it make the cover?* Yes — full wrap, spine sized from the page count, barcode area kept clear. Free to generate and look at; it carries a PREVIEW mark until you pay.
   - *What about large print?* There's a Large print checkbox — 8.5×11, fewer words per grid, ~23pt letters. Note it moves you to large trim, which costs more per page to print; the royalty line in the tool shows that as it happens.
   - *Why is it free? What's the catch?* No catch: the free book is complete but watermarked — a footer line on each page and PREVIEW across the cover — so it can't be published. $19 removes both.
   - *How much will I earn?* The tool shows printing cost and royalty live, and there's a full royalty calculator on the site.
   - *Is my word list uploaded?* No. Generation and PDF rendering are entirely client-side.
+- Pinterest: five pins are drafted in Buffer but Pinterest is blocking links to
+  the domain (new-domain spam filter; site is claimed; appeal filed). One pin
+  linking to the YouTube video is live. Do not expect Pinterest traffic on
+  launch day; it is a slow channel anyway.
+- The YouTube Short went out via Buffer on 2026-09-11; the landscape video is
+  on the channel at https://youtu.be/ph6q2ih6cBs.
 - Stripe checkout has been walked in a real browser against the live link:
   "Puzzle Press Unlimited", $19.00, no sandbox badge, unit label cleared. It is
   ready. (`npm run test:livecheckout` re-checks it without charging anything.)
