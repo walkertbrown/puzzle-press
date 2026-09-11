@@ -68,7 +68,8 @@ await shoot(1500);
 await page.selectOption("#kind", "sudoku");
 await page.fill("#title", "Sudoku for Sunday");
 await page.fill("#subtitle", "60 puzzles, easy to expert");
-await page.selectOption("#difficulty", "hard");
+// The subtitle says easy to expert, so the book had better be graded.
+await page.selectOption("#difficulty", "graded");
 await page.fill("#count", "60");
 await page.waitForSelector(".sudoku div");
 await page.waitForTimeout(900);
@@ -84,7 +85,7 @@ await shoot(1300);
 await page.selectOption("#kind", "maze");
 await page.fill("#title", "Mazes for Rainy Days");
 await page.fill("#subtitle", "60 mazes, easy to expert");
-await page.selectOption("#difficulty", "hard");
+await page.selectOption("#difficulty", "graded");
 await page.waitForSelector(".maze svg line", { state: "attached" });
 await page.waitForTimeout(900);
 await shoot(1600);

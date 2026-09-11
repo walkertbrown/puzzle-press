@@ -65,7 +65,7 @@ export async function renderCover({
   // Background covers the whole sheet including bleed.
   page.drawRectangle({ x: 0, y: 0, width: g.width, height: g.height, color: PAPER_BG });
 
-  drawLetterField(page, g, regular, seed);
+  drawField(page, g, regular, seed, samplePuzzle && samplePuzzle.kind);
   drawFront(page, g, { title, subtitle, author, regular, bold });
   drawSpine(page, g, { title, author, regular, bold });
   drawBack(page, g, { title, blurb, puzzleCount, samplePuzzle, regular, bold });
@@ -117,18 +117,39 @@ function drawCoverWatermark(page, g, bold, regular) {
   });
 }
 
-// A faint field of letters across the whole wrap — says "word search" without
-// a single stock image, and prints cleanly in black and white.
-function drawLetterField(page, g, font, seed) {
+// A faint field across the whole wrap that says what kind of book this is
+// without a single stock image, and prints cleanly in black and white:
+// letters for a word search, digits for sudoku, a maze-like lattice for mazes.
+// A sudoku cover covered in random letters reads as a word search.
+function drawField(page, g, font, seed, kind) {
   const rng = makeRng(`${seed}|field`);
-  const size = 12;
-  const step = 24;
   const spineFrom = g.spineX - 4;
   const spineTo = g.spineX + g.spine + 4;
+  if (kind === "maze") {
+    // Short wall segments on a grid, like a maze seen from far away.
+    const cell = 18;
+    for (let y = cell; y < g.height; y += cell) {
+      for (let x = 0; x < g.width; x += cell) {
+        if (x > spineFrom - cell && x < spineTo) continue;
+        if (rng.next() < 0.5) {
+          const vertical = rng.next() < 0.5;
+          page.drawLine({
+            start: { x, y },
+            end: vertical ? { x, y: y - cell } : { x: x + cell, y },
+            thickness: 0.6,
+            color: FAINT,
+          });
+        }
+      }
+    }
+    return;
+  }
+  const size = 12;
+  const step = 24;
   for (let y = g.height - step; y > 0; y -= step) {
     for (let x = 6; x < g.width; x += step) {
       if (x > spineFrom && x < spineTo) continue; // keep the spine clean
-      const ch = String.fromCharCode(65 + rng.int(26));
+      const ch = kind === "sudoku" ? String(1 + rng.int(9)) : String.fromCharCode(65 + rng.int(26));
       page.drawText(ch, { x, y, size, font, color: FAINT });
     }
   }
@@ -163,23 +184,27 @@ function drawFront(page, g, { title, subtitle, author, regular, bold }) {
   const w = g.panelW - inset * 2;
   const cx = g.frontX + g.panelW / 2;
 
-  // A solid band behind the title so the letter field never fights the text.
-  const bandH = g.panelH * 0.42;
-  const bandY = g.panelY + g.panelH * 0.46;
+  // Work out the text first, then size the band to fit it. A fixed band left
+  // a one-word title floating in a slab of empty navy.
+  const size = Math.min(46, fitSize(bold, title.split(/\s+/).sort((a, b) => b.length - a.length)[0] || title, w - 36, 46, 18));
+  const lines = wrap(bold, title.toUpperCase(), w - 36, size);
+  const ss = subtitle ? fitSize(regular, subtitle, w - 40, 15, 9) : 0;
+  const subLines = subtitle ? wrap(regular, subtitle, w - 40, ss) : [];
+  const pad = 30;
+  const titleH = lines.length * size * 1.1;
+  const subH = subLines.length ? 10 + subLines.length * ss * 1.3 : 0;
+  const bandH = Math.max(g.panelH * 0.22, pad * 2 + titleH + subH);
+  const bandY = g.panelY + g.panelH * 0.68 - bandH / 2;
   page.drawRectangle({ x: g.frontX + 18, y: bandY, width: g.panelW - 36, height: bandH, color: INK });
 
-  const lines = [];
-  let size = Math.min(46, fitSize(bold, title.split(/\s+/).sort((a, b) => b.length - a.length)[0] || title, w - 36, 46, 18));
-  for (const line of wrap(bold, title.toUpperCase(), w - 36, size)) lines.push(line);
-  let ty = bandY + bandH - size * 1.15;
+  let ty = bandY + bandH - pad - size * 0.85;
   for (const line of lines) {
     centered(page, line, { cx, y: ty, size, font: bold, color: WHITE });
     ty -= size * 1.1;
   }
-  if (subtitle) {
-    const ss = fitSize(regular, subtitle, w - 40, 15, 9);
-    ty -= 6;
-    for (const line of wrap(regular, subtitle, w - 40, ss)) {
+  if (subLines.length) {
+    ty -= 4;
+    for (const line of subLines) {
       centered(page, line, { cx, y: ty, size: ss, font: regular, color: rgb(0.78, 0.83, 0.9) });
       ty -= ss * 1.3;
     }

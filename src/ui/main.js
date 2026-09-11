@@ -65,8 +65,24 @@ const WS_DIFFICULTY = {
 };
 const GRADED_LABEL = "Graded — easy at the front, expert at the back";
 
+// Sensible defaults per puzzle type, used until the person types their own.
+const DEFAULT_TITLES = {
+  wordsearch: ["Animal Word Search", "50 relaxing puzzles with solutions"],
+  sudoku: ["Sudoku", "50 puzzles with solutions"],
+  maze: ["Mazes", "50 mazes with solutions"],
+};
+let titleEdited = false;
+let subtitleEdited = false;
+el.title.addEventListener("input", () => { titleEdited = true; });
+el.subtitle.addEventListener("input", () => { subtitleEdited = true; });
+
 function refreshKind() {
   const kind = el.kind.value;
+  // A sudoku book called "Animal Word Search" is what you get if the title
+  // does not follow the type. Only touch what the person has not typed.
+  const [t, sub] = DEFAULT_TITLES[kind] ?? DEFAULT_TITLES.wordsearch;
+  if (!titleEdited) el.title.value = t;
+  if (!subtitleEdited) el.subtitle.value = sub;
   const wordless = kind !== "wordsearch";
   for (const node of document.querySelectorAll(".ws-only")) node.classList.toggle("hidden", wordless);
   const opts =
@@ -453,8 +469,24 @@ el.reshuffle.addEventListener("click", () => {
 };
 const GRADED_LABEL = "Graded — easy at the front, expert at the back";
 
+// Sensible defaults per puzzle type, used until the person types their own.
+const DEFAULT_TITLES = {
+  wordsearch: ["Animal Word Search", "50 relaxing puzzles with solutions"],
+  sudoku: ["Sudoku", "50 puzzles with solutions"],
+  maze: ["Mazes", "50 mazes with solutions"],
+};
+let titleEdited = false;
+let subtitleEdited = false;
+el.title.addEventListener("input", () => { titleEdited = true; });
+el.subtitle.addEventListener("input", () => { subtitleEdited = true; });
+
 function refreshKind() {
   const kind = el.kind.value;
+  // A sudoku book called "Animal Word Search" is what you get if the title
+  // does not follow the type. Only touch what the person has not typed.
+  const [t, sub] = DEFAULT_TITLES[kind] ?? DEFAULT_TITLES.wordsearch;
+  if (!titleEdited) el.title.value = t;
+  if (!subtitleEdited) el.subtitle.value = sub;
   const wordless = kind !== "wordsearch";
   for (const node of document.querySelectorAll(".ws-only")) node.classList.toggle("hidden", wordless);
   const opts =
