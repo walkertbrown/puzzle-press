@@ -434,7 +434,10 @@ const debounced = () => {
 };
 // Large print is the biggest sub-niche in puzzle books. It was always possible
 // (big trim, fewer words) but nobody found it, so make it one checkbox.
-const LARGE_PRINT = { trim: "8.5x11", size: "15", wpp: "14" };
+// Grid size is left automatic on purpose: pinning it to 15 made any pasted
+// word over 15 letters vanish from the book. Fourteen words auto-size to about
+// 15–16 cells on an 8.5×11 page, which is still ~22pt letters.
+const LARGE_PRINT = { trim: "8.5x11", size: "", wpp: "14" };
 el.largePrint.addEventListener("change", () => {
   if (!el.largePrint.checked) return;
   el.trim.value = LARGE_PRINT.trim;
@@ -461,54 +464,7 @@ for (const id of ["title", "subtitle", "author", "trim", "paper", "list", "ink",
 }
 el.themes.addEventListener("change", debounced);
 el.reshuffle.addEventListener("click", () => {
-  const WS_DIFFICULTY = {
-  easy: "Easy — across and down",
-  medium: "Medium — plus diagonals",
-  hard: "Hard — all directions, backwards too",
-  graded: "Graded — easy at the front, hard at the back",
-};
-const GRADED_LABEL = "Graded — easy at the front, expert at the back";
-
-// Sensible defaults per puzzle type, used until the person types their own.
-const DEFAULT_TITLES = {
-  wordsearch: ["Animal Word Search", "50 relaxing puzzles with solutions"],
-  sudoku: ["Sudoku", "50 puzzles with solutions"],
-  maze: ["Mazes", "50 mazes with solutions"],
-};
-let titleEdited = false;
-let subtitleEdited = false;
-el.title.addEventListener("input", () => { titleEdited = true; });
-el.subtitle.addEventListener("input", () => { subtitleEdited = true; });
-
-function refreshKind() {
-  const kind = el.kind.value;
-  // A sudoku book called "Animal Word Search" is what you get if the title
-  // does not follow the type. Only touch what the person has not typed.
-  const [t, sub] = DEFAULT_TITLES[kind] ?? DEFAULT_TITLES.wordsearch;
-  if (!titleEdited) el.title.value = t;
-  if (!subtitleEdited) el.subtitle.value = sub;
-  const wordless = kind !== "wordsearch";
-  for (const node of document.querySelectorAll(".ws-only")) node.classList.toggle("hidden", wordless);
-  const opts =
-    kind === "sudoku"
-      ? { ...Object.fromEntries(Object.entries(SUDOKU_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.givens} clues`])), graded: GRADED_LABEL }
-      : kind === "maze"
-        ? { ...Object.fromEntries(Object.entries(MAZE_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.w}×${v.h}`])), graded: GRADED_LABEL }
-        : WS_DIFFICULTY;
-  const keep = el.difficulty.value;
-  el.difficulty.replaceChildren();
-  for (const [value, label] of Object.entries(opts)) {
-    const o = document.createElement("option");
-    o.value = value;
-    o.textContent = label;
-    el.difficulty.append(o);
-  }
-  el.difficulty.value = opts[keep] ? keep : "medium";
-  if (wordless) el.largePrint.checked = false;
-}
-
-el.seed.value = randomSeed();
-refreshKind();
+  el.seed.value = randomSeed();
   regenerate();
 });
 el.prev.addEventListener("click", () => { shown = Math.max(0, shown - 1); showPuzzle(); });
