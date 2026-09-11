@@ -177,11 +177,20 @@ export function wallSegments({ w, h, cells }, { openings = null } = {}) {
   return segs;
 }
 
+// Same idea as sudoku: a graded book starts small and ends large.
+export function gradeFor(index, count, difficulty) {
+  if (difficulty !== "graded") return difficulty;
+  const levels = Object.keys(MAZE_DIFFICULTY);
+  const band = Math.min(levels.length - 1, Math.floor((index * levels.length) / Math.max(1, count)));
+  return levels[band];
+}
+
 export function generateMazeBook({ count = 20, difficulty = "medium", seed = "book" } = {}) {
   const puzzles = [];
   for (let i = 0; i < count; i++) {
-    const m = generateMaze({ difficulty, seed: `${seed}|${i}` });
-    puzzles.push({ index: i + 1, title: MAZE_DIFFICULTY[difficulty]?.label ?? "Maze", kind: "maze", ...m });
+    const level = gradeFor(i, count, difficulty);
+    const m = generateMaze({ difficulty: level, seed: `${seed}|${i}` });
+    puzzles.push({ index: i + 1, title: MAZE_DIFFICULTY[level]?.label ?? "Maze", kind: "maze", ...m });
   }
   return { kind: "maze", puzzles, warnings: [] };
 }

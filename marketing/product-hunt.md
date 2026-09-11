@@ -83,6 +83,8 @@ Live copies: /social-card.png, /demo.gif, /hero-book.png,
 >
 > Then it makes the cover, which is the part I expected to be easy and wasn't. A paperback spine is page count times paper thickness, so the cover can't be designed until the interior exists. Puzzle Press already knows the page count, because it just made the book — so the wrap comes out at the exact size, spine included, barcode area left clear. (Two of the top-ranked KDP spine calculators online add 0.06" to that number. Amazon's own documentation doesn't. That 0.06" is a hardcover rule, and it will get your cover rejected.)
 >
+> All three can be graded — easy at the front working up to expert at the back, the way published puzzle books are usually built, with the level printed on each puzzle.
+>
 > It does sudoku and mazes as well. Mazes are spanning trees, so every one has exactly one route from start to finish and no unreachable corners. Sudoku comes in four difficulties. Every sudoku is dug out one symmetric pair of clues at a time and a clue is only removed if the grid still solves exactly one way — a puzzle with two answers would make the solutions page at the back of your own book wrong.
 >
 > Four things I cared about in the word searches themselves:
