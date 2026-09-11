@@ -506,6 +506,15 @@ document.getElementById("buyNow")?.addEventListener("click", (e) => {
 });
 
 refreshTier();
+// The type pages link here as /?kind=sudoku#tool: land with that type already
+// chosen, so the first thing shown is the kind of book they came for.
+{
+  const kind = new URLSearchParams(location.search).get("kind");
+  if (kind && [...el.kind.options].some((o) => o.value === kind)) {
+    el.kind.value = kind;
+    refreshKind();
+  }
+}
 regenerate();
 
 // Stripe's payment link sends the buyer back to /?paid=1. Open the unlock

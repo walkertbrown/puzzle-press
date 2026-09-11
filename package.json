@@ -26,6 +26,8 @@
     "test:livecheckout": "node test/livecheckout.mjs",
     "test:pdfcheck": "bash test/pdfcheck.sh",
     "pins": "node scripts/pins.mjs",
+    "type-pages": "node scripts/type-pages.mjs",
+    "test:typepages": "node test/typepages.mjs",
     "video": "node scripts/video.mjs",
     "video:short": "node scripts/video.mjs --short"
   },
