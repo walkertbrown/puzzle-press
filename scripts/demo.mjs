@@ -78,7 +78,22 @@ const [sdl] = await Promise.all([page.waitForEvent("download", { timeout: 300000
 const sudokuPath = join(tmp, "sudoku.pdf");
 await sdl.saveAs(sudokuPath);
 await page.waitForTimeout(300);
-await shoot(1400);
+await shoot(1300);
+
+// 7. And mazes.
+await page.selectOption("#kind", "maze");
+await page.fill("#title", "Mazes for Rainy Days");
+await page.fill("#subtitle", "60 mazes, easy to expert");
+await page.selectOption("#difficulty", "hard");
+await page.waitForSelector(".maze svg line", { state: "attached" });
+await page.waitForTimeout(900);
+await shoot(1600);
+
+const [mdl] = await Promise.all([page.waitForEvent("download", { timeout: 300000 }), page.click("#download")]);
+const mazePath = join(tmp, "maze.pdf");
+await mdl.saveAs(mazePath);
+await page.waitForTimeout(300);
+await shoot(1300);
 
 await browser.close();
 
@@ -90,9 +105,10 @@ const finals = [
   [4, "Solutions included", pdfPath],
   [1, "A cover, spine and all", coverPath],
   [4, "Sudoku too — one answer each", sudokuPath],
+  [3, "And mazes — one route through", mazePath],
 ];
 for (const [pageNo, caption, src] of finals) {
-  const tag = src === coverPath ? "c" : src === sudokuPath ? "s" : "w";
+  const tag = src === coverPath ? "c" : src === sudokuPath ? "s" : src === mazePath ? "m" : "w";
   const prefix = join(tmp, `pg${tag}${pageNo}`);
   execFileSync("pdftoppm", ["-r", "110", "-f", String(pageNo), "-l", String(pageNo), "-png", src, prefix]);
   const file = `${prefix}-${src === coverPath ? pageNo : "0" + pageNo}.png`;
@@ -112,7 +128,10 @@ await shots.close();
 const gif = GIFEncoder();
 for (const { png, ms } of frames) {
   const { data, width, height } = PNG.sync.read(png);
-  const palette = quantize(data, 256);
+  // The app is flat colour and the PDF frames are near-monochrome, so a small
+  // palette costs nothing visually and roughly halves the file. A landing page
+  // should not ship a megabyte of GIF.
+  const palette = quantize(data, 64);
   gif.writeFrame(applyPalette(data, palette), width, height, { palette, delay: ms });
 }
 gif.finish();

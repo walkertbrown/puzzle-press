@@ -27,8 +27,8 @@ Alternates:
 ## Links
 
 - Website: https://puzzlepress.bananafest-destiny.com
-- Also try: the sample PDFs linked in the header (word search book, sudoku book,
-  cover) — people click those, and they do the selling
+- Also try: the sample PDFs linked in the header (word search, sudoku and maze
+  books, plus a cover) — people click those, and they do the selling
 
 ## Topics
 
@@ -62,6 +62,7 @@ Considered and rejected:
 4. `gallery/04-the-tool.png` — the tool mid-use, preview showing
 5. `gallery/05-solutions.png` — a solutions page, close
 6. `gallery/06-sudoku.png` — a sudoku puzzle page and its solutions page
+7. `gallery/07-mazes.png` — a maze page and its solutions page
 
 All are in `app/public/` and regenerate with `npm run images`, `npm run gallery`
 and `npm run demo`, so they never drift from what the product actually does.

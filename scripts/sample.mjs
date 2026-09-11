@@ -44,3 +44,16 @@ const sudokuBytes = await renderBook(sudoku, {
 });
 writeFileSync(new URL("../public/samples/sample-sudoku-6x9.pdf", import.meta.url), sudokuBytes);
 console.log("wrote public/samples/sample-sudoku-6x9.pdf", sudokuBytes.length, "bytes");
+
+const { generateMazeBook } = await import("../src/generator/maze.js");
+const mazes = generateMazeBook({ count: 20, difficulty: "medium", seed: "public-maze-1" });
+const mazeBytes = await renderBook(mazes, {
+  title: "Mazes for Rainy Days",
+  subtitle: "20 mazes with solutions — sample book",
+  author: "Puzzle Press",
+  trim: "6x9",
+  licensed: true,
+  fonts,
+});
+writeFileSync(new URL("../public/samples/sample-maze-6x9.pdf", import.meta.url), mazeBytes);
+console.log("wrote public/samples/sample-maze-6x9.pdf", mazeBytes.length, "bytes");
