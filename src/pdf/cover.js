@@ -206,7 +206,7 @@ function drawBack(page, g, { title, blurb, puzzleCount, samplePuzzle, regular, b
   const top = g.panelY + g.panelH - 56;
 
   const heading = puzzleCount ? `${puzzleCount} puzzles inside` : "Puzzles inside";
-  const text = blurb || defaultBlurb(puzzleCount);
+  const text = blurb || defaultBlurb(puzzleCount, samplePuzzle && samplePuzzle.kind);
   const lines = wrap(regular, text, w, 11);
   const panelTop = top + 26;
   const panelH = 26 + 22 + lines.length * 15 + 18;
@@ -252,7 +252,35 @@ function drawBack(page, g, { title, blurb, puzzleCount, samplePuzzle, regular, b
   void title;
 }
 
-function defaultBlurb(n) {
+function drawMiniSudoku(page, puzzle, { x, top, side, font }) {
+  const cell = side / 9;
+  page.drawRectangle({ x, y: top - side, width: side, height: side, color: WHITE, borderWidth: 0.6, borderColor: FAINT });
+  const size = cell * 0.62;
+  puzzle.puzzle.forEach((v, i) => {
+    if (!v) return;
+    const r = Math.floor(i / 9);
+    const c = i % 9;
+    const w = font.widthOfTextAtSize(String(v), size);
+    page.drawText(String(v), { x: x + c * cell + (cell - w) / 2, y: top - (r + 1) * cell + cell * 0.3, size, font, color: MUTED });
+  });
+  for (let k = 0; k <= 9; k += 3) {
+    page.drawLine({ start: { x: x + k * cell, y: top }, end: { x: x + k * cell, y: top - side }, thickness: 0.5, color: FAINT });
+    page.drawLine({ start: { x, y: top - k * cell }, end: { x: x + side, y: top - k * cell }, thickness: 0.5, color: FAINT });
+  }
+}
+
+function defaultBlurb(n, kind) {
+  if (kind === "sudoku") {
+    return (
+      `A collection of ${n ? n + " " : ""}sudoku puzzles with full solutions at the back. ` +
+      "Every puzzle has one answer and one answer only, and the grids are printed large enough to pencil in. " +
+      "Perfect for quiet evenings, waiting rooms and long journeys."
+    );
+  }
+  return defaultWordBlurb(n);
+}
+
+function defaultWordBlurb(n) {
   return (
     `A collection of ${n ? n + " " : ""}word search puzzles with solutions at the back. ` +
     "Every puzzle has its own word list, every answer appears exactly once, and the grids are printed large enough to be a pleasure rather than a squint. " +
@@ -261,6 +289,7 @@ function defaultBlurb(n) {
 }
 
 function drawMiniGrid(page, puzzle, { x, top, side, font }) {
+  if (puzzle.kind === "sudoku") return drawMiniSudoku(page, puzzle, { x, top, side, font });
   const n = puzzle.size;
   const cell = side / n;
   const size = cell * 0.66;

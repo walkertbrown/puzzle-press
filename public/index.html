@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Word Search Book Generator for Amazon KDP — Puzzle Press</title>
-<meta name="description" content="Make a complete, print-ready word search puzzle book for Amazon KDP in your browser. Correct trim size, gutter margins, bleed and embedded fonts. Solutions included. $19 once, unlimited books.">
+<title>Puzzle Book Generator for Amazon KDP — Word Search &amp; Sudoku — Puzzle Press</title>
+<meta name="description" content="Make a complete, print-ready word search or sudoku book for Amazon KDP in your browser. Correct trim size, gutter margins, bleed and embedded fonts. Matching cover. Solutions included. $19 once, unlimited books.">
 <link rel="canonical" href="https://puzzlepress.bananafest-destiny.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Puzzle Press">
@@ -62,6 +62,14 @@
   .page h3 span { font-weight: 400; font-size: 13px; color: var(--muted); }
   .grid { display: grid; border: 1px solid #000; width: 100%; aspect-ratio: 1; font-family: "Liberation Sans", Arial, Helvetica, sans-serif; }
   .grid div { display: flex; align-items: center; justify-content: center; font-size: clamp(9px, 2.6cqw, 22px); }
+  .sudoku { display: grid; grid-template-columns: repeat(9, 1fr); width: 100%; aspect-ratio: 1; border: 2px solid #000; font-family: "Liberation Sans", Arial, sans-serif; font-weight: 600; }
+  .sudoku div { display: flex; align-items: center; justify-content: center; font-size: clamp(11px, 4cqw, 30px);
+    border-right: 1px solid #bbb; border-bottom: 1px solid #bbb; aspect-ratio: 1; }
+  .sudoku div:nth-child(9n) { border-right: 0; }
+  .sudoku div:nth-child(n+73) { border-bottom: 0; }
+  .sudoku div.br { border-right: 2px solid #000; }
+  .sudoku div.bb { border-bottom: 2px solid #000; }
+  .hidden { display: none !important; }
   .page { container-type: inline-size; }
   .bank { columns: 3; column-gap: 16px; margin-top: 16px; font-size: 13px; font-family: "Liberation Sans", Arial, sans-serif; text-transform: uppercase; }
   .bank div { break-inside: avoid; }
@@ -114,7 +122,7 @@
 <body>
 <header>
   <h1>Puzzle Press</h1>
-  <p>Word search books for Amazon KDP, made in your browser.</p>
+  <p>Word search and sudoku books for Amazon KDP, made in your browser.</p>
   <span class="spacer"></span>
   <a href="#pricing">Pricing</a>
   <a href="samples/sample-6x9.pdf" target="_blank" rel="noopener">Sample book (PDF)</a>
@@ -125,7 +133,7 @@
   <div class="hero-inner">
     <div>
       <h2>A finished KDP puzzle book, in about a minute.</h2>
-      <p class="lede">Pick from 32 themes or paste your own words. Puzzle Press lays out the whole paperback interior — puzzles, word banks, solutions, page numbers — as one PDF that meets Amazon KDP's manuscript rules, then makes a matching cover with the spine measured to your exact page count. No sign-up, nothing to install.</p>
+      <p class="lede">Word search or sudoku. Pick from 32 themes or paste your own words. Puzzle Press lays out the whole paperback interior — puzzles, word banks, solutions, page numbers — as one PDF that meets Amazon KDP's manuscript rules, then makes a matching cover with the spine measured to your exact page count. No sign-up, nothing to install.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="#tool">Make a book free</a>
         <a class="btn btn-ghost" href="samples/sample-6x9.pdf" target="_blank" rel="noopener">See a finished book (PDF)</a>
@@ -133,6 +141,7 @@
         <span class="note">Free books up to 5 puzzles. $19 once for unlimited.</span>
       </div>
       <ul class="trust">
+        <li>Word search &amp; sudoku</li>
         <li>32 themes, or your own words</li>
         <li>Interior <em>and</em> cover</li>
         <li>Large print option</li>
@@ -152,6 +161,11 @@
   <section class="card" id="settings">
     <fieldset>
       <legend>Book</legend>
+      <label for="kind">Puzzle type</label>
+      <select id="kind">
+        <option value="wordsearch" selected>Word search</option>
+        <option value="sudoku">Sudoku</option>
+      </select>
       <label for="title">Title</label>
       <input type="text" id="title" value="Animal Word Search" maxlength="120">
       <label for="subtitle">Subtitle</label>
@@ -175,11 +189,11 @@
         <option value="premiumColor">Premium colour</option>
         <option value="standardColor">Standard colour</option>
       </select>
-      <div class="check"><input type="checkbox" id="largePrint"><label for="largePrint" style="margin:0"><strong>Large print</strong> — bigger letters, easier grids</label></div>
+      <div class="check ws-only"><input type="checkbox" id="largePrint"><label for="largePrint" style="margin:0"><strong>Large print</strong> — bigger letters, easier grids</label></div>
       <div class="check"><input type="checkbox" id="bleed"><label for="bleed" style="margin:0">Bleed (only if you add full-page images later)</label></div>
     </fieldset>
 
-    <fieldset>
+    <fieldset class="ws-only">
       <legend>Words</legend>
       <div class="themes" id="themes"></div>
       <label for="custom">Your own list (one per line or comma-separated)</label>
@@ -193,21 +207,17 @@ cherry"></textarea>
     <fieldset>
       <legend>Puzzles</legend>
       <div class="row">
-        <div>
+        <div class="ws-only">
           <label for="wpp">Words per puzzle</label>
           <input type="number" id="wpp" value="15" min="5" max="30">
         </div>
         <div>
           <label for="difficulty">Difficulty</label>
-          <select id="difficulty">
-            <option value="easy">Easy — across and down</option>
-            <option value="medium" selected>Medium — plus diagonals</option>
-            <option value="hard">Hard — all directions, backwards too</option>
-          </select>
+          <select id="difficulty"></select>
         </div>
       </div>
       <div class="row">
-        <div>
+        <div class="ws-only">
           <label for="size">Grid size (blank = automatic)</label>
           <input type="number" id="size" placeholder="auto" min="8" max="30">
         </div>
@@ -309,6 +319,10 @@ cherry"></textarea>
         <p>Random fill occasionally spells something you would not want in a book for children or grandparents. Every grid is checked and refilled if it does.</p>
       </div>
       <div>
+        <h3>Every sudoku has exactly one answer</h3>
+        <p>Each puzzle is dug out one symmetric pair of clues at a time, and a clue is only removed if the grid still solves exactly one way. A sudoku with two answers would make the solutions page at the back of your own book wrong.</p>
+      </div>
+      <div>
         <h3>No repeated puzzles</h3>
         <p>Every puzzle draws its own word set, so a 100-puzzle book is 100 different puzzles rather than a shuffle of the same twenty. Paste a list too short to keep that up and it tells you, instead of quietly repeating itself.</p>
       </div>
@@ -357,6 +371,8 @@ cherry"></textarea>
       <p>Only if artwork runs off the edge of the page. A plain puzzle book does not — leave bleed off. Turning it on makes the PDF page slightly larger, which KDP expects for full-bleed interiors and flags as an error otherwise.</p></details>
     <details class="faq"><summary>Can I sell the books I make?</summary>
       <p>Yes. Books you generate are yours — publish them, sell them, give them away. I claim no rights to the output and no royalty on it.</p></details>
+    <details class="faq"><summary>What kinds of puzzles can it make?</summary>
+      <p>Word search and sudoku. Word search books draw from 32 built-in themes or a list you paste, in three difficulties. Sudoku comes in easy, medium, hard and expert — 40, 32, 28 and 26 clues respectively, laid out with the 180-degree symmetry printed books use. Every sudoku is checked to have exactly one solution before it goes in the book, because a puzzle with two answers makes your own solutions page wrong.</p></details>
     <details class="faq"><summary>Does it make the cover too?</summary>
       <p>Yes — a full wrap with back cover, spine and front on one PDF, sized from the page count of the interior it just made. Spine width is page count times paper thickness, which is why the paper setting matters. KDP only allows text on the spine from 79 pages up, so shorter books get a blank one. The barcode area on the back is left clear. Cover generation is part of the paid unlock.</p></details>
     <details class="faq"><summary>How many puzzles should a book have?</summary>
@@ -385,6 +401,10 @@ cherry"></textarea>
         <p>Nothing you type. Puzzles and PDFs are built in your browser and never uploaded. Unlocking sends your email once so it can be checked against Stripe's record of payment; the result is kept in your browser's local storage.</p>
       </div>
       <div>
+        <h3>If something goes wrong</h3>
+        <p>Email <a href="mailto:support@bananafest-destiny.com">support@bananafest-destiny.com</a>. A real person reads it. Tell us the trim size, page count and what KDP said, and include the PDF if you can — that is usually enough to spot the problem straight away.</p>
+      </div>
+      <div>
         <h3>What is not promised</h3>
         <p>Page geometry follows Amazon KDP's published specifications, and the exact numbers are shown on screen so you can check them against KDP's own cover calculator before you print. KDP can change its rules or reject a file for reasons outside this tool. Check your proof.</p>
       </div>
@@ -393,7 +413,7 @@ cherry"></textarea>
 </section>
 
 <footer>
-  <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app. <a href="#terms">Terms</a></p>
+  <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app. <a href="#terms">Terms</a> · <a href="mailto:support@bananafest-destiny.com">support@bananafest-destiny.com</a></p>
   <p>Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc.</p>
 </footer>
 

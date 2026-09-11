@@ -200,6 +200,7 @@ function drawDividerPage(ctx, text) {
 }
 
 function drawPuzzlePage(ctx, puzzle) {
+  if (puzzle.kind === "sudoku") return drawSudokuPage(ctx, puzzle);
   const { page, box } = newPage(ctx);
   const F = ctx.F;
 
@@ -278,6 +279,59 @@ function drawGrid(page, F, puzzle, { x, top, side, solution }) {
   page.drawRectangle({ x, y: top - side, width: side, height: side, borderWidth: 0.75, borderColor: BLACK });
 }
 
+// ---------- sudoku ----------
+
+function drawSudokuPage(ctx, puzzle) {
+  const { page, box } = newPage(ctx);
+  const F = ctx.F;
+  const headSize = 20;
+  page.drawText(`Puzzle ${puzzle.index}`, { x: box.x, y: box.y + box.h - headSize, size: headSize, font: F.bold });
+  const sub = puzzle.title;
+  const subW = F.regular.widthOfTextAtSize(sub, 12);
+  page.drawText(sub, { x: box.x + box.w - subW, y: box.y + box.h - headSize + 3, size: 12, font: F.regular, color: GREY });
+
+  // Centre the grid in what is left of the page rather than hanging it from
+  // the header with dead space underneath.
+  const areaTop = box.y + box.h - headSize - 22;
+  const areaBottom = box.y + 34;
+  const side = Math.min(box.w, areaTop - areaBottom);
+  const top = areaTop - (areaTop - areaBottom - side) / 2;
+  drawSudokuGrid(page, F, puzzle.puzzle, { x: box.x + (box.w - side) / 2, top, side, givens: puzzle.puzzle });
+  footer(ctx, page, box);
+}
+
+// A sudoku grid. Box borders are drawn thicker than cell borders — without
+// that the 3x3 structure disappears and the puzzle is unpleasant to solve.
+function drawSudokuGrid(page, F, values, { x, top, side, givens = null, small = false }) {
+  const cell = side / 9;
+  const size = cell * (small ? 0.58 : 0.6);
+  for (let i = 0; i < 81; i++) {
+    const v = values[i];
+    if (!v) continue;
+    const r = Math.floor(i / 9);
+    const c = i % 9;
+    const isGiven = givens ? Boolean(givens[i]) : true;
+    const font = isGiven ? F.bold : F.regular;
+    const w = font.widthOfTextAtSize(String(v), size);
+    page.drawText(String(v), {
+      x: x + c * cell + (cell - w) / 2,
+      y: top - (r + 1) * cell + cell * 0.3,
+      size,
+      font,
+      color: isGiven ? BLACK : GREY,
+    });
+  }
+  // The 3x3 structure has to read at a glance; too little contrast between the
+  // two line weights and the puzzle is unpleasant to solve.
+  const thin = small ? 0.25 : 0.4;
+  const thick = small ? 1.0 : 2.2;
+  for (let k = 0; k <= 9; k++) {
+    const w = k % 3 === 0 ? thick : thin;
+    page.drawLine({ start: { x: x + k * cell, y: top }, end: { x: x + k * cell, y: top - side }, thickness: w, color: BLACK });
+    page.drawLine({ start: { x, y: top - k * cell }, end: { x: x + side, y: top - k * cell }, thickness: w, color: BLACK });
+  }
+}
+
 function drawSolutionsPage(ctx, puzzles, perPage) {
   const { page, box } = newPage(ctx);
   const F = ctx.F;
@@ -293,7 +347,11 @@ function drawSolutionsPage(ctx, puzzles, perPage) {
     const x = box.x + c * (cellW + gap) + (cellW - side) / 2;
     const top = box.y + box.h - r * (cellH + gap);
     page.drawText(`Puzzle ${p.index}`, { x, y: top - 10, size: 10, font: F.bold });
-    drawGrid(page, F, p, { x, top: top - 16, side, solution: true });
+    if (p.kind === "sudoku") {
+      drawSudokuGrid(page, F, p.solution, { x, top: top - 16, side, givens: p.puzzle, small: true });
+    } else {
+      drawGrid(page, F, p, { x, top: top - 16, side, solution: true });
+    }
   });
   footer(ctx, page, box);
 }
