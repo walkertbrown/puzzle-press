@@ -24,7 +24,8 @@
     "test:graded": "node test/graded.mjs",
     "test:wordlist": "node test/wordlist.mjs",
     "test:livecheckout": "node test/livecheckout.mjs",
-    "test:pdfcheck": "bash test/pdfcheck.sh"
+    "test:pdfcheck": "bash test/pdfcheck.sh",
+    "pins": "node scripts/pins.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
