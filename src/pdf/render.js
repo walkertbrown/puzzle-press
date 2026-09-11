@@ -65,17 +65,14 @@ export async function renderBook(book, opts = {}) {
   // Puzzles
   for (const p of puzzles) drawPuzzlePage(ctx, p);
 
-  // Solutions divider must be right-hand (odd). Pad with a blank if needed.
-  if (ctx.pageNo % 2 === 1) drawBlankPage(ctx);
   drawDividerPage(ctx, "Solutions");
   for (let i = 0; i < puzzles.length; i += solutionsPerPage) {
     drawSolutionsPage(ctx, puzzles.slice(i, i + solutionsPerPage), solutionsPerPage);
   }
 
-  // Pad only as far as planPages said it would. A book too short for KDP
-  // comes out at its natural length with a warning, not buried in ruled lines.
+  // The ruled pages at the back are part of the book, and planPages already
+  // worked out how many (four, plus one more if the count would be odd).
   while (ctx.pageNo < plan.total) drawNotesPage(ctx);
-  if (ctx.pageNo % 2 === 1) drawNotesPage(ctx);
 
   return doc.save();
 }

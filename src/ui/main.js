@@ -173,16 +173,6 @@ function showMeta(s) {
       `${pages} pages — under KDP's ${plan.minimum}-page minimum, so KDP will not accept it as it stands. ` +
       `About ${need} puzzles makes a publishable book.`;
     el.lengthWarn.hidden = false;
-  } else if (plan.filler > 0) {
-    // A page added for parity is not the same as padding to reach the
-    // minimum, and calling both "padding to reach 24 pages" was wrong on a
-    // 28-page book.
-    const parityOnly = pages > plan.minimum;
-    el.lengthWarn.textContent = parityOnly
-      ? `${pages} pages, ending with ${plan.filler} blank Notes page${plan.filler === 1 ? "" : "s"} — KDP needs an even page count.`
-      : `${pages} pages, ${plan.filler} of them blank Notes pages added to reach KDP's ${plan.minimum}-page minimum. ` +
-        `A few more puzzles and the book fills itself.`;
-    el.lengthWarn.hidden = false;
   } else {
     el.lengthWarn.hidden = true;
   }

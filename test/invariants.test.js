@@ -42,8 +42,10 @@ test("every book has an even page count, and says when it is too short for KDP",
       assert.equal(plan.total % 2, 0, `${trim} count=${count} -> ${plan.total} is odd`);
       // Either it clears KDP's minimum, or it admits that it does not.
       assert.equal(plan.belowMinimum, plan.total < MIN_PAGES, `${trim} count=${count}`);
-      // And it never pads a book with a wall of blank pages to get there.
-      assert.ok(plan.filler <= 4, `${trim} count=${count} -> ${plan.filler} filler pages`);
+      // The ruled pages at the back are fixed: four, or five when parity needs it.
+      assert.ok(plan.notes === 4 || plan.notes === 5, `${trim} count=${count} -> ${plan.notes} notes pages`);
+      // And the book is exactly its parts, with nothing invented in between.
+      assert.equal(plan.total, plan.content + plan.notes, `${trim} count=${count}`);
     }
   }
 });

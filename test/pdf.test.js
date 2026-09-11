@@ -37,16 +37,21 @@ test("odd pages have the gutter on the left, even pages on the right", () => {
   assert.equal(marginsForPage(g, 2).right, g.margin.inner);
 });
 
-test("planPages: minimum 24, even, divider on a right-hand page", () => {
-  // A 5-puzzle book is 12 pages of content; padding it to 24 meant 12 blank
-  // pages, so it now comes out at its real length and is flagged instead.
-  assert.equal(planPages(5, 2).belowMinimum, true);
-  assert.equal(planPages(5, 2).filler, 0);
-  assert.equal(planPages(14, 2).total, 24);
-  // 2 + 40 = 42 (even) -> +1 divider = 43 -> +10 solutions = 53 -> 54
-  assert.equal(planPages(40, 4).total, 54);
-  // 2 + 41 = 43 (odd) -> +1 blank = 44 -> +1 divider = 45 -> +11 = 56
-  assert.equal(planPages(41, 4).total, 56);
+test("planPages: a fixed shape — title, copyright, puzzles, divider, solutions, notes", () => {
+  // 1 + 1 + 40 + 1 + ceil(40/4) + 4 = 57 -> 58 for an even count
+  const forty = planPages(40, 4);
+  assert.equal(forty.solutionPages, 10);
+  assert.equal(forty.total, 58);
+  assert.equal(forty.notes, 5); // 4, plus one for parity
+  assert.equal(forty.total, forty.content + forty.notes);
+  // A short book comes out short and says so rather than being padded.
+  const five = planPages(5, 6);
+  assert.equal(five.belowMinimum, true);
+  // 1+1+5+1+1 = 9 pages of content, which is odd, so parity adds a fifth
+  // notes page. Four or five, never more.
+  assert.equal(five.notes, 5);
+  assert.equal(five.total, five.content + five.notes);
+  assert.equal(planPages(16, 6).belowMinimum, false);
 });
 
 test("solutions per page: 6 when three rows stay legible, else 4", () => {
