@@ -33,10 +33,10 @@ console.log("wrote public/samples/sample-cover-6x9.pdf", cover.length, "bytes, s
 
 // A sudoku sample, so the second puzzle type can be judged before paying too.
 const { generateSudokuBook } = await import("../src/generator/sudoku.js");
-const sudoku = generateSudokuBook({ count: 20, difficulty: "medium", seed: "public-sudoku-1" });
+const sudoku = generateSudokuBook({ count: 20, difficulty: "graded", seed: "public-sudoku-1" });
 const sudokuBytes = await renderBook(sudoku, {
   title: "Sudoku for Sunday",
-  subtitle: "20 medium puzzles with solutions — sample book",
+  subtitle: "20 puzzles, easy to expert — sample book",
   author: "Puzzle Press",
   trim: "6x9",
   licensed: true,
@@ -46,10 +46,10 @@ writeFileSync(new URL("../public/samples/sample-sudoku-6x9.pdf", import.meta.url
 console.log("wrote public/samples/sample-sudoku-6x9.pdf", sudokuBytes.length, "bytes");
 
 const { generateMazeBook } = await import("../src/generator/maze.js");
-const mazes = generateMazeBook({ count: 20, difficulty: "medium", seed: "public-maze-1" });
+const mazes = generateMazeBook({ count: 20, difficulty: "graded", seed: "public-maze-1" });
 const mazeBytes = await renderBook(mazes, {
   title: "Mazes for Rainy Days",
-  subtitle: "20 mazes with solutions — sample book",
+  subtitle: "20 mazes, easy to expert — sample book",
   author: "Puzzle Press",
   trim: "6x9",
   licensed: true,

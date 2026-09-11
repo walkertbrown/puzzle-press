@@ -66,9 +66,9 @@ const sudokuPdf = new URL("../samples/samples-sudoku.pdf", import.meta.url).path
     regular: rf(new URL("../public/fonts/LiberationSans-Regular.ttf", import.meta.url).pathname),
     bold: rf(new URL("../public/fonts/LiberationSans-Bold.ttf", import.meta.url).pathname),
   };
-  const book = generateSudokuBook({ count: 20, difficulty: "hard", seed: "gallery-sudoku" });
+  const book = generateSudokuBook({ count: 20, difficulty: "graded", seed: "gallery-sudoku" });
   writeFileSync(sudokuPdf, await renderBook(book, {
-    title: "Sudoku for Sunday", subtitle: "20 hard puzzles with solutions",
+    title: "Sudoku for Sunday", subtitle: "20 puzzles, easy to expert, with solutions",
     author: "Puzzle Press", trim: "6x9", licensed: true, fonts,
   }));
 }
@@ -104,9 +104,9 @@ const mazePdf = new URL("../samples/samples-maze.pdf", import.meta.url).pathname
     regular: rf(new URL("../public/fonts/LiberationSans-Regular.ttf", import.meta.url).pathname),
     bold: rf(new URL("../public/fonts/LiberationSans-Bold.ttf", import.meta.url).pathname),
   };
-  const book = generateMazeBook({ count: 20, difficulty: "hard", seed: "gallery-maze" });
+  const book = generateMazeBook({ count: 20, difficulty: "graded", seed: "gallery-maze" });
   writeFileSync(mazePdf, await renderBook(book, {
-    title: "Mazes for Rainy Days", subtitle: "20 hard mazes with solutions",
+    title: "Mazes for Rainy Days", subtitle: "20 mazes, easy to expert, with solutions",
     author: "Puzzle Press", trim: "6x9", licensed: true, fonts,
   }));
 }
