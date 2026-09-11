@@ -15,50 +15,14 @@
 
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
-import { PT, TRIMS } from "./kdp.js";
+import { PT } from "./kdp.js";
+import { coverGeometry, BARCODE_IN } from "./cover-geometry.js";
 import { makeRng } from "../generator/rng.js";
 import { wallSegments } from "../generator/maze.js";
 
-export const BLEED_IN = 0.125;
-export const SPINE_TEXT_MIN_PAGES = 79;
-export const BARCODE_IN = { w: 2, h: 1.2, margin: 0.25 };
-
-// Per-page thickness in inches, from KDP.
-export const PAPER = {
-  white: { label: "Black & white on white paper", thickness: 0.002252 },
-  cream: { label: "Black & white on cream paper", thickness: 0.0025 },
-  premiumColor: { label: "Premium colour", thickness: 0.002347 },
-  standardColor: { label: "Standard colour", thickness: 0.002252 },
-};
-
-export function spineWidthInches(pageCount, paper = "cream") {
-  const t = (PAPER[paper] ?? PAPER.cream).thickness;
-  return pageCount * t;
-}
-
-export function coverGeometry({ trim = "6x9", pageCount = 24, paper = "cream" }) {
-  const t = TRIMS[trim] ?? TRIMS["6x9"];
-  const spineIn = spineWidthInches(pageCount, paper);
-  const widthIn = BLEED_IN + t.w + spineIn + t.w + BLEED_IN;
-  const heightIn = BLEED_IN + t.h + BLEED_IN;
-  return {
-    width: widthIn * PT,
-    height: heightIn * PT,
-    spine: spineIn * PT,
-    bleed: BLEED_IN * PT,
-    trim: t,
-    pageCount,
-    paper,
-    spineTextAllowed: pageCount >= SPINE_TEXT_MIN_PAGES,
-    // x of each panel's left edge, in points
-    backX: BLEED_IN * PT,
-    spineX: (BLEED_IN + t.w) * PT,
-    frontX: (BLEED_IN + t.w + spineIn) * PT,
-    panelW: t.w * PT,
-    panelH: t.h * PT,
-    panelY: BLEED_IN * PT,
-  };
-}
+export {
+  BLEED_IN, SPINE_TEXT_MIN_PAGES, BARCODE_IN, PAPER, spineWidthInches, coverGeometry,
+} from "./cover-geometry.js";
 
 const INK = rgb(0.09, 0.16, 0.29);
 const PAPER_BG = rgb(0.96, 0.965, 0.975);
@@ -74,6 +38,7 @@ export async function renderCover({
   pageCount = 24,
   paper = "cream",
   puzzleCount = 0,
+  licensed = true,
   blurb = "",
   samplePuzzle = null, // a generated puzzle, drawn small on the back
   fonts = null,
@@ -104,8 +69,52 @@ export async function renderCover({
   drawFront(page, g, { title, subtitle, author, regular, bold });
   drawSpine(page, g, { title, author, regular, bold });
   drawBack(page, g, { title, blurb, puzzleCount, samplePuzzle, regular, bold });
+  if (!licensed) drawCoverWatermark(page, g, bold, regular);
 
   return doc.save();
+}
+
+// An unlicensed cover is a real cover of the buyer's own book, marked so it
+// cannot be published. Seeing your own title on your own spine is worth more
+// than any sample of someone else's book.
+function drawCoverWatermark(page, g, bold, regular) {
+  const text = "PREVIEW";
+  const angle = Math.PI / 6;
+  // Size it so the rotated word fits inside the front panel. Sizing from the
+  // panel height overflowed onto the back cover.
+  const target = g.panelW * 0.82;
+  let size = g.panelH * 0.14;
+  while (size > 12 && bold.widthOfTextAtSize(text, size) * Math.cos(angle) > target) size -= 1;
+  const cx = g.frontX + g.panelW / 2;
+  const cy = g.panelY + g.panelH / 2;
+  const w = bold.widthOfTextAtSize(text, size);
+  page.drawText(text, {
+    x: cx - (w / 2) * Math.cos(angle),
+    y: cy - (w / 2) * Math.sin(angle),
+    size,
+    font: bold,
+    color: rgb(0.85, 0.3, 0.3),
+    opacity: 0.45,
+    rotate: { type: "degrees", angle: 30 },
+  });
+  const note = "Made with Puzzle Press — unlock to remove this mark";
+  const ns = 11;
+  const nw = regular.widthOfTextAtSize(note, ns);
+  page.drawRectangle({
+    x: g.frontX + (g.panelW - nw) / 2 - 10,
+    y: g.panelY + 14,
+    width: nw + 20,
+    height: ns + 12,
+    color: WHITE,
+    opacity: 0.9,
+  });
+  page.drawText(note, {
+    x: g.frontX + (g.panelW - nw) / 2,
+    y: g.panelY + 20,
+    size: ns,
+    font: regular,
+    color: rgb(0.7, 0.2, 0.2),
+  });
 }
 
 // A faint field of letters across the whole wrap — says "word search" without

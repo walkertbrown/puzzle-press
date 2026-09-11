@@ -4,7 +4,8 @@ import { generateSudokuBook, generateSudokuBookAsync, SUDOKU_DIFFICULTY } from "
 import { generateMazeBook, wallSegments, MAZE_DIFFICULTY } from "../generator/maze.js";
 import { TRIMS } from "../pdf/kdp.js";
 import { renderBook, planPages, solutionsThatFit } from "../pdf/render.js";
-import { renderCover, coverGeometry, spineWidthInches, SPINE_TEXT_MIN_PAGES } from "../pdf/cover.js";
+import { renderCover } from "../pdf/cover.js";
+import { coverGeometry, spineWidthInches, SPINE_TEXT_MIN_PAGES } from "../pdf/cover-geometry.js";
 import { pageGeometry } from "../pdf/kdp.js";
 import { FREE_LIMIT, PRICE_LABEL, getLicense, setLicense, verifyEmail } from "./license.js";
 
@@ -310,10 +311,7 @@ async function download() {
 // The cover is the paid half: the free tier makes a real interior, but a
 // finished book needs a wrap sized to its own page count.
 async function downloadCover() {
-  if (!getLicense()) {
-    openUnlock();
-    return;
-  }
+  const lic = getLicense();
   const s = settings();
   if (s.pools.length === 0) return;
   el.downloadCover.disabled = true;
@@ -321,7 +319,7 @@ async function downloadCover() {
     el.status.textContent = "Building the cover…";
     await tick();
     const perPage = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }));
-    const pages = planPages(s.count, perPage).total;
+    const pages = planPages(effectiveCount(s.count), perPage).total;
     const one = s.kind === "sudoku"
       ? generateSudokuBook({ ...s, count: 1 })
       : s.kind === "maze"
@@ -338,6 +336,7 @@ async function downloadCover() {
       puzzleCount: s.count,
       samplePuzzle: one.puzzles[0],
       seed: s.seed,
+      licensed: Boolean(lic),
       fonts,
     });
     const blob = new Blob([bytes], { type: "application/pdf" });
@@ -346,7 +345,10 @@ async function downloadCover() {
     a.download = `${slug(s.title)}-cover-${s.trim}.pdf`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    el.status.textContent = `Cover ready — sized for ${pages} pages on ${s.paper === "cream" ? "cream" : "white"} paper.`;
+    el.status.textContent = lic
+      ? `Cover ready — sized for ${pages} pages on ${s.paper === "cream" ? "cream" : "white"} paper.`
+      : `Preview cover ready — your title, your spine (${pages} pages). Unlock to get it without the PREVIEW mark.`;
+    if (!lic) openUnlock();
   } catch (err) {
     console.error(err);
     el.status.textContent = `Could not build the cover: ${err.message}`;
