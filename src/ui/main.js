@@ -44,7 +44,7 @@ let fontsPromise = null;
 for (const [id, t] of Object.entries(TRIMS)) {
   const o = document.createElement("option");
   o.value = id;
-  o.textContent = t.label + (id === "6x9" ? " (most common)" : "");
+  o.textContent = t.label + (id === "6x9" ? " — most common" : "");
   if (id === "6x9") o.selected = true;
   el.trim.append(o);
 }
@@ -58,12 +58,12 @@ for (const [id, t] of Object.entries(THEMES)) {
   el.themes.append(lab);
 }
 const WS_DIFFICULTY = {
-  easy: "Easy — across and down",
-  medium: "Medium — plus diagonals",
-  hard: "Hard — all directions, backwards too",
-  graded: "Graded — easy at the front, hard at the back",
+  easy: "Easy — across & down",
+  medium: "Medium — + diagonals",
+  hard: "Hard — all directions",
+  graded: "Graded — easy to hard",
 };
-const GRADED_LABEL = "Graded — easy at the front, expert at the back";
+const GRADED_LABEL = "Graded — easy to expert";
 
 // Sensible defaults per puzzle type, used until the person types their own.
 const DEFAULT_TITLES = {

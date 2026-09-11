@@ -9,14 +9,14 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Puzzle Press">
 <meta property="og:url" content="https://puzzlepress.bananafest-destiny.com/">
-<meta property="og:title" content="Word Search Book Generator for Amazon KDP">
-<meta property="og:description" content="A finished paperback interior in one click — puzzles, word banks, solutions, KDP-correct margins and embedded fonts. Try it free, no sign-up.">
+<meta property="og:title" content="Puzzle Book Generator for Amazon KDP — Word Search, Sudoku, Mazes">
+<meta property="og:description" content="A finished paperback in one click — puzzles, solutions, KDP-correct margins, embedded fonts, and a cover with the spine measured to your page count. Free to use, no sign-up.">
 <meta property="og:image" content="https://puzzlepress.bananafest-destiny.com/social-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Word Search Book Generator for Amazon KDP">
-<meta name="twitter:description" content="A finished paperback interior in one click — puzzles, word banks, solutions, KDP-correct margins and embedded fonts.">
+<meta name="twitter:title" content="Puzzle Book Generator for Amazon KDP — Word Search, Sudoku, Mazes">
+<meta name="twitter:description" content="Word search, sudoku or maze books for Amazon KDP — puzzles, solutions and a matching cover, in your browser. Free to use.">
 <meta name="twitter:image" content="https://puzzlepress.bananafest-destiny.com/social-card.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d3557'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-weight='700' font-size='18' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
 <style>
@@ -42,7 +42,19 @@
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .themes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
   .themes label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; color: var(--ink); }
-  .check { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 14px; }
+  .check { display: flex; align-items: center; gap: 10px; margin-top: 6px; min-height: 40px; font-size: 14px; }
+  input[type=checkbox] { width: 20px; height: 20px; margin: 0; flex: 0 0 auto; accent-color: var(--accent); }
+  .themes label { min-height: 36px; }
+  @media (max-width: 800px) {
+    header .wide-only { display: none; }
+    header { padding: 14px 16px; }
+    .hero { padding: 24px 16px 20px; }
+    main { padding: 16px; gap: 16px; }
+    .band { padding: 28px 16px; }
+    .check { min-height: 44px; }
+    .themes label { min-height: 44px; }
+    button, .btn { min-height: 44px; }
+  }
   button { font: inherit; border-radius: 8px; border: 1px solid var(--line); background: #fff; padding: 9px 14px; cursor: pointer; color: var(--ink); }
   button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; padding: 12px 18px; font-size: 16px; }
   button:disabled { opacity: 0.5; cursor: default; }
@@ -127,12 +139,12 @@
   <p>Word search, sudoku and maze books for Amazon KDP, made in your browser.</p>
   <span class="spacer"></span>
   <a href="#pricing">Pricing</a>
-  <a href="/spine-calculator">Spine calculator</a>
-  <a href="/royalty-calculator">Royalty calculator</a>
-  <a href="samples/sample-6x9.pdf" target="_blank" rel="noopener">Sample word search book</a>
-  <a href="samples/sample-sudoku-6x9.pdf" target="_blank" rel="noopener">Sample sudoku book</a>
-  <a href="samples/sample-maze-6x9.pdf" target="_blank" rel="noopener">Sample maze book</a>
-  <a href="samples/sample-cover-6x9.pdf" target="_blank" rel="noopener">Sample cover</a>
+  <a class="wide-only" href="/spine-calculator">Spine calculator</a>
+  <a class="wide-only" href="/royalty-calculator">Royalty calculator</a>
+  <a class="wide-only" href="samples/sample-6x9.pdf" target="_blank" rel="noopener">Sample word search book</a>
+  <a class="wide-only" href="samples/sample-sudoku-6x9.pdf" target="_blank" rel="noopener">Sample sudoku book</a>
+  <a class="wide-only" href="samples/sample-maze-6x9.pdf" target="_blank" rel="noopener">Sample maze book</a>
+  <a class="wide-only" href="samples/sample-cover-6x9.pdf" target="_blank" rel="noopener">Sample cover</a>
 </header>
 
 <section class="hero">
@@ -144,6 +156,7 @@
         <a class="btn btn-primary" href="#tool">Make a book free</a>
         <a class="btn btn-ghost" href="samples/sample-6x9.pdf" target="_blank" rel="noopener">See a finished book (PDF)</a>
         <a class="btn btn-ghost" href="samples/sample-cover-6x9.pdf" target="_blank" rel="noopener">…and its cover</a>
+        <span class="note">Also: <a href="samples/sample-sudoku-6x9.pdf" target="_blank" rel="noopener">sudoku sample</a> · <a href="samples/sample-maze-6x9.pdf" target="_blank" rel="noopener">maze sample</a></span>
         <span class="note">Free: a full-length book, watermarked. $19 once removes the mark.</span>
       </div>
       <ul class="trust">
@@ -197,7 +210,7 @@
         <div>
           <label for="ink">Ink</label>
           <select id="ink">
-            <option value="black" selected>Black ink — usual for puzzle books</option>
+            <option value="black" selected>Black ink (usual)</option>
             <option value="premiumColor">Premium colour</option>
             <option value="standardColor">Standard colour</option>
           </select>
@@ -205,8 +218,8 @@
       </div>
       <label for="paper">Paper (sets the spine width on the cover)</label>
       <select id="paper">
-        <option value="cream" selected>Black &amp; white on cream — usual for puzzle books</option>
-        <option value="white">Black &amp; white on white</option>
+        <option value="cream" selected>Cream paper, black ink (usual)</option>
+        <option value="white">White paper, black ink</option>
         <option value="premiumColor">Premium colour</option>
         <option value="standardColor">Standard colour</option>
       </select>
