@@ -2,7 +2,15 @@
 // fresh random subset of its pool, so no two puzzles share the same word set.
 
 import { makeRng } from "./rng.js";
-import { generatePuzzle, normalizeWords, removeNested, suggestSize } from "./wordsearch.js";
+import { generatePuzzle, normalizeWords, removeNested, suggestSize, DIFFICULTY } from "./wordsearch.js";
+
+// A graded book works up from easy to hard, the way published puzzle books do.
+export function gradeFor(index, count, difficulty) {
+  if (difficulty !== "graded") return difficulty;
+  const levels = Object.keys(DIFFICULTY);
+  const band = Math.min(levels.length - 1, Math.floor((index * levels.length) / Math.max(1, count)));
+  return levels[band];
+}
 
 // pools: [{ title, words: string[] }]
 // Returns { puzzles: [{ index, title, ...puzzle }], warnings: string[] }
@@ -59,12 +67,18 @@ export function generateBook({
       }
     }
 
-    const gridSize = size ?? suggestSize(chosen, difficulty);
-    const puzzle = generatePuzzle({ words: chosen, size: gridSize, difficulty, seed: `${seed}|${i}` });
+    const level = gradeFor(i, count, difficulty);
+    const gridSize = size ?? suggestSize(chosen, level);
+    const puzzle = generatePuzzle({ words: chosen, size: gridSize, difficulty: level, seed: `${seed}|${i}` });
     if (puzzle.unplaced.length) {
       warnings.push(`Puzzle ${i + 1}: could not fit ${puzzle.unplaced.join(", ")}`);
     }
-    puzzles.push({ index: i + 1, title: pool.title, ...puzzle });
+    // A graded book has to say which band each puzzle is in, or "graded" is
+    // invisible to the person solving it. Word search pages show the theme
+    // top right, so the level joins it there.
+    const label = { easy: "Easy", medium: "Medium", hard: "Hard" }[level];
+    const title = difficulty === "graded" ? `${pool.title} · ${label}` : pool.title;
+    puzzles.push({ index: i + 1, title, ...puzzle });
   }
 
   return { puzzles, warnings };

@@ -61,7 +61,9 @@ const WS_DIFFICULTY = {
   easy: "Easy — across and down",
   medium: "Medium — plus diagonals",
   hard: "Hard — all directions, backwards too",
+  graded: "Graded — easy at the front, hard at the back",
 };
+const GRADED_LABEL = "Graded — easy at the front, expert at the back";
 
 function refreshKind() {
   const kind = el.kind.value;
@@ -69,9 +71,9 @@ function refreshKind() {
   for (const node of document.querySelectorAll(".ws-only")) node.classList.toggle("hidden", wordless);
   const opts =
     kind === "sudoku"
-      ? Object.fromEntries(Object.entries(SUDOKU_DIFFICULTY).map(([k, v]) => [k, v.label]))
+      ? { ...Object.fromEntries(Object.entries(SUDOKU_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.givens} clues`])), graded: GRADED_LABEL }
       : kind === "maze"
-        ? Object.fromEntries(Object.entries(MAZE_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.w}×${v.h}`]))
+        ? { ...Object.fromEntries(Object.entries(MAZE_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.w}×${v.h}`])), graded: GRADED_LABEL }
         : WS_DIFFICULTY;
   const keep = el.difficulty.value;
   el.difficulty.replaceChildren();
@@ -447,7 +449,9 @@ el.reshuffle.addEventListener("click", () => {
   easy: "Easy — across and down",
   medium: "Medium — plus diagonals",
   hard: "Hard — all directions, backwards too",
+  graded: "Graded — easy at the front, hard at the back",
 };
+const GRADED_LABEL = "Graded — easy at the front, expert at the back";
 
 function refreshKind() {
   const kind = el.kind.value;
@@ -455,9 +459,9 @@ function refreshKind() {
   for (const node of document.querySelectorAll(".ws-only")) node.classList.toggle("hidden", wordless);
   const opts =
     kind === "sudoku"
-      ? Object.fromEntries(Object.entries(SUDOKU_DIFFICULTY).map(([k, v]) => [k, v.label]))
+      ? { ...Object.fromEntries(Object.entries(SUDOKU_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.givens} clues`])), graded: GRADED_LABEL }
       : kind === "maze"
-        ? Object.fromEntries(Object.entries(MAZE_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.w}×${v.h}`]))
+        ? { ...Object.fromEntries(Object.entries(MAZE_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.w}×${v.h}`])), graded: GRADED_LABEL }
         : WS_DIFFICULTY;
   const keep = el.difficulty.value;
   el.difficulty.replaceChildren();
