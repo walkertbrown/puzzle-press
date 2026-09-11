@@ -16,8 +16,12 @@ const tmp = mkdtempSync(join(tmpdir(), "pp-gal-"));
 const browser = await chromium.launch();
 
 // --- 4. the tool, mid-use, preview showing ---
-const app = await browser.newPage({ viewport: { width: 1280, height: 820 }, deviceScaleFactor: 1.5 });
+const app = await browser.newPage({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 1.5 });
 await app.goto(base, { waitUntil: "networkidle" });
+// Shoot the paid product: an unlicensed shot shows the 5-puzzle cap under a
+// title promising 100, which reads as a bug rather than a free tier.
+await app.evaluate(() => localStorage.setItem("puzzlepress.license", JSON.stringify({ email: "you@example.com", token: "demo", verifiedAt: Date.now() })));
+await app.reload({ waitUntil: "networkidle" });
 await app.waitForSelector(".grid div");
 await app.fill("#title", "Large Print Word Search");
 await app.fill("#subtitle", "100 puzzles for relaxing evenings");
@@ -26,9 +30,10 @@ await app.uncheck(".themes input[value='animals']");
 await app.check(".themes input[value='garden']");
 await app.fill("#count", "100");
 await app.waitForTimeout(900);
-await app.evaluate(() => document.getElementById("tool").scrollIntoView());
-await app.waitForTimeout(400);
-await app.screenshot({ path: join(out, "04-the-tool.png") });
+// Shoot the tool as one element: settings and preview together, nothing cropped.
+await app.setViewportSize({ width: 1400, height: 1500 });
+await app.waitForTimeout(600);
+await app.locator("main").screenshot({ path: join(out, "04-the-tool.png") });
 
 // --- 5. a solutions page, close ---
 const pdf = new URL("../public/samples/sample-6x9.pdf", import.meta.url).pathname;
