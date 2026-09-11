@@ -38,7 +38,12 @@ await page.fill("#author", "Browser Test");
 const free = await downloadPdf("free.pdf");
 const freePdf = await PDFDocument.load(await (await import("node:fs")).promises.readFile(free.path));
 console.log("free:", free.filename, free.status, "pages", freePdf.getPageCount());
-if (freePdf.getPageCount() !== 24) throw new Error("free-tier book should be 24 pages");
+// This used to assert exactly 24 pages, which encoded the padding bug as
+// correct: a 5-puzzle book was 24 pages only because 15 of them were blank.
+// A free book is now its real length, so check it is short and not padded.
+if (freePdf.getPageCount() > 14) {
+  throw new Error(`a 5-puzzle free book should be short, got ${freePdf.getPageCount()} pages`);
+}
 
 // 1b. Unlock dialog: shows the Buy link when the Worker injected a pay URL,
 // and a wrong email is refused without breaking the page.
