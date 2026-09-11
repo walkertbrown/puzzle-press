@@ -32,7 +32,7 @@ const el = {
   wpp: $("wpp"), difficulty: $("difficulty"), size: $("size"), seed: $("seed"), largePrint: $("largePrint"), kind: $("kind"),
   download: $("download"), downloadCover: $("downloadCover"), coverNote: $("coverNote"), moneyNote: $("moneyNote"), list: $("list"), ink: $("ink"), paper: $("paper"), reshuffle: $("reshuffle"), status: $("status"), tier: $("tier"), warnings: $("warnings"),
   meta: $("meta"), lengthWarn: $("lengthWarn"), page: $("page"), prev: $("prev"), next: $("next"), navLabel: $("navLabel"),
-  dialog: $("unlockDialog"), buyLine: $("buyLine"), email: $("email"), unlockErr: $("unlockErr"), verify: $("verify"), closeDialog: $("closeDialog"),
+  dialog: $("unlockDialog"), dialogTitle: $("dialogTitle"), dialogLede: $("dialogLede"), buyLine: $("buyLine"), email: $("email"), unlockErr: $("unlockErr"), verify: $("verify"), closeDialog: $("closeDialog"),
 };
 
 let book = null;
@@ -293,14 +293,24 @@ function refreshTier() {
   }
 }
 
-function openUnlock() {
+function openUnlock({ justPaid = false } = {}) {
   el.unlockErr.textContent = "";
-  if (PAY_URL) {
+  el.dialogTitle.textContent = justPaid ? "Thanks — one last step" : "Unlock full books";
+  el.dialogLede.textContent = justPaid
+    ? "Enter the email you used at checkout and everything unlocks on this device."
+    : "Pay once, make unlimited books with no watermark. After paying, enter the email you used at checkout.";
+  if (justPaid) {
+    // Offering to sell again to somebody who has just paid reads as a failed
+    // payment. Show them the next step instead.
+    el.buyLine.textContent = "";
+  } else if (PAY_URL) {
     el.buyLine.innerHTML = `<a href="${escapeHtml(PAY_URL)}" target="_blank" rel="noopener"><b>Buy now — ${PRICE_LABEL}</b></a> (opens Stripe checkout)`;
   } else {
     el.buyLine.textContent = "Checkout is not available yet.";
   }
+  el.justPaid = justPaid;
   el.dialog.showModal();
+  el.email.focus();
 }
 
 // ---------- download ----------
@@ -494,7 +504,10 @@ el.verify.addEventListener("click", async () => {
     refreshTier();
     regenerate(); // numbers on screen change the moment the cap lifts
   } catch (err) {
-    el.unlockErr.textContent = err.message;
+    el.unlockErr.textContent =
+      el.justPaid && /No completed payment/i.test(err.message)
+        ? "Stripe has not finished recording that payment yet. Give it a few seconds and press Unlock again — your money is fine."
+        : err.message;
   } finally {
     el.verify.disabled = false;
   }
@@ -517,5 +530,5 @@ regenerate();
 // dialog so the next step is obvious.
 if (new URLSearchParams(location.search).get("paid") && !getLicense()) {
   history.replaceState(null, "", location.pathname);
-  openUnlock();
+  openUnlock({ justPaid: true });
 }
