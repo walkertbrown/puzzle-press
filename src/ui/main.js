@@ -1,6 +1,7 @@
 import { THEMES } from "../generator/wordlists.js";
 import { generateBook } from "../generator/book.js";
 import { generateSudokuBook, generateSudokuBookAsync, SUDOKU_DIFFICULTY } from "../generator/sudoku.js";
+import { generateMazeBook, wallSegments, MAZE_DIFFICULTY } from "../generator/maze.js";
 import { TRIMS } from "../pdf/kdp.js";
 import { renderBook, planPages, solutionsThatFit } from "../pdf/render.js";
 import { renderCover, coverGeometry, spineWidthInches, SPINE_TEXT_MIN_PAGES } from "../pdf/cover.js";
@@ -50,11 +51,15 @@ const WS_DIFFICULTY = {
 };
 
 function refreshKind() {
-  const sudoku = el.kind.value === "sudoku";
-  for (const node of document.querySelectorAll(".ws-only")) node.classList.toggle("hidden", sudoku);
-  const opts = sudoku
-    ? Object.fromEntries(Object.entries(SUDOKU_DIFFICULTY).map(([k, v]) => [k, v.label]))
-    : WS_DIFFICULTY;
+  const kind = el.kind.value;
+  const wordless = kind !== "wordsearch";
+  for (const node of document.querySelectorAll(".ws-only")) node.classList.toggle("hidden", wordless);
+  const opts =
+    kind === "sudoku"
+      ? Object.fromEntries(Object.entries(SUDOKU_DIFFICULTY).map(([k, v]) => [k, v.label]))
+      : kind === "maze"
+        ? Object.fromEntries(Object.entries(MAZE_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.w}×${v.h}`]))
+        : WS_DIFFICULTY;
   const keep = el.difficulty.value;
   el.difficulty.replaceChildren();
   for (const [value, label] of Object.entries(opts)) {
@@ -64,7 +69,7 @@ function refreshKind() {
     el.difficulty.append(o);
   }
   el.difficulty.value = opts[keep] ? keep : "medium";
-  if (sudoku) el.largePrint.checked = false;
+  if (wordless) el.largePrint.checked = false;
 }
 
 el.seed.value = randomSeed();
@@ -103,6 +108,14 @@ function settings() {
 
 function regenerate() {
   const s = settings();
+  if (s.kind === "maze") {
+    book = generateMazeBook({ count: Math.min(s.count, 3), difficulty: s.difficulty, seed: s.seed });
+    shown = 0;
+    showPuzzle();
+    showMeta(s);
+    el.warnings.textContent = "";
+    return;
+  }
   if (s.kind === "sudoku") {
     // Only a few, and only for the preview — an expert puzzle is real work.
     book = generateSudokuBook({ count: Math.min(s.count, 3), difficulty: s.difficulty, seed: s.seed });
@@ -147,6 +160,7 @@ function showPuzzle() {
   if (!book || !book.puzzles.length) return;
   const p = book.puzzles[shown];
   if (p.kind === "sudoku") return showSudoku(p);
+  if (p.kind === "maze") return showMaze(p);
   const grid = document.createElement("div");
   grid.className = "grid";
   grid.style.gridTemplateColumns = `repeat(${p.size}, 1fr)`;
@@ -174,6 +188,24 @@ function showPuzzle() {
 // and cover size must all be quoted for the book you would actually get.
 function effectiveCount(requested) {
   return getLicense() ? requested : Math.min(requested, FREE_LIMIT);
+}
+
+function showMaze(p) {
+  const pad = 1;
+  const lines = wallSegments(p)
+    .map((g) => `<line x1="${g.x1}" y1="${g.y1}" x2="${g.x2}" y2="${g.y2}"/>`)
+    .join("");
+  const wrap = document.createElement("div");
+  wrap.className = "maze";
+  wrap.innerHTML =
+    `<svg viewBox="${-pad} ${-pad} ${p.w + pad * 2} ${p.h + pad * 2}" role="img" aria-label="Maze preview">` +
+    `<g stroke="#111" stroke-width="0.18" stroke-linecap="square" fill="none">${lines}</g></svg>`;
+  const h = document.createElement("h3");
+  h.append(`Puzzle ${p.index}`, Object.assign(document.createElement("span"), { textContent: `${p.title} · ${p.w}×${p.h}` }));
+  el.page.replaceChildren(h, wrap);
+  el.navLabel.textContent = `${shown + 1} / ${book.puzzles.length} (preview)`;
+  el.prev.disabled = shown === 0;
+  el.next.disabled = shown >= book.puzzles.length - 1;
 }
 
 function showSudoku(p) {
@@ -252,7 +284,9 @@ async function download() {
       ? await generateSudokuBookAsync({ ...s, count }, (done, total) => {
           el.status.textContent = `Generating puzzle ${done} of ${total}…`;
         })
-      : generateBook({ ...s, count });
+      : s.kind === "maze"
+        ? generateMazeBook({ ...s, count })
+        : generateBook({ ...s, count });
     el.warnings.textContent = full.warnings.join("\n");
     el.status.textContent = "Laying out pages…";
     await tick();
@@ -290,7 +324,9 @@ async function downloadCover() {
     const pages = planPages(s.count, perPage).total;
     const one = s.kind === "sudoku"
       ? generateSudokuBook({ ...s, count: 1 })
-      : generateBook({ ...s, count: 1 });
+      : s.kind === "maze"
+        ? generateMazeBook({ ...s, count: 1 })
+        : generateBook({ ...s, count: 1 });
     const fonts = await loadFonts();
     const bytes = await renderCover({
       title: s.title,
@@ -366,11 +402,15 @@ el.reshuffle.addEventListener("click", () => {
 };
 
 function refreshKind() {
-  const sudoku = el.kind.value === "sudoku";
-  for (const node of document.querySelectorAll(".ws-only")) node.classList.toggle("hidden", sudoku);
-  const opts = sudoku
-    ? Object.fromEntries(Object.entries(SUDOKU_DIFFICULTY).map(([k, v]) => [k, v.label]))
-    : WS_DIFFICULTY;
+  const kind = el.kind.value;
+  const wordless = kind !== "wordsearch";
+  for (const node of document.querySelectorAll(".ws-only")) node.classList.toggle("hidden", wordless);
+  const opts =
+    kind === "sudoku"
+      ? Object.fromEntries(Object.entries(SUDOKU_DIFFICULTY).map(([k, v]) => [k, v.label]))
+      : kind === "maze"
+        ? Object.fromEntries(Object.entries(MAZE_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.w}×${v.h}`]))
+        : WS_DIFFICULTY;
   const keep = el.difficulty.value;
   el.difficulty.replaceChildren();
   for (const [value, label] of Object.entries(opts)) {
@@ -380,7 +420,7 @@ function refreshKind() {
     el.difficulty.append(o);
   }
   el.difficulty.value = opts[keep] ? keep : "medium";
-  if (sudoku) el.largePrint.checked = false;
+  if (wordless) el.largePrint.checked = false;
 }
 
 el.seed.value = randomSeed();

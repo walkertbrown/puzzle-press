@@ -17,6 +17,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { PT, TRIMS } from "./kdp.js";
 import { makeRng } from "../generator/rng.js";
+import { wallSegments } from "../generator/maze.js";
 
 export const BLEED_IN = 0.125;
 export const SPINE_TEXT_MIN_PAGES = 79;
@@ -269,7 +270,27 @@ function drawMiniSudoku(page, puzzle, { x, top, side, font }) {
   }
 }
 
+function drawMiniMaze(page, maze, { x, top, side }) {
+  page.drawRectangle({ x, y: top - side, width: side, height: side, color: WHITE });
+  const cell = side / Math.max(maze.w, maze.h);
+  for (const seg of wallSegments(maze)) {
+    page.drawLine({
+      start: { x: x + seg.x1 * cell, y: top - seg.y1 * cell },
+      end: { x: x + seg.x2 * cell, y: top - seg.y2 * cell },
+      thickness: 0.45,
+      color: MUTED,
+    });
+  }
+}
+
 function defaultBlurb(n, kind) {
+  if (kind === "maze") {
+    return (
+      `A collection of ${n ? n + " " : ""}mazes with full solutions at the back. ` +
+      "Every maze has exactly one route from start to finish, and the paths are printed wide enough to follow with a pen. " +
+      "Perfect for quiet evenings, waiting rooms and long journeys."
+    );
+  }
   if (kind === "sudoku") {
     return (
       `A collection of ${n ? n + " " : ""}sudoku puzzles with full solutions at the back. ` +
@@ -290,6 +311,7 @@ function defaultWordBlurb(n) {
 
 function drawMiniGrid(page, puzzle, { x, top, side, font }) {
   if (puzzle.kind === "sudoku") return drawMiniSudoku(page, puzzle, { x, top, side, font });
+  if (puzzle.kind === "maze") return drawMiniMaze(page, puzzle, { x, top, side });
   const n = puzzle.size;
   const cell = side / n;
   const size = cell * 0.66;
