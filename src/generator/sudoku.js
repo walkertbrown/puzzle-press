@@ -18,7 +18,10 @@ export const SUDOKU_DIFFICULTY = {
   easy: { label: "Easy", givens: 40 },
   medium: { label: "Medium", givens: 32 },
   hard: { label: "Hard", givens: 28 },
-  expert: { label: "Expert", givens: 24 },
+  // 26 is where 180-degree symmetry stops being cheap: 28 clues costs ~14ms a
+  // puzzle, 26 costs ~264ms, 24 over a second. 26 is what published "expert"
+  // puzzles carry, so it is the honest floor rather than an arbitrary one.
+  expert: { label: "Expert", givens: 26 },
 };
 
 const ROW = (i) => Math.floor(i / SIZE);
@@ -137,34 +140,50 @@ export function isValidComplete(grid) {
 }
 
 // generateSudoku({ difficulty, seed }) -> { puzzle, solution, givens, difficulty }
+// One symmetric dig over one complete grid. Some grids simply will not dig as
+// deep as others, so this reports what it managed rather than pretending.
+function dig(solution, target, rng) {
+  const puzzle = solution.slice();
+  let givens = CELLS;
+  // Several passes: a pair that could not be removed early often can be once
+  // its neighbours are gone.
+  for (let pass = 0; pass < 3 && givens > target; pass++) {
+    for (const i of rng.shuffle(Array.from({ length: CELLS }, (_, k) => k))) {
+      if (givens <= target) break;
+      const mirror = CELLS - 1 - i;
+      const savedI = puzzle[i];
+      const savedM = puzzle[mirror];
+      if (!savedI && !savedM) continue;
+      const removing = (savedI ? 1 : 0) + (mirror !== i && savedM ? 1 : 0);
+      if (givens - removing < target) continue; // would overshoot the band
+      puzzle[i] = 0;
+      puzzle[mirror] = 0;
+      if (countSolutions(puzzle, 2) === 1) {
+        givens -= removing;
+      } else {
+        puzzle[i] = savedI;
+        puzzle[mirror] = savedM;
+      }
+    }
+  }
+  return { puzzle, givens };
+}
+
 export function generateSudoku({ difficulty = "medium", seed = "sudoku" } = {}) {
   const spec = SUDOKU_DIFFICULTY[difficulty] ?? SUDOKU_DIFFICULTY.medium;
   const rng = makeRng(`${seed}|sudoku|${difficulty}`);
-  const solution = completeGrid(rng);
-  const puzzle = solution.slice();
 
-  // Remove in rotationally symmetric pairs, the convention in printed books.
-  const order = rng.shuffle(Array.from({ length: CELLS }, (_, i) => i));
-  let givens = CELLS;
-  for (const i of order) {
+  // Try whole grids until one digs down to the band. Expert sits close to what
+  // 180-degree symmetry allows at all, so this matters most there.
+  let best = null;
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const solution = completeGrid(rng);
+    const { puzzle, givens } = dig(solution, spec.givens, rng);
+    if (!best || givens < best.givens) best = { puzzle, solution, givens };
     if (givens <= spec.givens) break;
-    const mirror = CELLS - 1 - i;
-    if (puzzle[i] === 0 && puzzle[mirror] === 0) continue;
-    const savedI = puzzle[i];
-    const savedM = puzzle[mirror];
-    const removing = (savedI ? 1 : 0) + (mirror !== i && savedM ? 1 : 0);
-    if (givens - removing < spec.givens) continue;
-    puzzle[i] = 0;
-    puzzle[mirror] = 0;
-    if (countSolutions(puzzle, 2) === 1) {
-      givens -= removing;
-    } else {
-      puzzle[i] = savedI;
-      puzzle[mirror] = savedM;
-    }
   }
 
-  return { puzzle, solution, givens, difficulty, seed };
+  return { puzzle: best.puzzle, solution: best.solution, givens: best.givens, difficulty, seed };
 }
 
 // A book's worth, each with its own seed so it is reproducible.
@@ -173,6 +192,23 @@ export function generateSudokuBook({ count = 20, difficulty = "medium", seed = "
   for (let i = 0; i < count; i++) {
     const s = generateSudoku({ difficulty, seed: `${seed}|${i}` });
     puzzles.push({ index: i + 1, title: SUDOKU_DIFFICULTY[difficulty]?.label ?? "Sudoku", kind: "sudoku", ...s });
+  }
+  return { kind: "sudoku", puzzles, warnings: [] };
+}
+
+// The same, but yielding to the event loop between puzzles so a browser tab
+// stays alive and can report progress. An expert book is real work — around a
+// quarter of a second per puzzle — and a frozen tab reads as a crash.
+export async function generateSudokuBookAsync(
+  { count = 20, difficulty = "medium", seed = "book" } = {},
+  onProgress = null,
+) {
+  const puzzles = [];
+  for (let i = 0; i < count; i++) {
+    const s = generateSudoku({ difficulty, seed: `${seed}|${i}` });
+    puzzles.push({ index: i + 1, title: SUDOKU_DIFFICULTY[difficulty]?.label ?? "Sudoku", kind: "sudoku", ...s });
+    if (onProgress) onProgress(i + 1, count);
+    await new Promise((r) => setTimeout(r, 0));
   }
   return { kind: "sudoku", puzzles, warnings: [] };
 }
