@@ -32,17 +32,19 @@ async function downloadPdf(name) {
   return { path, status, filename: dl.suggestedFilename() };
 }
 
-// 1. Free tier: ask for 50, get 5, watermark on.
+// 1. Free tier: ask for 50, get the free limit, watermark on.
 await page.fill("#count", "50");
 await page.fill("#author", "Browser Test");
 const free = await downloadPdf("free.pdf");
 const freePdf = await PDFDocument.load(await (await import("node:fs")).promises.readFile(free.path));
 console.log("free:", free.filename, free.status, "pages", freePdf.getPageCount());
-// This used to assert exactly 24 pages, which encoded the padding bug as
-// correct: a 5-puzzle book was 24 pages only because 15 of them were blank.
-// A free book is now its real length, so check it is short and not padded.
-if (freePdf.getPageCount() > 14) {
-  throw new Error(`a 5-puzzle free book should be short, got ${freePdf.getPageCount()} pages`);
+// This once asserted exactly 24 pages, which encoded the padding bug as
+// correct: a 5-puzzle book reached 24 only because 15 were blank. The free
+// tier now makes a genuine 12-puzzle book, so 24 pages is right again — but
+// for the opposite reason, and it must be mostly content.
+const freePages = freePdf.getPageCount();
+if (freePages < 24 || freePages > 30) {
+  throw new Error(`a free book should be a real KDP-length book, got ${freePages} pages`);
 }
 
 // 1b. Unlock dialog: shows the Buy link when the Worker injected a pay URL,

@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { PDFDocument } from "pdf-lib";
 import { generateBook } from "../src/generator/book.js";
 import { THEMES } from "../src/generator/wordlists.js";
-import { renderBook, planPages, solutionsThatFit } from "../src/pdf/render.js";
+import { renderBook, planPages, solutionsThatFit, solutionsPerPageFor } from "../src/pdf/render.js";
 import { pageGeometry, gutterInches, marginsForPage } from "../src/pdf/kdp.js";
 
 const fonts = {
@@ -59,7 +59,9 @@ test("renders a 6x9 book with the planned page count and embedded fonts", async 
   const book = generateBook({ pools: [THEMES.animals], count: 10, wordsPerPuzzle: 15, seed: "pdf6x9" });
   const bytes = await renderBook(book, { title: "Animal Word Search", subtitle: "50 puzzles for relaxing evenings", author: "Test Author", trim: "6x9", fonts });
   const pdf = await PDFDocument.load(bytes);
-  assert.equal(pdf.getPageCount(), planPages(10, 2).total);
+  // The renderer now chooses solutions-per-page itself, to fill pages with
+  // answers rather than blanks; ask it what it would pick.
+  assert.equal(pdf.getPageCount(), planPages(10, solutionsPerPageFor(10, solutionsThatFit(pageGeometry({ trim: "6x9" })))).total);
   const [w, h] = [pdf.getPage(0).getWidth(), pdf.getPage(0).getHeight()];
   assert.equal(w, 432);
   assert.equal(h, 648);
@@ -77,7 +79,7 @@ test("renders an 8.5x11 hard book with bleed, licensed (no watermark)", async ()
   const book = generateBook({ pools: [THEMES.ocean, THEMES.space], count: 30, wordsPerPuzzle: 20, difficulty: "hard", seed: "pdfletter" });
   const bytes = await renderBook(book, { title: "Big Word Search Book", trim: "8.5x11", bleed: true, licensed: true, fonts });
   const pdf = await PDFDocument.load(bytes);
-  assert.equal(pdf.getPageCount(), planPages(30, 6).total);
+  assert.equal(pdf.getPageCount(), planPages(30, solutionsPerPageFor(30, solutionsThatFit(pageGeometry({ trim: "8.5x11", bleed: true })))).total);
   assert.equal(pdf.getPage(0).getWidth(), 621); // 8.625in
   assert.equal(pdf.getPage(0).getHeight(), 810); // 11.25in
   writeFileSync(new URL("../samples/test/sample-8.5x11-bleed.pdf", import.meta.url), bytes);

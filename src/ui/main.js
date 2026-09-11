@@ -86,6 +86,10 @@ function refreshKind() {
 }
 
 el.seed.value = randomSeed();
+// The count field used to default to 50 while the free tier delivered 5. A
+// first download that silently ignores the number on screen is a bad first
+// impression, so show what will actually be produced.
+if (!getLicense()) el.count.value = String(FREE_LIMIT);
 refreshKind();
 
 function randomSeed() {
@@ -176,9 +180,14 @@ function showMeta(s) {
       (getLicense() ? "." : `, which needs the unlock — the free tier stops at ${FREE_LIMIT}.`);
     el.lengthWarn.hidden = false;
   } else if (plan.filler > 0) {
-    el.lengthWarn.textContent =
-      `${pages} pages, ${plan.filler} of them blank Notes pages added to reach KDP's ${plan.minimum}-page minimum. ` +
-      `A few more puzzles and the book fills itself.`;
+    // A page added for parity is not the same as padding to reach the
+    // minimum, and calling both "padding to reach 24 pages" was wrong on a
+    // 28-page book.
+    const parityOnly = pages > plan.minimum;
+    el.lengthWarn.textContent = parityOnly
+      ? `${pages} pages, ending with ${plan.filler} blank Notes page${plan.filler === 1 ? "" : "s"} — KDP needs an even page count.`
+      : `${pages} pages, ${plan.filler} of them blank Notes pages added to reach KDP's ${plan.minimum}-page minimum. ` +
+        `A few more puzzles and the book fills itself.`;
     el.lengthWarn.hidden = false;
   } else {
     el.lengthWarn.hidden = true;
@@ -482,6 +491,10 @@ function refreshKind() {
 }
 
 el.seed.value = randomSeed();
+// The count field used to default to 50 while the free tier delivered 5. A
+// first download that silently ignores the number on screen is a bad first
+// impression, so show what will actually be produced.
+if (!getLicense()) el.count.value = String(FREE_LIMIT);
 refreshKind();
   regenerate();
 });
@@ -502,7 +515,10 @@ el.verify.addEventListener("click", async () => {
     setLicense(await verifyEmail(email));
     el.dialog.close();
     refreshTier();
-    regenerate(); // numbers on screen change the moment the cap lifts
+    // The cap has lifted, so offer a real book length rather than leaving the
+    // field at the free limit.
+    if (Number(el.count.value) <= FREE_LIMIT) el.count.value = "50";
+    regenerate();
   } catch (err) {
     el.unlockErr.textContent =
       el.justPaid && /No completed payment/i.test(err.message)

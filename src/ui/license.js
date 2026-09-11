@@ -2,7 +2,12 @@
 // Licensed: unlimited, no watermark. The licence is a record in localStorage
 // written after /api/verify confirms a paid Stripe checkout for an email.
 
-export const FREE_LIMIT = 5;
+// 12 is the fewest puzzles that clear KDP's 24-page minimum on every trim, so
+// a free book is a real book rather than a stub KDP would reject. The
+// watermark is what protects the paid tier, not the puzzle count: a marked
+// book cannot be published, so giving away a usable length costs nothing and
+// proves the product actually works.
+export const FREE_LIMIT = 12;
 export const PRICE_LABEL = "$19 one-time";
 const KEY = "puzzlepress.license";
 
