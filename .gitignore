@@ -1,3 +1,4 @@
 node_modules/
 /samples/
+public/js/
 public/app.js
