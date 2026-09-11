@@ -66,6 +66,10 @@
   .warnings:empty { display: none; }
   .status { color: var(--muted); font-size: 13px; min-height: 20px; }
   .preview { display: flex; flex-direction: column; gap: 12px; }
+  .preview-stick { display: flex; flex-direction: column; gap: 12px; }
+  /* On a wide screen the form is taller than the window; keep the page you are
+     editing in view while you scroll through themes and settings. */
+  @media (min-width: 801px) { .preview-stick { position: sticky; top: 0; z-index: 2; padding: 16px 0 12px; background: var(--bg); } }
   .preview-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
   .preview-head h2 { margin: 0; font-size: 17px; }
   .preview-head .meta { color: var(--muted); font-size: 13px; }
@@ -277,6 +281,7 @@ cherry"></textarea>
   </section>
 
   <section class="preview">
+    <div class="preview-stick">
     <div class="preview-head">
       <h2>Preview</h2>
       <div class="meta" id="meta"></div>
@@ -286,6 +291,7 @@ cherry"></textarea>
       <button id="prev">‹ Previous</button>
       <span id="navLabel"></span>
       <button id="next">Next ›</button>
+    </div>
     </div>
     <div class="card how">
       <b>How it works</b>

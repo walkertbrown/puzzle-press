@@ -25,7 +25,9 @@
     "test:wordlist": "node test/wordlist.mjs",
     "test:livecheckout": "node test/livecheckout.mjs",
     "test:pdfcheck": "bash test/pdfcheck.sh",
-    "pins": "node scripts/pins.mjs"
+    "pins": "node scripts/pins.mjs",
+    "video": "node scripts/video.mjs",
+    "video:short": "node scripts/video.mjs --short"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
