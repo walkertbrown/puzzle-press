@@ -94,5 +94,43 @@ await sud.setContent(`<!doctype html><meta charset="utf-8"><style>
 await sud.waitForTimeout(300);
 await sud.screenshot({ path: join(out, "06-sudoku.png") });
 
+// --- 7. mazes ---
+const mazePdf = new URL("../samples/samples-maze.pdf", import.meta.url).pathname;
+{
+  const { generateMazeBook } = await import("../src/generator/maze.js");
+  const { renderBook } = await import("../src/pdf/render.js");
+  const { readFileSync: rf, writeFileSync } = await import("node:fs");
+  const fonts = {
+    regular: rf(new URL("../public/fonts/LiberationSans-Regular.ttf", import.meta.url).pathname),
+    bold: rf(new URL("../public/fonts/LiberationSans-Bold.ttf", import.meta.url).pathname),
+  };
+  const book = generateMazeBook({ count: 20, difficulty: "hard", seed: "gallery-maze" });
+  writeFileSync(mazePdf, await renderBook(book, {
+    title: "Mazes for Rainy Days", subtitle: "20 hard mazes with solutions",
+    author: "Puzzle Press", trim: "6x9", licensed: true, fonts,
+  }));
+}
+const mp = join(tmp, "mz");
+execFileSync("pdftoppm", ["-r", "150", "-f", "3", "-l", "3", "-png", mazePdf, mp]);
+const ms = join(tmp, "mzsol");
+execFileSync("pdftoppm", ["-r", "150", "-f", "24", "-l", "24", "-png", mazePdf, ms]);
+const mUriP = `data:image/png;base64,${readFileSync(`${mp}-03.png`).toString("base64")}`;
+const mUriS = `data:image/png;base64,${readFileSync(`${ms}-24.png`).toString("base64")}`;
+const mz = await browser.newPage({ viewport: { width: 1280, height: 820 }, deviceScaleFactor: 1.5 });
+await mz.setContent(`<!doctype html><meta charset="utf-8"><style>
+  body{margin:0;height:820px;display:flex;align-items:center;justify-content:center;gap:40px;
+       background:linear-gradient(160deg,#eef1f6,#e2e7f0);
+       font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1d3557}
+  img{height:700px;border-radius:5px;background:#fff;box-shadow:0 20px 48px rgba(20,30,50,.24)}
+  .t{max-width:13em}
+  h2{font-size:36px;line-height:1.12;letter-spacing:-.02em;margin:0 0 14px}
+  p{font-size:19px;line-height:1.5;color:#4a5a74;margin:0}
+</style>
+<img src="${mUriP}"><img src="${mUriS}">
+<div class="t"><h2>And mazes.</h2>
+<p>15×15 up to 39×39. Every maze is a perfect maze — no loops, no unreachable corners, exactly one route from start to finish.</p></div>`);
+await mz.waitForTimeout(300);
+await mz.screenshot({ path: join(out, "07-mazes.png") });
+
 await browser.close();
-console.log("wrote public/gallery/04-the-tool.png, 05-solutions.png and 06-sudoku.png");
+console.log("wrote gallery 04-the-tool, 05-solutions, 06-sudoku and 07-mazes");
