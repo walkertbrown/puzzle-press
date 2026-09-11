@@ -20,7 +20,7 @@ Alternates:
 
 ## Description (260 char limit)
 
-> Word search, sudoku or mazes. Puzzle Press lays out the whole paperback — puzzles, solutions, page numbers — then a matching cover with the spine measured to your page count. Runs entirely in your browser. Free up to 12 puzzles.
+> Word search, sudoku or mazes. Puzzle Press lays out the whole paperback — puzzles, solutions, page numbers — then a matching cover with the spine measured to your page count. Runs entirely in your browser. Free to use; pay to remove the watermark.
 
 226 chars.
 
@@ -96,7 +96,7 @@ Live copies: /social-card.png, /demo.gif, /hero-book.png,
 >
 > There's also a large-print mode, which is the biggest sub-niche in puzzle books — one checkbox sets the trim, the grid and the word count so the letters come out around 23pt.
 >
-> Free for books up to 12 puzzles — which is a real book, long enough to clear KDP's 24-page minimum, with a small footer line. $19 once removes the limits for good and unlocks cover generation. No account, no subscription, and nothing you type ever leaves your browser.
+> It is free to use, and not in the crippled sense: make the entire book, all hundred puzzles, with solutions and a cover. The free version is marked rather than shortened — one small line in the footer of each page and a PREVIEW across the cover. $19 once removes both marks, forever. No account, no subscription, and nothing you type ever leaves your browser.
 >
 > There's a full sample book (PDF) on the site if you'd rather see the output before touching the tool.
 >

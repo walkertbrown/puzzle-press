@@ -86,10 +86,6 @@ function refreshKind() {
 }
 
 el.seed.value = randomSeed();
-// The count field used to default to 50 while the free tier delivered 5. A
-// first download that silently ignores the number on screen is a bad first
-// impression, so show what will actually be produced.
-if (!getLicense()) el.count.value = String(FREE_LIMIT);
 refreshKind();
 
 function randomSeed() {
@@ -167,8 +163,7 @@ function showMeta(s) {
   const plan = planPages(effective, solutionsPerPageFor(effective, fits));
   const pages = plan.total;
   el.meta.textContent =
-    `${effective} puzzle${effective === 1 ? "" : "s"} · ${TRIMS[s.trim].label} · ${pages} pages` +
-    (effective < s.count ? ` · free tier, ${s.count} once unlocked` : "");
+    `${effective} puzzle${effective === 1 ? "" : "s"} · ${TRIMS[s.trim].label} · ${pages} pages`;
 
   // A book too short for KDP has to say so here, before the download, not
   // after somebody uploads it and gets rejected.
@@ -176,8 +171,7 @@ function showMeta(s) {
     const need = puzzlesForMinimum(fits);
     el.lengthWarn.textContent =
       `${pages} pages — under KDP's ${plan.minimum}-page minimum, so KDP will not accept it as it stands. ` +
-      `About ${need} puzzles makes a publishable book` +
-      (getLicense() ? "." : `, which needs the unlock — the free tier stops at ${FREE_LIMIT}.`);
+      `About ${need} puzzles makes a publishable book.`;
     el.lengthWarn.hidden = false;
   } else if (plan.filler > 0) {
     // A page added for parity is not the same as padding to reach the
@@ -240,10 +234,10 @@ function showPuzzle() {
   el.next.disabled = shown >= book.puzzles.length - 1;
 }
 
-// The free tier caps a book at FREE_LIMIT puzzles, so page counts, spine width
-// and cover size must all be quoted for the book you would actually get.
+// The free tier no longer shortens a book — it watermarks it — so what is
+// quoted on screen is simply what you asked for.
 function effectiveCount(requested) {
-  return getLicense() ? requested : Math.min(requested, FREE_LIMIT);
+  return requested;
 }
 
 function showMaze(p) {
@@ -293,8 +287,8 @@ function refreshTier() {
     el.tier.innerHTML = `<b>Unlocked</b> for ${escapeHtml(lic.email)}. Unlimited puzzles, no watermark.`;
   } else {
     el.tier.className = "tier";
-    el.tier.innerHTML = `<b>Free:</b> books up to ${FREE_LIMIT} puzzles, with a small footer line on each page. ` +
-      `<a href="#" id="unlockLink">Unlock unlimited books — ${PRICE_LABEL}</a>`;
+    el.tier.innerHTML = `<b>Free:</b> full-length books, with one small line in the footer of every page and a cover marked PREVIEW. ` +
+      `<a href="#" id="unlockLink">Remove both — ${PRICE_LABEL}</a>`;
     el.tier.querySelector("#unlockLink").addEventListener("click", (e) => {
       e.preventDefault();
       openUnlock();
@@ -338,10 +332,7 @@ async function download() {
   const s = settings();
   if (s.pools.length === 0) return;
   const lic = getLicense();
-  let count = effectiveCount(s.count);
-  if (!lic && s.count > FREE_LIMIT) {
-    el.status.textContent = `Free tier: making ${FREE_LIMIT} of ${s.count} puzzles.`;
-  }
+  const count = s.count;
   el.download.disabled = true;
   try {
     el.status.textContent = `Generating ${count} puzzles…`;
@@ -491,10 +482,6 @@ function refreshKind() {
 }
 
 el.seed.value = randomSeed();
-// The count field used to default to 50 while the free tier delivered 5. A
-// first download that silently ignores the number on screen is a bad first
-// impression, so show what will actually be produced.
-if (!getLicense()) el.count.value = String(FREE_LIMIT);
 refreshKind();
   regenerate();
 });
@@ -515,9 +502,6 @@ el.verify.addEventListener("click", async () => {
     setLicense(await verifyEmail(email));
     el.dialog.close();
     refreshTier();
-    // The cap has lifted, so offer a real book length rather than leaving the
-    // field at the free limit.
-    if (Number(el.count.value) <= FREE_LIMIT) el.count.value = "50";
     regenerate();
   } catch (err) {
     el.unlockErr.textContent =
