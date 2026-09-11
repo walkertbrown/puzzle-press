@@ -6,6 +6,7 @@ import { TRIMS } from "../pdf/kdp.js";
 import { renderBook, planPages, solutionsThatFit } from "../pdf/render.js";
 import { renderCover } from "../pdf/cover.js";
 import { coverGeometry, spineWidthInches, SPINE_TEXT_MIN_PAGES } from "../pdf/cover-geometry.js";
+import { royalty } from "../pdf/kdp-cost.js";
 import { pageGeometry } from "../pdf/kdp.js";
 import { FREE_LIMIT, PRICE_LABEL, getLicense, setLicense, verifyEmail } from "./license.js";
 
@@ -18,7 +19,7 @@ const el = {
   title: $("title"), subtitle: $("subtitle"), author: $("author"), trim: $("trim"), count: $("count"), bleed: $("bleed"),
   themes: $("themes"), custom: $("custom"), customTitle: $("customTitle"),
   wpp: $("wpp"), difficulty: $("difficulty"), size: $("size"), seed: $("seed"), largePrint: $("largePrint"), kind: $("kind"),
-  download: $("download"), downloadCover: $("downloadCover"), coverNote: $("coverNote"), paper: $("paper"), reshuffle: $("reshuffle"), status: $("status"), tier: $("tier"), warnings: $("warnings"),
+  download: $("download"), downloadCover: $("downloadCover"), coverNote: $("coverNote"), moneyNote: $("moneyNote"), list: $("list"), ink: $("ink"), paper: $("paper"), reshuffle: $("reshuffle"), status: $("status"), tier: $("tier"), warnings: $("warnings"),
   meta: $("meta"), page: $("page"), prev: $("prev"), next: $("next"), navLabel: $("navLabel"),
   dialog: $("unlockDialog"), buyLine: $("buyLine"), email: $("email"), unlockErr: $("unlockErr"), verify: $("verify"), closeDialog: $("closeDialog"),
 };
@@ -94,6 +95,8 @@ function settings() {
     author: el.author.value.trim(),
     kind: el.kind.value,
     trim: el.trim.value,
+    list: Math.max(0, parseFloat(el.list.value) || 0),
+    ink: el.ink.value,
     paper: el.paper.value,
     bleed: el.bleed.checked,
     count: n(el.count.value, 1, 200, 50),
@@ -155,6 +158,19 @@ function showMeta(s) {
     `Cover: ${(g.width / 72).toFixed(3)}" × ${(g.height / 72).toFixed(3)}" ` +
     `(spine ${spineWidthInches(pages, s.paper).toFixed(3)}")` +
     (pages < SPINE_TEXT_MIN_PAGES ? ` — under ${SPINE_TEXT_MIN_PAGES} pages, so KDP wants the spine blank` : "");
+
+  // What the book is worth, using the same figures as the royalty calculator.
+  const m = royalty({ list: s.list, trim: s.trim, pages, ink: s.ink });
+  if (m.printing === null) {
+    el.moneyNote.textContent = m.note ?? "";
+  } else if (m.royalty < 0) {
+    el.moneyNote.textContent =
+      `Prints for $${m.printing.toFixed(2)} on Amazon.com — at $${s.list.toFixed(2)} that loses $${Math.abs(m.royalty).toFixed(2)} a copy. ` +
+      `Lowest workable price: $${m.minList.toFixed(2)}.`;
+  } else {
+    el.moneyNote.textContent =
+      `Prints for $${m.printing.toFixed(2)} on Amazon.com — at $${s.list.toFixed(2)} you keep $${m.royalty.toFixed(2)} a copy.`;
+  }
 }
 
 function showPuzzle() {
@@ -391,7 +407,7 @@ el.kind.addEventListener("change", () => {
   regenerate();
 });
 
-for (const id of ["title", "subtitle", "author", "trim", "paper", "count", "bleed", "custom", "customTitle", "wpp", "difficulty", "size", "seed"]) {
+for (const id of ["title", "subtitle", "author", "trim", "paper", "list", "ink", "count", "bleed", "custom", "customTitle", "wpp", "difficulty", "size", "seed"]) {
   el[id].addEventListener("input", debounced);
   el[id].addEventListener("change", debounced);
 }
