@@ -12,11 +12,11 @@ Puzzle Press
 
 ## Tagline (60 char limit)
 
-**Print-ready puzzle books for Amazon KDP** — 41 chars ← recommended
+**Print-ready puzzle books for Amazon KDP** — 39 chars ← recommended
 
 Alternates:
 - Make a KDP-ready puzzle book in about a minute — 46
-- Word search, sudoku & maze books, KDP-ready — 45
+- Word search, sudoku & maze books, KDP-ready — 43
 
 ## Description (260 char limit)
 
