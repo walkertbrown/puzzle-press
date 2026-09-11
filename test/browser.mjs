@@ -32,7 +32,7 @@ async function downloadPdf(name) {
   return { path, status, filename: dl.suggestedFilename() };
 }
 
-// 1. Free tier: ask for 50, get the free limit, watermark on.
+// 1. Free tier: ask for 50, get 50, watermarked rather than shortened.
 await page.fill("#count", "50");
 await page.fill("#author", "Browser Test");
 const free = await downloadPdf("free.pdf");
@@ -40,11 +40,10 @@ const freePdf = await PDFDocument.load(await (await import("node:fs")).promises.
 console.log("free:", free.filename, free.status, "pages", freePdf.getPageCount());
 // This once asserted exactly 24 pages, which encoded the padding bug as
 // correct: a 5-puzzle book reached 24 only because 15 were blank. The free
-// tier now makes a genuine 12-puzzle book, so 24 pages is right again — but
-// for the opposite reason, and it must be mostly content.
+// tier no longer shortens anything, so 50 puzzles must produce a full book.
 const freePages = freePdf.getPageCount();
-if (freePages < 24 || freePages > 30) {
-  throw new Error(`a free book should be a real KDP-length book, got ${freePages} pages`);
+if (freePages < 55) {
+  throw new Error(`asked for 50 puzzles free and got a ${freePages}-page book`);
 }
 
 // 1b. Unlock dialog: shows the Buy link when the Worker injected a pay URL,

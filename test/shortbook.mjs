@@ -22,6 +22,7 @@ const warn = await p.textContent("#lengthWarn");
 console.log("free  warning:", warn.trim());
 if (await p.isHidden("#lengthWarn")) throw new Error("a book under KDP's minimum must warn");
 if (!/under KDP's 24-page minimum/.test(warn)) throw new Error("warning does not say what is wrong");
+if (/free tier stops at/.test(warn)) throw new Error("the free tier no longer caps length");
 
 const [dl] = await Promise.all([p.waitForEvent("download", { timeout: 180000 }), p.click("#download")]);
 const f = new URL("../samples/browser/short.pdf", import.meta.url).pathname;

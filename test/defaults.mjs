@@ -1,6 +1,7 @@
 // What a first-time visitor gets by pressing Download without changing
 // anything. The count field once said 50 while the download delivered 5, and
-// the result was 12 pages KDP would reject. This pins the default experience.
+// the result was 12 pages KDP would reject. The free tier now shortens
+// nothing — it watermarks — so the default must be a full book.
 import { chromium } from "playwright";
 import { execFileSync } from "node:child_process";
 
@@ -43,7 +44,7 @@ for (const [k, n] of Object.entries(tally)) console.log(`   ${String(n).padStart
 const delivered = Number((status.match(/Done — (\d+) puzzles/) || [])[1]);
 if (delivered !== shown) throw new Error(`field offered ${shown} puzzles, download delivered ${delivered}`);
 // And the default book must be one KDP would actually accept.
-if (pages.length < 24) throw new Error(`default book is ${pages.length} pages, under KDP's minimum`);
+if (pages.length < 50) throw new Error(`default book is only ${pages.length} pages — the free tier should make a full book`);
 if ((tally["Notes (blank)"] || 0) > 4) throw new Error(`${tally["Notes (blank)"]} blank pages in the default book`);
 if (lengthWarnVisible && /under KDP/.test(await Promise.resolve("")) ) throw new Error("unexpected");
 console.log("page errors:", errs.length ? errs : "none");
