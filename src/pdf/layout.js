@@ -10,6 +10,10 @@ import { MIN_PAGES } from "./kdp.js";
 // Past this many, stop padding and tell the truth about the length instead.
 export const MAX_FILLER = 4;
 
+// KDP prints black ink at a flat rate up to this many pages, so below it an
+// extra page costs the seller nothing.
+export const FLAT_RATE_PAGES = 110;
+
 // Two columns of solution grids, three rows when each grid can still be at
 // least ~2.1" (a 15×15 grid at 7pt letters, the usual size in printed
 // books), otherwise two. Fewer solution pages means a cheaper print cost
@@ -21,13 +25,31 @@ export function solutionsThatFit(geom) {
   return sideAt3 >= 150 ? 6 : 4;
 }
 
-// A short book deserves bigger solution grids rather than more blank pages:
-// spreading six answers over three pages beats cramming them onto one and
-// padding the difference with ruled lines.
+// Blank pages are never the best way to reach KDP's minimum, and below 110
+// pages they are not even cheaper: black-ink printing is a flat $2.30 up to
+// that point, so extra pages cost nothing. So rather than padding with ruled
+// lines, spread the solutions out until the book fills itself — bigger, more
+// readable answer grids, no blank pages, same print cost.
 export function solutionsPerPageFor(puzzleCount, fits) {
-  if (puzzleCount <= 12) return Math.min(fits, 2);
-  if (puzzleCount <= 24) return Math.min(fits, 4);
-  return fits;
+  let best = null;
+  for (let per = fits; per >= 1; per--) {
+    const plan = planPages(puzzleCount, per);
+    // Below 110 pages KDP charges a flat rate, so spreading solutions out to
+    // avoid blank pages is free and worth doing. Above it every page costs
+    // about a penny, and adding thirty pages to avoid one blank is a bad
+    // trade for whoever is paying to print the thing.
+    const pagesAreFree = plan.total <= FLAT_RATE_PAGES;
+    const score = [plan.belowMinimum ? 1 : 0, pagesAreFree ? plan.filler : 0, plan.total];
+    if (!best || lexLess(score, best.score)) best = { per, score };
+  }
+  return best.per;
+}
+
+function lexLess(a, b) {
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return a[i] < b[i];
+  }
+  return false;
 }
 
 // Page count before rendering, so the gutter is chosen for the final size.
