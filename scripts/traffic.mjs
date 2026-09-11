@@ -65,9 +65,41 @@ if (paid.length) {
 if (recent.length && !paid.length) {
   console.log("\n  Someone opened checkout and did not pay. Worth knowing why.");
 }
-console.log(
-  "\n  Note: per-path numbers (how many reached the calculators, how many\n" +
-    "  loaded the PDF engine) need zone analytics read, which this token\n" +
-    "  lacks. Add 'Zone Analytics: Read' to it and this script can show the\n" +
-    "  whole funnel.\n",
-);
+// Per-path funnel. The free plan keeps zone analytics for 24 hours, so this
+// is always "the last day" regardless of what was asked for above.
+const ZONE = "4169ea6b92a0920d72f9ebc5f7653e9d";
+const daySince = new Date(Date.now() - 23.5 * 3600e3).toISOString().replace(/\.\d+Z$/, "Z");
+try {
+  const zone = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
+    httpRequestsAdaptiveGroups(limit: 40, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%"}, orderBy: [count_DESC]) {
+      count dimensions { clientRequestPath }
+    } } } }`);
+  const all = zone.viewer.zones[0].httpRequestsAdaptiveGroups;
+  // Vulnerability scanners probe for leaked config files all day long and
+  // every one of them 404s. They are not visitors, so keep them out of the
+  // numbers — but say how many there were, so a jump is not mistaken for
+  // interest. Only the workers.dev host escapes this zone, which is where my
+  // own tests run, so the funnel below is real people on the real domain.
+  const served = /^\/($|js\/|fonts\/|samples\/|gallery\/|spine-calculator|royalty-calculator|config\.js|api\/|demo\.gif|social-card|hero-book|robots|sitemap)/;
+  const rows = all.filter((r) => served.test(r.dimensions.clientRequestPath));
+  const noise = all.filter((r) => !served.test(r.dimensions.clientRequestPath)).reduce((a, r) => a + r.count, 0);
+  const hits = (re) => rows.filter((r) => re.test(r.dimensions.clientRequestPath)).reduce((a, r) => a + r.count, 0);
+  const landed = hits(/^\/$/);
+  const pdfEngine = hits(/^\/js\/chunk-/);        // fetched only on the first Download click
+  const fonts = hits(/^\/fonts\//);                 // ditto
+  const covers = hits(/^\/js\/cover-/);
+  const samples = hits(/^\/samples\//);
+  const calc = hits(/calculator/);
+  console.log("\n  Last 24h, by what people did (free plan keeps one day):");
+  console.log(`    Landed on the page          ${landed}`);
+  console.log(`    Opened a sample PDF         ${samples}`);
+  console.log(`    Used a calculator page      ${calc}`);
+  console.log(`    Clicked Download (engine)   ${pdfEngine}   <-- people who made a book`);
+  console.log(`    Made a cover                ${covers}`);
+  console.log(`    Font fetches                ${fonts}`);
+  console.log(`    (scanner/bot noise ignored: ${noise} requests to paths that do not exist)`);
+  console.log("\n  Top paths:");
+  for (const r of rows.slice(0, 12)) console.log(`    ${String(r.count).padStart(5)}  ${r.dimensions.clientRequestPath}`);
+} catch (e) {
+  console.log("\n  (zone analytics unavailable: " + e.message.slice(0, 80) + ")");
+}
