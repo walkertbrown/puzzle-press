@@ -30,3 +30,17 @@ const cover = await renderCover({
 });
 writeFileSync(new URL("../public/samples/sample-cover-6x9.pdf", import.meta.url), cover);
 console.log("wrote public/samples/sample-cover-6x9.pdf", cover.length, "bytes, sized for", pages, "pages");
+
+// A sudoku sample, so the second puzzle type can be judged before paying too.
+const { generateSudokuBook } = await import("../src/generator/sudoku.js");
+const sudoku = generateSudokuBook({ count: 20, difficulty: "medium", seed: "public-sudoku-1" });
+const sudokuBytes = await renderBook(sudoku, {
+  title: "Sudoku for Sunday",
+  subtitle: "20 medium puzzles with solutions — sample book",
+  author: "Puzzle Press",
+  trim: "6x9",
+  licensed: true,
+  fonts,
+});
+writeFileSync(new URL("../public/samples/sample-sudoku-6x9.pdf", import.meta.url), sudokuBytes);
+console.log("wrote public/samples/sample-sudoku-6x9.pdf", sudokuBytes.length, "bytes");
