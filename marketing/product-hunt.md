@@ -58,13 +58,14 @@ Considered and rejected:
 
 ## Gallery, in order
 
-1. `social-card.png` — the card, sets the frame
-2. `demo.gif` — the whole flow: a word search book, its cover, then sudoku and mazes, ending on real pages from each; this is the one that converts
-3. `hero-book.jpg` — a puzzle page beside its solutions page
-4. `gallery/04-the-tool.png` — the tool mid-use, preview showing
-5. `gallery/05-solutions.png` — a solutions page, close
-6. `gallery/06-sudoku.png` — a sudoku puzzle page and its solutions page
-7. `gallery/07-mazes.png` — a maze page and its solutions page
+1. **Video** — https://youtu.be/ph6q2ih6cBs (60 s, real time, no narration; Product Hunt takes the YouTube link directly)
+2. `social-card.png` — the card, sets the frame
+3. `demo.gif` — the whole flow: a word search book, its cover, then sudoku and mazes, ending on real pages from each; this is the one that converts
+4. `hero-book.jpg` — a puzzle page beside its solutions page
+5. `gallery/04-the-tool.png` — the tool mid-use, preview showing
+6. `gallery/05-solutions.png` — a solutions page, close
+7. `gallery/06-sudoku.png` — a sudoku puzzle page and its solutions page
+8. `gallery/07-mazes.png` — a maze page and its solutions page
 
 All are in `app/public/` and regenerate with `npm run images`, `npm run gallery`
 and `npm run demo`, so they never drift from what the product actually does.
@@ -72,16 +73,9 @@ Live copies: /social-card.png, /demo.gif, /hero-book.jpg,
 /gallery/04-the-tool.png, /gallery/05-solutions.png, /gallery/06-sudoku.png,
 /gallery/07-mazes.png
 
-**Video (optional first slot).** Product Hunt takes a YouTube link in the
-gallery. There is a 60-second landscape recording of a real book being made,
-`app/public/video/puzzle-press.webm` (live at /video/puzzle-press.webm,
-1440×810, no narration, captions on screen). Buffer can only post YouTube
-Shorts, so this one has to be uploaded to the Bananafest Destiny channel by
-hand — YouTube Studio → Create → Upload video, WebM is accepted. Suggested
-title: "How to make a KDP puzzle book in 60 seconds (word search, sudoku,
-mazes — free tool)". Once it has a URL, paste it as the first gallery item
-and keep `demo.gif` second. If it is not uploaded by launch, skip it; the GIF
-carries the same content.
+The video is on the Bananafest Destiny channel (uploaded by the boss
+2026-09-11). Source: `npm run video` → `app/public/video/puzzle-press.webm`;
+the vertical Short (`npm run video:short`) went out via Buffer the same day.
 
 ---
 
