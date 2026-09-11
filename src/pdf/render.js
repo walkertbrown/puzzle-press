@@ -11,9 +11,9 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { pageGeometry, marginsForPage, MIN_PAGES } from "./kdp.js";
-import { planPages, solutionsThatFit } from "./layout.js";
+import { planPages, solutionsThatFit, solutionsPerPageFor } from "./layout.js";
 
-export { planPages, solutionsThatFit } from "./layout.js";
+export { planPages, solutionsThatFit, solutionsPerPageFor, puzzlesForMinimum, MAX_FILLER } from "./layout.js";
 import { wallSegments } from "../generator/maze.js";
 
 const BLACK = rgb(0, 0, 0);
@@ -33,7 +33,8 @@ export async function renderBook(book, opts = {}) {
   } = opts;
 
   const puzzles = book.puzzles;
-  const solutionsPerPage = opts.solutionsPerPage ?? solutionsThatFit(pageGeometry({ trim, bleed }));
+  const solutionsPerPage =
+    opts.solutionsPerPage ?? solutionsPerPageFor(puzzles.length, solutionsThatFit(pageGeometry({ trim, bleed })));
   const plan = planPages(puzzles.length, solutionsPerPage);
   const geom = pageGeometry({ trim, bleed, pageCount: plan.total });
 
@@ -71,8 +72,10 @@ export async function renderBook(book, opts = {}) {
     drawSolutionsPage(ctx, puzzles.slice(i, i + solutionsPerPage), solutionsPerPage);
   }
 
-  // Pad to minimum and even.
-  while (ctx.pageNo < MIN_PAGES || ctx.pageNo % 2 === 1) drawNotesPage(ctx);
+  // Pad only as far as planPages said it would. A book too short for KDP
+  // comes out at its natural length with a warning, not buried in ruled lines.
+  while (ctx.pageNo < plan.total) drawNotesPage(ctx);
+  if (ctx.pageNo % 2 === 1) drawNotesPage(ctx);
 
   return doc.save();
 }

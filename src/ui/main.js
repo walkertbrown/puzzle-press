@@ -6,7 +6,7 @@ import { TRIMS } from "../pdf/kdp.js";
 // pdf-lib and fontkit are about 90% of this bundle and are only needed once
 // somebody actually asks for a file, so they load on the first download
 // instead of before the page is usable.
-import { planPages, solutionsThatFit } from "../pdf/layout.js";
+import { planPages, solutionsThatFit, solutionsPerPageFor, puzzlesForMinimum } from "../pdf/layout.js";
 
 let pdfModules = null;
 async function loadPdf() {
@@ -31,7 +31,7 @@ const el = {
   themes: $("themes"), custom: $("custom"), customTitle: $("customTitle"),
   wpp: $("wpp"), difficulty: $("difficulty"), size: $("size"), seed: $("seed"), largePrint: $("largePrint"), kind: $("kind"),
   download: $("download"), downloadCover: $("downloadCover"), coverNote: $("coverNote"), moneyNote: $("moneyNote"), list: $("list"), ink: $("ink"), paper: $("paper"), reshuffle: $("reshuffle"), status: $("status"), tier: $("tier"), warnings: $("warnings"),
-  meta: $("meta"), page: $("page"), prev: $("prev"), next: $("next"), navLabel: $("navLabel"),
+  meta: $("meta"), lengthWarn: $("lengthWarn"), page: $("page"), prev: $("prev"), next: $("next"), navLabel: $("navLabel"),
   dialog: $("unlockDialog"), buyLine: $("buyLine"), email: $("email"), unlockErr: $("unlockErr"), verify: $("verify"), closeDialog: $("closeDialog"),
 };
 
@@ -158,12 +158,31 @@ function regenerate() {
 }
 
 function showMeta(s) {
-  const perPage = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }));
+  const fits = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }));
   const effective = effectiveCount(s.count);
-  const pages = planPages(effective, perPage).total;
+  const plan = planPages(effective, solutionsPerPageFor(effective, fits));
+  const pages = plan.total;
   el.meta.textContent =
     `${effective} puzzle${effective === 1 ? "" : "s"} · ${TRIMS[s.trim].label} · ${pages} pages` +
     (effective < s.count ? ` · free tier, ${s.count} once unlocked` : "");
+
+  // A book too short for KDP has to say so here, before the download, not
+  // after somebody uploads it and gets rejected.
+  if (plan.belowMinimum) {
+    const need = puzzlesForMinimum(fits);
+    el.lengthWarn.textContent =
+      `${pages} pages — under KDP's ${plan.minimum}-page minimum, so KDP will not accept it as it stands. ` +
+      `About ${need} puzzles makes a publishable book` +
+      (getLicense() ? "." : `, which needs the unlock — the free tier stops at ${FREE_LIMIT}.`);
+    el.lengthWarn.hidden = false;
+  } else if (plan.filler > 0) {
+    el.lengthWarn.textContent =
+      `${pages} pages, ${plan.filler} of them blank Notes pages added to reach KDP's ${plan.minimum}-page minimum. ` +
+      `A few more puzzles and the book fills itself.`;
+    el.lengthWarn.hidden = false;
+  } else {
+    el.lengthWarn.hidden = true;
+  }
   const g = coverGeometry({ trim: s.trim, pageCount: pages, paper: s.paper });
   el.coverNote.textContent =
     `Cover: ${(g.width / 72).toFixed(3)}" × ${(g.height / 72).toFixed(3)}" ` +
