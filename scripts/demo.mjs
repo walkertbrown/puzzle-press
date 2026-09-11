@@ -57,20 +57,43 @@ await dl.saveAs(pdfPath);
 await page.waitForTimeout(300);
 await shoot(1400);
 
-// 5b. And the cover, sized from the book that was just made.
+// 5b. The cover for that same book, spine sized from its page count.
 const [cdl] = await Promise.all([page.waitForEvent("download", { timeout: 180000 }), page.click("#downloadCover")]);
 const coverPath = join(tmp, "cover.pdf");
 await cdl.saveAs(coverPath);
 await page.waitForTimeout(300);
+await shoot(1500);
+
+// 6. Same tool, other puzzle type.
+await page.selectOption("#kind", "sudoku");
+await page.fill("#title", "Sudoku for Sunday");
+await page.fill("#subtitle", "60 puzzles, easy to expert");
+await page.selectOption("#difficulty", "hard");
+await page.fill("#count", "60");
+await page.waitForSelector(".sudoku div");
+await page.waitForTimeout(900);
 await shoot(1600);
+
+const [sdl] = await Promise.all([page.waitForEvent("download", { timeout: 300000 }), page.click("#download")]);
+const sudokuPath = join(tmp, "sudoku.pdf");
+await sdl.saveAs(sudokuPath);
+await page.waitForTimeout(300);
+await shoot(1400);
 
 await browser.close();
 
 // 6. Finish on real pages from the PDF it just made.
 const shots = await chromium.launch();
 const viewer = await shots.newPage({ viewport: { width: W, height: H } });
-for (const [pageNo, caption, src] of [[3, "Every puzzle unique", pdfPath], [4, "Solutions included", pdfPath], [1, "And a cover, spine and all", coverPath]]) {
-  const prefix = join(tmp, `pg${src === coverPath ? "c" : ""}${pageNo}`);
+const finals = [
+  [3, "Every puzzle unique", pdfPath],
+  [4, "Solutions included", pdfPath],
+  [1, "A cover, spine and all", coverPath],
+  [4, "Sudoku too — one answer each", sudokuPath],
+];
+for (const [pageNo, caption, src] of finals) {
+  const tag = src === coverPath ? "c" : src === sudokuPath ? "s" : "w";
+  const prefix = join(tmp, `pg${tag}${pageNo}`);
   execFileSync("pdftoppm", ["-r", "110", "-f", String(pageNo), "-l", String(pageNo), "-png", src, prefix]);
   const file = `${prefix}-${src === coverPath ? pageNo : "0" + pageNo}.png`;
   const uri = `data:image/png;base64,${readFileSync(file).toString("base64")}`;

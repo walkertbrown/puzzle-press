@@ -56,5 +56,43 @@ await sol.setContent(`<!doctype html><meta charset="utf-8"><style>
 await sol.waitForTimeout(300);
 await sol.screenshot({ path: join(out, "05-solutions.png") });
 
+// --- 6. sudoku, the other kind of book ---
+const sudokuPdf = new URL("../samples/samples-sudoku.pdf", import.meta.url).pathname;
+{
+  const { generateSudokuBook } = await import("../src/generator/sudoku.js");
+  const { renderBook } = await import("../src/pdf/render.js");
+  const { readFileSync: rf, writeFileSync } = await import("node:fs");
+  const fonts = {
+    regular: rf(new URL("../public/fonts/LiberationSans-Regular.ttf", import.meta.url).pathname),
+    bold: rf(new URL("../public/fonts/LiberationSans-Bold.ttf", import.meta.url).pathname),
+  };
+  const book = generateSudokuBook({ count: 20, difficulty: "hard", seed: "gallery-sudoku" });
+  writeFileSync(sudokuPdf, await renderBook(book, {
+    title: "Sudoku for Sunday", subtitle: "20 hard puzzles with solutions",
+    author: "Puzzle Press", trim: "6x9", licensed: true, fonts,
+  }));
+}
+const sp = join(tmp, "sud");
+execFileSync("pdftoppm", ["-r", "150", "-f", "3", "-l", "3", "-png", sudokuPdf, sp]);
+const ss = join(tmp, "sudsol");
+execFileSync("pdftoppm", ["-r", "150", "-f", "24", "-l", "24", "-png", sudokuPdf, ss]);
+const uriP = `data:image/png;base64,${readFileSync(`${sp}-03.png`).toString("base64")}`;
+const uriS = `data:image/png;base64,${readFileSync(`${ss}-24.png`).toString("base64")}`;
+const sud = await browser.newPage({ viewport: { width: 1280, height: 820 }, deviceScaleFactor: 1.5 });
+await sud.setContent(`<!doctype html><meta charset="utf-8"><style>
+  body{margin:0;height:820px;display:flex;align-items:center;justify-content:center;gap:40px;
+       background:linear-gradient(160deg,#eef1f6,#e2e7f0);
+       font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1d3557}
+  img{height:700px;border-radius:5px;background:#fff;box-shadow:0 20px 48px rgba(20,30,50,.24)}
+  .t{max-width:13em}
+  h2{font-size:36px;line-height:1.12;letter-spacing:-.02em;margin:0 0 14px}
+  p{font-size:19px;line-height:1.5;color:#4a5a74;margin:0}
+</style>
+<img src="${uriP}"><img src="${uriS}">
+<div class="t"><h2>Sudoku, too.</h2>
+<p>Easy to expert. Every puzzle is checked to have exactly one solution before it goes in the book — so the answers at the back are right.</p></div>`);
+await sud.waitForTimeout(300);
+await sud.screenshot({ path: join(out, "06-sudoku.png") });
+
 await browser.close();
-console.log("wrote public/gallery/04-the-tool.png and 05-solutions.png");
+console.log("wrote public/gallery/04-the-tool.png, 05-solutions.png and 06-sudoku.png");
