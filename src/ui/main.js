@@ -509,10 +509,17 @@ refreshTier();
 // The type pages link here as /?kind=sudoku#tool: land with that type already
 // chosen, so the first thing shown is the kind of book they came for.
 {
-  const kind = new URLSearchParams(location.search).get("kind");
+  const q = new URLSearchParams(location.search);
+  const kind = q.get("kind");
   if (kind && [...el.kind.options].some((o) => o.value === kind)) {
     el.kind.value = kind;
     refreshKind();
+  }
+  // The word-list pages link as /?theme=halloween#tool: that theme, only.
+  const theme = q.get("theme");
+  if (theme && THEMES[theme]) {
+    for (const cb of el.themes.querySelectorAll("input")) cb.checked = cb.value === theme;
+    if (!titleEdited) el.title.value = `${THEMES[theme].title} Word Search`;
   }
 }
 regenerate();

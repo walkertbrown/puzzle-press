@@ -112,7 +112,7 @@ function tryLayout(words, size, dirNames, rng) {
 }
 
 // Every occurrence of `word` in the grid, all 8 directions, as lists of [r, c].
-function findOccurrences(grid, word, size) {
+export function findOccurrences(grid, word, size) {
   const hits = [];
   for (const [dr, dc] of Object.values(DIRS)) {
     for (let r = 0; r < size; r++) {
