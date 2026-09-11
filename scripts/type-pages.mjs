@@ -58,7 +58,7 @@ const pages = {
 
   <section class="prose">
     <h2>Themes, or your own words</h2>
-    <p>${themeNames.length} built-in themes: ${themeNames.join(", ")}. Or paste your own list — one per line or comma-separated — and name it; the name prints on every puzzle. Thirty to sixty on-topic words is enough for a fifty-puzzle book; each puzzle draws a different subset, and the tool warns you if the list is too short to avoid repeats or if a word is too long for the grid.</p>
+    <p>${themeNames.length} built-in themes: ${themeNames.join(", ")}. Every list is published in full at <a href="/word-lists/">/word-lists</a>, free to use anywhere. Or paste your own list — one per line or comma-separated — and name it; the name prints on every puzzle. Thirty to sixty on-topic words is enough for a fifty-puzzle book; each puzzle draws a different subset, and the tool warns you if the list is too short to avoid repeats or if a word is too long for the grid.</p>
   </section>
 
   <section class="prose">
