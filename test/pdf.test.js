@@ -38,11 +38,15 @@ test("odd pages have the gutter on the left, even pages on the right", () => {
 });
 
 test("planPages: minimum 24, even, divider on a right-hand page", () => {
-  assert.equal(planPages(5).total, 24);
+  // A 5-puzzle book is 12 pages of content; padding it to 24 meant 12 blank
+  // pages, so it now comes out at its real length and is flagged instead.
+  assert.equal(planPages(5, 2).belowMinimum, true);
+  assert.equal(planPages(5, 2).filler, 0);
+  assert.equal(planPages(14, 2).total, 24);
   // 2 + 40 = 42 (even) -> +1 divider = 43 -> +10 solutions = 53 -> 54
-  assert.equal(planPages(40).total, 54);
+  assert.equal(planPages(40, 4).total, 54);
   // 2 + 41 = 43 (odd) -> +1 blank = 44 -> +1 divider = 45 -> +11 = 56
-  assert.equal(planPages(41).total, 56);
+  assert.equal(planPages(41, 4).total, 56);
 });
 
 test("solutions per page: 6 when three rows stay legible, else 4", () => {
@@ -55,7 +59,7 @@ test("renders a 6x9 book with the planned page count and embedded fonts", async 
   const book = generateBook({ pools: [THEMES.animals], count: 10, wordsPerPuzzle: 15, seed: "pdf6x9" });
   const bytes = await renderBook(book, { title: "Animal Word Search", subtitle: "50 puzzles for relaxing evenings", author: "Test Author", trim: "6x9", fonts });
   const pdf = await PDFDocument.load(bytes);
-  assert.equal(pdf.getPageCount(), planPages(10, 6).total);
+  assert.equal(pdf.getPageCount(), planPages(10, 2).total);
   const [w, h] = [pdf.getPage(0).getWidth(), pdf.getPage(0).getHeight()];
   assert.equal(w, 432);
   assert.equal(h, 648);
