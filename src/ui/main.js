@@ -3,8 +3,19 @@ import { generateBook } from "../generator/book.js";
 import { generateSudokuBook, generateSudokuBookAsync, SUDOKU_DIFFICULTY } from "../generator/sudoku.js";
 import { generateMazeBook, wallSegments, MAZE_DIFFICULTY } from "../generator/maze.js";
 import { TRIMS } from "../pdf/kdp.js";
-import { renderBook, planPages, solutionsThatFit } from "../pdf/render.js";
-import { renderCover } from "../pdf/cover.js";
+// pdf-lib and fontkit are about 90% of this bundle and are only needed once
+// somebody actually asks for a file, so they load on the first download
+// instead of before the page is usable.
+import { planPages, solutionsThatFit } from "../pdf/layout.js";
+
+let pdfModules = null;
+async function loadPdf() {
+  if (!pdfModules) {
+    const [render, cover] = await Promise.all([import("../pdf/render.js"), import("../pdf/cover.js")]);
+    pdfModules = { renderBook: render.renderBook, renderCover: cover.renderCover };
+  }
+  return pdfModules;
+}
 import { coverGeometry, spineWidthInches, SPINE_TEXT_MIN_PAGES } from "../pdf/cover-geometry.js";
 import { royalty } from "../pdf/kdp-cost.js";
 import { pageGeometry } from "../pdf/kdp.js";
@@ -307,7 +318,7 @@ async function download() {
     el.warnings.textContent = full.warnings.join("\n");
     el.status.textContent = "Laying out pages…";
     await tick();
-    const fonts = await loadFonts();
+    const [fonts, { renderBook }] = await Promise.all([loadFonts(), loadPdf()]);
     const bytes = await renderBook(full, { ...s, licensed: Boolean(lic), fonts });
     const blob = new Blob([bytes], { type: "application/pdf" });
     const a = document.createElement("a");
@@ -341,7 +352,7 @@ async function downloadCover() {
       : s.kind === "maze"
         ? generateMazeBook({ ...s, count: 1 })
         : generateBook({ ...s, count: 1 });
-    const fonts = await loadFonts();
+    const [fonts, { renderCover }] = await Promise.all([loadFonts(), loadPdf()]);
     const bytes = await renderCover({
       title: s.title,
       subtitle: s.subtitle,

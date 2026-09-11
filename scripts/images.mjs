@@ -43,7 +43,9 @@ await hero.setContent(shell(
    .b{width:366px;right:124px;top:80px;transform:rotate(4deg);z-index:1}`,
 ));
 await hero.waitForTimeout(300);
-await hero.screenshot({ path: join(outDir, "hero-book.png") });
+// JPEG, not PNG: this is a photographic composition on a gradient and the
+// PNG was 520 KB — the single heaviest thing on the page, above the fold.
+await hero.screenshot({ path: join(outDir, "hero-book.jpg"), type: "jpeg", quality: 86 });
 
 // --- social card: headline + one page ---
 const card = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
@@ -72,4 +74,4 @@ await card.screenshot({ path: join(outDir, "social-card.png") });
 
 await browser.close();
 rmSync(tmp, { recursive: true, force: true });
-console.log("wrote public/hero-book.png and public/social-card.png");
+console.log("wrote public/hero-book.jpg and public/social-card.png");
