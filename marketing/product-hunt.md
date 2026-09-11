@@ -128,14 +128,13 @@ your decision, not mine:
 ## Before Tuesday — checklist
 
 Boss:
-- [ ] Search Console → URL inspection → Request indexing for
-      `/how-to-make-a-puzzle-book`, `/word-search-book-generator`,
-      `/sudoku-book-generator`, `/maze-book-generator` (calculators done 09-11).
+- [x] Search Console indexing requested for the guide and the three type
+      pages (boss, 09-11).
 - [ ] Product Hunt: schedule the launch for Tue 2026-09-15 12:01am PT with the
       copy above; video as gallery item 1.
 - [ ] Post the first comment right after it goes live; keep the type-page and
       guide links handy for replies.
-- [ ] Pinterest appeal filed (if not already).
+- [x] Pinterest appeal filed (boss, 09-11).
 
 Me (Monday, before the 6:30pm reminder):
 - [ ] `npm run test:livecheckout`, `test:paidreturn`, `test:browser`,
