@@ -8,6 +8,8 @@ import { MIN_PAGES } from "./kdp.js";
 // feature. A 6-puzzle book has about 10 pages of content; filling it to KDP's
 // 24-page minimum meant 14 blank pages, which is not a book anyone would sell.
 // Past this many, stop padding and tell the truth about the length instead.
+// Ruled pages at the back, always. Part of the book, not padding.
+export const NOTES_PAGES = 4;
 export const MAX_FILLER = 4;
 
 // KDP prints black ink at a flat rate up to this many pages, so below it an
@@ -25,53 +27,37 @@ export function solutionsThatFit(geom) {
   return sideAt3 >= 150 ? 6 : 4;
 }
 
-// Blank pages are never the best way to reach KDP's minimum, and below 110
-// pages they are not even cheaper: black-ink printing is a flat $2.30 up to
-// that point, so extra pages cost nothing. So rather than padding with ruled
-// lines, spread the solutions out until the book fills itself — bigger, more
-// readable answer grids, no blank pages, same print cost.
+// Solutions are packed at the density the page allows, which is the fewest
+// pages and the cheapest to print. An earlier version spread them out to
+// avoid blank pages, which meant a 12-puzzle book got one grid per page and a
+// 20-puzzle book got four — the book changed character with the count, for no
+// reason a reader would understand.
 export function solutionsPerPageFor(puzzleCount, fits) {
-  let best = null;
-  for (let per = fits; per >= 1; per--) {
-    const plan = planPages(puzzleCount, per);
-    // Below 110 pages KDP charges a flat rate, so spreading solutions out to
-    // avoid blank pages is free and worth doing. Above it every page costs
-    // about a penny, and adding thirty pages to avoid one blank is a bad
-    // trade for whoever is paying to print the thing.
-    const pagesAreFree = plan.total <= FLAT_RATE_PAGES;
-    const score = [plan.belowMinimum ? 1 : 0, pagesAreFree ? plan.filler : 0, plan.total];
-    if (!best || lexLess(score, best.score)) best = { per, score };
-  }
-  return best.per;
-}
-
-function lexLess(a, b) {
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return a[i] < b[i];
-  }
-  return false;
+  void puzzleCount;
+  return fits;
 }
 
 // Page count before rendering, so the gutter is chosen for the final size.
 // Returns what the book will actually be, including how much of it is filler,
 // so the caller can warn rather than quietly shipping a padded book.
+// The book has a fixed shape: title, copyright, the puzzles, a Solutions
+// divider, the solutions packed as tightly as the page allows, and NOTES_PAGES
+// ruled pages at the back. Ruled pages at the end of a puzzle book are a
+// normal thing to want — somewhere to work out a hard one — so they are part
+// of the design rather than padding, and there are always the same number.
 export function planPages(puzzleCount, solutionsPerPage = 4) {
-  let content = 2 + puzzleCount; // title, copyright, puzzles
-  if (content % 2 === 1) content += 1; // blank before the divider
-  content += 1; // divider
-  content += Math.ceil(puzzleCount / solutionsPerPage);
-
-  let total = content;
-  if (total % 2 === 1) total += 1;
-  const shortfall = MIN_PAGES - total;
-  const padded = shortfall > 0 && shortfall <= MAX_FILLER;
-  if (padded) total = MIN_PAGES;
+  const solutionPages = Math.ceil(puzzleCount / solutionsPerPage);
+  const content = 1 + 1 + puzzleCount + 1 + solutionPages; // title, copyright, puzzles, divider, solutions
+  let total = content + NOTES_PAGES;
+  if (total % 2 === 1) total += 1; // KDP wants an even page count
 
   return {
     total,
     content,
+    solutionPages,
+    notes: total - content,
+    // Kept for callers that still ask; nothing is "filler" any more.
     filler: total - content,
-    // True when the book is too short for KDP however it is padded.
     belowMinimum: total < MIN_PAGES,
     minimum: MIN_PAGES,
   };
