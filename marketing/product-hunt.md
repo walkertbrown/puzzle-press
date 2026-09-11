@@ -27,6 +27,8 @@ Alternates:
 ## Links
 
 - Website: https://puzzlepress.bananafest-destiny.com
+- Free tools worth linking separately, and good replies to "how do I price this?":
+  /spine-calculator and /royalty-calculator
 - Also try: the sample PDFs linked in the header (word search, sudoku and maze
   books, plus a cover) — people click those, and they do the selling
 
@@ -90,6 +92,8 @@ Live copies: /social-card.png, /demo.gif, /hero-book.png,
 > • **Filler letters are screened**, so a random fill never spells something you'd rather not print in a book for kids or grandparents.
 > • **Every puzzle has its own word set.** A 100-puzzle book is 100 different puzzles, not a reshuffle of twenty.
 >
+> It also shows what the book is worth while you build it: printing cost and royalty for the page count you are actually at, using Amazon's own rate table — including the large-trim rates (6×9 is regular trim; 8.5×11 is not, and costs about 40% more per page). There are standalone calculators for that and for spine width on the site, free and no sign-up.
+>
 > There's also a large-print mode, which is the biggest sub-niche in puzzle books — one checkbox sets the trim, the grid and the word count so the letters come out around 23pt.
 >
 > Free for books up to 5 puzzles — real books, just shorter, with a small footer line. $19 once removes the limits for good and unlocks cover generation. No account, no subscription, and nothing you type ever leaves your browser.
@@ -118,7 +122,8 @@ your decision, not mine:
   - *Can I sell what it makes?* Yes, no rights claimed, no royalty.
   - *Does it do sudoku / mazes / crosswords?* Sudoku and mazes yes — four difficulties each, every puzzle verified to have exactly one solution. Crosswords not yet.
   - *Does it make the cover?* Yes — full wrap, spine sized from the page count, barcode area kept clear. Part of the paid unlock.
-  - *What about large print?* There's a Large print checkbox — 8.5×11, 15×15 grid, ~23pt letters.
+  - *What about large print?* There's a Large print checkbox — 8.5×11, 15×15 grid, ~23pt letters. Note it moves you to large trim, which costs more per page to print; the royalty line in the tool shows that as it happens.
+  - *How much will I earn?* The tool shows printing cost and royalty live, and there's a full royalty calculator on the site.
   - *Is my word list uploaded?* No. Generation and PDF rendering are entirely client-side.
 - Before launching, clear the Stripe product's **unit label** so checkout stops
   reading "$19.00 per unlimited".

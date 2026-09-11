@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test \"test/**/*.test.js\"",
-    "build": "esbuild src/ui/main.js --bundle --minify --format=esm --target=es2020 --outfile=public/app.js && esbuild src/ui/spine.js --bundle --minify --format=esm --target=es2020 --outfile=public/spine.js",
+    "build": "esbuild src/ui/main.js --bundle --minify --format=esm --target=es2020 --outfile=public/app.js && esbuild src/ui/spine.js --bundle --minify --format=esm --target=es2020 --outfile=public/spine.js && esbuild src/ui/royalty.js --bundle --minify --format=esm --target=es2020 --outfile=public/royalty.js",
     "dev": "esbuild src/ui/main.js --bundle --format=esm --target=es2020 --outfile=public/app.js --servedir=public --serve=127.0.0.1:8787",
     "sample": "node scripts/sample.mjs",
     "test:browser": "node test/browser.mjs",
@@ -14,7 +14,8 @@
     "gallery": "node scripts/gallery.mjs",
     "test:privacy": "node test/privacy.mjs",
     "test:spine": "node test/spine.mjs",
-    "test:freecover": "node test/freecover.mjs"
+    "test:freecover": "node test/freecover.mjs",
+    "test:royalty": "node test/royalty.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",

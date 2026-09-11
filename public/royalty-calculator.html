@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KDP Royalty Calculator — What a Paperback Actually Earns</title>
+<meta name="description" content="Work out printing cost and royalty for an Amazon KDP paperback. Regular and large trim rates, the 60%/50% threshold, and the lowest price that still covers printing.">
+<link rel="canonical" href="https://puzzlepress.bananafest-destiny.com/royalty-calculator">
+<meta property="og:type" content="website">
+<meta property="og:title" content="KDP Royalty Calculator">
+<meta property="og:description" content="Printing cost and royalty for a KDP paperback, using Amazon's own rate table — including the large-trim rates most calculators ignore.">
+<meta property="og:url" content="https://puzzlepress.bananafest-destiny.com/royalty-calculator">
+<meta property="og:image" content="https://puzzlepress.bananafest-destiny.com/social-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d3557'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-weight='700' font-size='18' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
+<style>
+  :root { --ink:#1a1a1a; --muted:#5c6470; --line:#d9dde3; --bg:#f6f7f9; --card:#fff; --accent:#1d3557; --ok:#2a7f3f; --warn:#a15c00; --warn-bg:#fff6e5; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  a { color: var(--accent); }
+  header { padding:18px 24px; border-bottom:1px solid var(--line); background:var(--card); display:flex; gap:16px; align-items:baseline; flex-wrap:wrap; }
+  header strong { font-size:18px; }
+  header .spacer { flex:1; }
+  main { max-width:860px; margin:0 auto; padding:32px 24px 8px; }
+  h1 { font-size:clamp(26px,4vw,36px); line-height:1.15; letter-spacing:-0.02em; margin:0 0 10px; }
+  .lede { color:var(--muted); margin:0 0 28px; }
+  .calc { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px; }
+  .fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; }
+  label { display:block; font-size:13px; color:var(--muted); margin-bottom:4px; }
+  select, input { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:7px; font:inherit; background:#fff; color:var(--ink); }
+  .out { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px; }
+  @media (max-width:560px){ .out { grid-template-columns:1fr; } }
+  .big { background:#f2f5fa; border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .big .k { font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .big .v { font-size:30px; font-weight:700; letter-spacing:-0.02em; margin-top:2px; }
+  .big .s { color:var(--muted); font-size:14px; }
+  .notes { margin-top:18px; display:grid; gap:8px; font-size:14px; color:var(--muted); }
+  .sum { margin-top:16px; padding:12px 14px; background:#f2f5fa; border-radius:8px; font-size:14px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; overflow-x:auto; }
+  .warnbox { margin:26px 0; padding:16px 18px; background:var(--warn-bg); color:var(--warn); border-radius:10px; }
+  .warnbox b { color:#7a4600; }
+  section.prose { margin:30px 0; }
+  section.prose h2 { font-size:21px; margin:0 0 8px; }
+  section.prose p { margin:0 0 12px; }
+  table { border-collapse:collapse; width:100%; font-size:14px; background:var(--card); }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; }
+  .cta { margin:34px 0 10px; padding:22px; background:var(--card); border:1px solid var(--line); border-radius:12px; }
+  .cta h2 { margin:0 0 6px; font-size:20px; }
+  .cta p { margin:0 0 14px; color:var(--muted); }
+  .btn { display:inline-block; text-decoration:none; font-weight:600; padding:11px 18px; border-radius:8px; background:var(--accent); color:#fff; border:1px solid var(--accent); }
+  footer { color:var(--muted); font-size:13px; text-align:center; padding:30px 24px; border-top:1px solid var(--line); background:var(--card); margin-top:30px; }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <strong>Puzzle Press</strong>
+  <span class="spacer"></span>
+  <a href="/spine-calculator">Spine calculator</a>
+  <a href="/">Puzzle book generator</a>
+</header>
+
+<main>
+  <h1>KDP royalty calculator</h1>
+  <p class="lede">What a paperback actually earns on <span id="market">Amazon.com</span> once printing is paid for. Printing cost depends on page count, ink <em>and</em> trim size — large trim costs more per page, which is the part most calculators skip.</p>
+
+  <div class="calc">
+    <div class="fields">
+      <div>
+        <label for="trim">Trim size</label>
+        <select id="trim"></select>
+      </div>
+      <div>
+        <label for="pages">Page count</label>
+        <input type="number" id="pages" value="120" min="24" max="828">
+      </div>
+      <div>
+        <label for="ink">Ink</label>
+        <select id="ink"></select>
+      </div>
+      <div>
+        <label for="list">List price (USD)</label>
+        <input type="number" id="list" value="9.99" min="0" step="0.01">
+      </div>
+    </div>
+
+    <div class="out">
+      <div class="big">
+        <div class="k">Printing cost</div>
+        <div class="v" id="printing">—</div>
+        <div class="s" id="band"></div>
+      </div>
+      <div class="big">
+        <div class="k">You keep, per copy</div>
+        <div class="v" id="earn">—</div>
+        <div class="s" id="per100"></div>
+      </div>
+    </div>
+
+    <div class="sum" id="sum"></div>
+
+    <div class="notes">
+      <div id="rate"></div>
+      <div id="minList"></div>
+    </div>
+
+    <div class="warnbox" id="warn" hidden></div>
+  </div>
+
+  <section class="prose">
+    <h2>The rates</h2>
+    <p>Printing cost = fixed cost + (page count × per-page cost), except for short black-ink books, which are a flat rate. Large trim means more than 6.12" wide or more than 9" tall — so 6×9 is regular trim, but 7×10, 8×10 and 8.5×11 are not.</p>
+    <table>
+      <tr><th>Ink &amp; trim</th><th>Up to 110 pages</th><th>Above that</th></tr>
+      <tr><td>Black, regular trim</td><td>$2.30 flat</td><td>$1.00 + $0.012/page</td></tr>
+      <tr><td>Black, large trim</td><td>$2.84 flat</td><td>$1.00 + $0.017/page</td></tr>
+      <tr><td>Premium colour, regular</td><td>$3.60 flat to 40pp</td><td>$1.00 + $0.065/page</td></tr>
+      <tr><td>Premium colour, large</td><td>—</td><td>$1.00 + $0.08/page</td></tr>
+      <tr><td>Standard colour, regular</td><td>—</td><td>$1.00 + $0.0255/page (72–600pp)</td></tr>
+      <tr><td>Standard colour, large</td><td>—</td><td>$1.00 + $0.0402/page (72–600pp)</td></tr>
+    </table>
+  </section>
+
+  <section class="prose">
+    <h2>Why puzzle books price the way they do</h2>
+    <p>A puzzle book is black ink, so printing is cheap: a 120-page 6×9 costs $2.44 to print. The trap is page count. Every extra puzzle adds a page and a bit over a penny, and solutions pages add more — so a 200-puzzle book is not twice the margin of a 100-puzzle one, it is twice the print cost with the same list price.</p>
+    <p>The other trap is large trim. Going from 6×9 to 8.5×11 for bigger grids raises the per-page cost from $0.012 to $0.017 — about 40% more per page. Worth it for a large-print book people will pay more for; expensive by accident otherwise.</p>
+  </section>
+
+  <div class="cta">
+    <h2>Making a puzzle book?</h2>
+    <p>Puzzle Press generates the whole paperback — word search, sudoku or maze puzzles with solutions — plus the matching cover, and shows the printing cost and royalty for the book as you build it. Free for books up to 5 puzzles.</p>
+    <a class="btn" href="/">Make a book free</a>
+  </div>
+</main>
+
+<footer>
+  <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app. <a href="/#terms">Terms</a> &middot; <a href="/spine-calculator">Spine calculator</a> &middot; <a href="mailto:support@bananafest-destiny.com">support@bananafest-destiny.com</a></p>
+  <p>Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc. Rates are Amazon's published Amazon.com figures and can change; check KDP before you price.</p>
+</footer>
+
+<script type="module" src="royalty.js"></script>
+</body>
+</html>
