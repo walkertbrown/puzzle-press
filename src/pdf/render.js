@@ -11,6 +11,7 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { pageGeometry, marginsForPage, MIN_PAGES } from "./kdp.js";
+import { wallSegments } from "../generator/maze.js";
 
 const BLACK = rgb(0, 0, 0);
 const GREY = rgb(0.45, 0.45, 0.45);
@@ -201,6 +202,7 @@ function drawDividerPage(ctx, text) {
 
 function drawPuzzlePage(ctx, puzzle) {
   if (puzzle.kind === "sudoku") return drawSudokuPage(ctx, puzzle);
+  if (puzzle.kind === "maze") return drawMazePage(ctx, puzzle);
   const { page, box } = newPage(ctx);
   const F = ctx.F;
 
@@ -279,6 +281,67 @@ function drawGrid(page, F, puzzle, { x, top, side, solution }) {
   page.drawRectangle({ x, y: top - side, width: side, height: side, borderWidth: 0.75, borderColor: BLACK });
 }
 
+// ---------- mazes ----------
+
+function drawMazePage(ctx, maze) {
+  const { page, box } = newPage(ctx);
+  const F = ctx.F;
+  const headSize = 20;
+  page.drawText(`Puzzle ${maze.index}`, { x: box.x, y: box.y + box.h - headSize, size: headSize, font: F.bold });
+  const subW = F.regular.widthOfTextAtSize(maze.title, 12);
+  page.drawText(maze.title, { x: box.x + box.w - subW, y: box.y + box.h - headSize + 3, size: 12, font: F.regular, color: GREY });
+
+  const areaTop = box.y + box.h - headSize - 26;
+  const areaBottom = box.y + 40;
+  const side = Math.min(box.w - 24, areaTop - areaBottom);
+  const top = areaTop - (areaTop - areaBottom - side) / 2;
+  const x = box.x + (box.w - side) / 2;
+  drawMaze(page, F, maze, { x, top, side });
+  footer(ctx, page, box);
+}
+
+// Walls come pre-merged into runs, so even a 39x39 maze is a few hundred
+// lines rather than a few thousand — a smaller PDF and a faster render.
+function drawMaze(page, F, maze, { x, top, side, path = null }) {
+  const cell = side / Math.max(maze.w, maze.h);
+  const gw = cell * maze.w;
+  const gh = cell * maze.h;
+  const thickness = Math.max(0.5, Math.min(1.4, cell * 0.13));
+  const px = (cx) => x + cx * cell;
+  const py = (cy) => top - cy * cell;
+
+  if (path && path.length) {
+    // The route is drawn first so the walls sit on top of it, and as a wide
+    // grey corridor rather than a hairline — on a six-to-a-page solutions
+    // sheet a thin light line is invisible, which makes the answer key
+    // useless exactly where it is needed.
+    for (let i = 1; i < path.length; i++) {
+      const a = path[i - 1];
+      const b = path[i];
+      page.drawLine({
+        start: { x: px(a % maze.w) + cell / 2, y: py(Math.floor(a / maze.w)) - cell / 2 },
+        end: { x: px(b % maze.w) + cell / 2, y: py(Math.floor(b / maze.w)) - cell / 2 },
+        thickness: Math.max(1.1, cell * 0.55),
+        color: rgb(0.62, 0.66, 0.72),
+      });
+    }
+  }
+
+  for (const seg of wallSegments(maze)) {
+    page.drawLine({
+      start: { x: px(seg.x1), y: py(seg.y1) },
+      end: { x: px(seg.x2), y: py(seg.y2) },
+      thickness,
+      color: BLACK,
+    });
+  }
+
+  // Label the way in and the way out, outside the walls.
+  const label = Math.max(6, Math.min(11, cell * 1.1));
+  page.drawText("start", { x: x - F.regular.widthOfTextAtSize("start", label) - 4, y: top - cell * 0.75, size: label, font: F.regular, color: GREY });
+  page.drawText("end", { x: x + gw + 4, y: top - gh + cell * 0.25, size: label, font: F.regular, color: GREY });
+}
+
 // ---------- sudoku ----------
 
 function drawSudokuPage(ctx, puzzle) {
@@ -349,6 +412,8 @@ function drawSolutionsPage(ctx, puzzles, perPage) {
     page.drawText(`Puzzle ${p.index}`, { x, y: top - 10, size: 10, font: F.bold });
     if (p.kind === "sudoku") {
       drawSudokuGrid(page, F, p.solution, { x, top: top - 16, side, givens: p.puzzle, small: true });
+    } else if (p.kind === "maze") {
+      drawMaze(page, F, p, { x, top: top - 16, side, path: p.solution });
     } else {
       drawGrid(page, F, p, { x, top: top - 16, side, solution: true });
     }

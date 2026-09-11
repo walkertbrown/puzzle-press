@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Puzzle Book Generator for Amazon KDP — Word Search &amp; Sudoku — Puzzle Press</title>
-<meta name="description" content="Make a complete, print-ready word search or sudoku book for Amazon KDP in your browser. Correct trim size, gutter margins, bleed and embedded fonts. Matching cover. Solutions included. $19 once, unlimited books.">
+<title>Puzzle Book Generator for Amazon KDP — Word Search, Sudoku, Mazes — Puzzle Press</title>
+<meta name="description" content="Make a complete, print-ready word search, sudoku or maze book for Amazon KDP in your browser. Correct trim size, gutter margins, bleed and embedded fonts. Matching cover. Solutions included. $19 once, unlimited books.">
 <link rel="canonical" href="https://puzzlepress.bananafest-destiny.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Puzzle Press">
@@ -69,6 +69,8 @@
   .sudoku div:nth-child(n+73) { border-bottom: 0; }
   .sudoku div.br { border-right: 2px solid #000; }
   .sudoku div.bb { border-bottom: 2px solid #000; }
+  .maze { width: 100%; aspect-ratio: 1; display: block; }
+  .maze svg { width: 100%; height: auto; display: block; }
   .hidden { display: none !important; }
   .page { container-type: inline-size; }
   .bank { columns: 3; column-gap: 16px; margin-top: 16px; font-size: 13px; font-family: "Liberation Sans", Arial, sans-serif; text-transform: uppercase; }
@@ -122,7 +124,7 @@
 <body>
 <header>
   <h1>Puzzle Press</h1>
-  <p>Word search and sudoku books for Amazon KDP, made in your browser.</p>
+  <p>Word search, sudoku and maze books for Amazon KDP, made in your browser.</p>
   <span class="spacer"></span>
   <a href="#pricing">Pricing</a>
   <a href="samples/sample-6x9.pdf" target="_blank" rel="noopener">Sample word search book</a>
@@ -134,7 +136,7 @@
   <div class="hero-inner">
     <div>
       <h2>A finished KDP puzzle book, in about a minute.</h2>
-      <p class="lede">Word search or sudoku. Pick from 32 themes or paste your own words. Puzzle Press lays out the whole paperback interior — puzzles, word banks, solutions, page numbers — as one PDF that meets Amazon KDP's manuscript rules, then makes a matching cover with the spine measured to your exact page count. No sign-up, nothing to install.</p>
+      <p class="lede">Word search, sudoku or mazes. Pick from 32 themes or paste your own words. Puzzle Press lays out the whole paperback interior — puzzles, word banks, solutions, page numbers — as one PDF that meets Amazon KDP's manuscript rules, then makes a matching cover with the spine measured to your exact page count. No sign-up, nothing to install.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="#tool">Make a book free</a>
         <a class="btn btn-ghost" href="samples/sample-6x9.pdf" target="_blank" rel="noopener">See a finished book (PDF)</a>
@@ -142,7 +144,7 @@
         <span class="note">Free books up to 5 puzzles. $19 once for unlimited.</span>
       </div>
       <ul class="trust">
-        <li>Word search &amp; sudoku</li>
+        <li>Word search, sudoku &amp; mazes</li>
         <li>32 themes, or your own words</li>
         <li>Interior <em>and</em> cover</li>
         <li>Large print option</li>
@@ -166,6 +168,7 @@
       <select id="kind">
         <option value="wordsearch" selected>Word search</option>
         <option value="sudoku">Sudoku</option>
+        <option value="maze">Mazes</option>
       </select>
       <label for="title">Title</label>
       <input type="text" id="title" value="Animal Word Search" maxlength="120">
@@ -320,6 +323,10 @@ cherry"></textarea>
         <p>Random fill occasionally spells something you would not want in a book for children or grandparents. Every grid is checked and refilled if it does.</p>
       </div>
       <div>
+        <h3>Every maze has exactly one route</h3>
+        <p>Mazes are built as spanning trees, so there are no loops and no unreachable corners — one way in, one way out, and exactly one path between them. The answer key is correct by construction rather than by checking.</p>
+      </div>
+      <div>
         <h3>Every sudoku has exactly one answer</h3>
         <p>Each puzzle is dug out one symmetric pair of clues at a time, and a clue is only removed if the grid still solves exactly one way. A sudoku with two answers would make the solutions page at the back of your own book wrong.</p>
       </div>
@@ -373,7 +380,7 @@ cherry"></textarea>
     <details class="faq"><summary>Can I sell the books I make?</summary>
       <p>Yes. Books you generate are yours — publish them, sell them, give them away. I claim no rights to the output and no royalty on it.</p></details>
     <details class="faq"><summary>What kinds of puzzles can it make?</summary>
-      <p>Word search and sudoku. Word search books draw from 32 built-in themes or a list you paste, in three difficulties. Sudoku comes in easy, medium, hard and expert — 40, 32, 28 and 26 clues respectively, laid out with the 180-degree symmetry printed books use. Every sudoku is checked to have exactly one solution before it goes in the book, because a puzzle with two answers makes your own solutions page wrong.</p></details>
+      <p>Word search, sudoku and mazes. Word search books draw from 32 built-in themes or a list you paste, in three difficulties. Sudoku comes in easy, medium, hard and expert — 40, 32, 28 and 26 clues respectively, laid out with the 180-degree symmetry printed books use, and every puzzle is checked to have exactly one solution. Mazes run 15×15 up to 39×39, each one a perfect maze: every cell reachable, no loops, exactly one route from start to finish.</p></details>
     <details class="faq"><summary>Does it make the cover too?</summary>
       <p>Yes — a full wrap with back cover, spine and front on one PDF, sized from the page count of the interior it just made. Spine width is page count times paper thickness, which is why the paper setting matters. KDP only allows text on the spine from 79 pages up, so shorter books get a blank one. The barcode area on the back is left clear. Cover generation is part of the paid unlock.</p></details>
     <details class="faq"><summary>How many puzzles should a book have?</summary>

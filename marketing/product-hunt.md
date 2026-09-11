@@ -20,9 +20,9 @@ Alternates:
 
 ## Description (260 char limit)
 
-> Word search or sudoku. Puzzle Press lays out the whole paperback — puzzles, solutions, page numbers — then a matching cover with the spine measured to your exact page count. Runs entirely in your browser. Free up to 5 puzzles.
+> Word search, sudoku or mazes. Puzzle Press lays out the whole paperback — puzzles, solutions, page numbers — then a matching cover with the spine measured to your page count. Runs entirely in your browser. Free up to 5 puzzles.
 
-225 chars.
+226 chars.
 
 ## Links
 
@@ -80,7 +80,7 @@ Live copies: /social-card.png, /demo.gif, /hero-book.png,
 >
 > Then it makes the cover, which is the part I expected to be easy and wasn't. A paperback spine is page count times paper thickness, so the cover can't be designed until the interior exists. Puzzle Press already knows the page count, because it just made the book — so the wrap comes out at the exact size, spine included, barcode area left clear. (Two of the top-ranked KDP spine calculators online add 0.06" to that number. Amazon's own documentation doesn't. That 0.06" is a hardcover rule, and it will get your cover rejected.)
 >
-> It does sudoku as well, in four difficulties. Every sudoku is dug out one symmetric pair of clues at a time and a clue is only removed if the grid still solves exactly one way — a puzzle with two answers would make the solutions page at the back of your own book wrong.
+> It does sudoku and mazes as well. Mazes are spanning trees, so every one has exactly one route from start to finish and no unreachable corners. Sudoku comes in four difficulties. Every sudoku is dug out one symmetric pair of clues at a time and a clue is only removed if the grid still solves exactly one way — a puzzle with two answers would make the solutions page at the back of your own book wrong.
 >
 > Four things I cared about in the word searches themselves:
 >
@@ -115,7 +115,7 @@ your decision, not mine:
 - Be at the keyboard for the first few hours. Reply to every comment. Replies do more than the post.
 - Likely questions, worth having answers ready for:
   - *Can I sell what it makes?* Yes, no rights claimed, no royalty.
-  - *Does it do sudoku / mazes / crosswords?* Sudoku yes, four difficulties, every puzzle verified to have exactly one solution. Mazes and crosswords not yet — same pipeline, planned as updates.
+  - *Does it do sudoku / mazes / crosswords?* Sudoku and mazes yes — four difficulties each, every puzzle verified to have exactly one solution. Crosswords not yet.
   - *Does it make the cover?* Yes — full wrap, spine sized from the page count, barcode area kept clear. Part of the paid unlock.
   - *What about large print?* There's a Large print checkbox — 8.5×11, 15×15 grid, ~23pt letters.
   - *Is my word list uploaded?* No. Generation and PDF rendering are entirely client-side.
