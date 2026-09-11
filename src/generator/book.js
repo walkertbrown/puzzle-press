@@ -33,6 +33,19 @@ export function generateBook({
     if (take < wordsPerPuzzle && i < cleanPools.length) {
       warnings.push(`${pool.title}: only ${pool.words.length} words, wanted ${wordsPerPuzzle} per puzzle`);
     }
+    // A reader notices a repeated word list long before they notice a repeated
+    // grid, so say so up front rather than quietly shipping duplicates.
+    if (i < cleanPools.length) {
+      const wanted = Math.ceil(count / cleanPools.length);
+      const possible = distinctSetsPossible(pool.words.length, take, wanted);
+      if (possible < wanted) {
+        warnings.push(
+          `${pool.title}: ${pool.words.length} words taken ${take} at a time makes only ` +
+            `${possible} different word list${possible === 1 ? "" : "s"}, but this book needs ${wanted}. ` +
+            "Some puzzles will repeat the same words — add more words, or lower words per puzzle.",
+        );
+      }
+    }
 
     // Draw a subset with no nested pairs, not used before in this book.
     let chosen = null;
@@ -55,6 +68,19 @@ export function generateBook({
   }
 
   return { puzzles, warnings };
+}
+
+// How many different word lists a pool can produce, i.e. C(n, k), stopped
+// early once it exceeds `cap` so a big pool never overflows.
+export function distinctSetsPossible(poolSize, take, cap = Number.MAX_SAFE_INTEGER) {
+  const k = Math.min(take, poolSize);
+  if (k <= 0 || k >= poolSize) return 1;
+  let total = 1;
+  for (let i = 1; i <= Math.min(k, poolSize - k); i++) {
+    total = (total * (poolSize - i + 1)) / i;
+    if (total > cap) return cap + 1;
+  }
+  return Math.round(total);
 }
 
 // Walk a shuffled pool, taking words until `take`, skipping any that nest
