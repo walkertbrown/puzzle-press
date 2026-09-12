@@ -41,6 +41,7 @@ const pages = {
     lede: `Paste a word list or pick from ${themeNames.length} themes, choose how many puzzles, and download a paperback interior that meets KDP's manuscript rules — then the matching cover. Free to use; the free book is watermarked.`,
     kind: "wordsearch",
     sample: "/samples/sample-6x9.pdf",
+    cover: "/samples/sample-cover-6x9.pdf",
     sampleLabel: "See a finished word search book (PDF)",
     image: { src: "/pins/03-word-search.png", alt: "A Halloween word search page from a generated KDP book" },
     body: `
@@ -86,6 +87,7 @@ const pages = {
     lede: "A complete sudoku paperback — graded easy to expert, every puzzle verified to have exactly one solution, answers at the back — as a print-ready interior PDF and a matching cover. Free to use; the free book is watermarked.",
     kind: "sudoku",
     sample: "/samples/sample-sudoku-6x9.pdf",
+    cover: "/samples/sample-sudoku-cover-6x9.pdf",
     sampleLabel: "See a finished sudoku book (PDF)",
     image: { src: "/pins/04-sudoku.png", alt: "A sudoku puzzle page from a generated KDP book" },
     body: `
@@ -124,6 +126,7 @@ const pages = {
     lede: `A complete maze paperback — perfect mazes from ${MAZE_DIFFICULTY.easy.w}×${MAZE_DIFFICULTY.easy.h} up to ${MAZE_DIFFICULTY.expert.w}×${MAZE_DIFFICULTY.expert.h}, one route through each, solutions drawn at the back — as a print-ready interior PDF and a matching cover. Free to use; the free book is watermarked.`,
     kind: "maze",
     sample: "/samples/sample-maze-6x9.pdf",
+    cover: "/samples/sample-maze-cover-6x9.pdf",
     sampleLabel: "See a finished maze book (PDF)",
     image: { src: "/pins/05-mazes.png", alt: "A maze page from a generated KDP book" },
     body: `
@@ -201,7 +204,9 @@ const render = (slug, p) => `<!doctype html>
 <meta property="og:title" content="${p.h1}">
 <meta property="og:description" content="${p.description}">
 <meta property="og:url" content="${SITE}/${slug}">
-<meta property="og:image" content="${SITE}${p.image.src}">
+<meta property="og:image" content="${SITE}/cards/${slug}.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="${favicon}">
 <style>${css}</style>
@@ -234,6 +239,7 @@ ${JSON.stringify({
       <div class="actions">
         <a class="btn" href="/?kind=${p.kind}#tool">Make a book free</a>
         <a href="${p.sample}" target="_blank" rel="noopener">${p.sampleLabel}</a>
+        <a href="${p.cover}" target="_blank" rel="noopener">…and its cover</a>
       </div>
       <p class="fine">Runs in your browser — nothing you type leaves your computer. No sign-up.</p>
     </div>

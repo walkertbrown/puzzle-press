@@ -62,6 +62,8 @@ const shell = ({ title, description, path, ogImage, body, jsonld }) => `<!doctyp
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${SITE}${path}">
 <meta property="og:image" content="${SITE}${ogImage}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="${favicon}">
 <style>${css}</style>
@@ -150,7 +152,7 @@ const themePage = (id, t) => {
     description,
     isPartOf: { "@type": "WebSite", name: "Puzzle Press", url: `${SITE}/` },
   };
-  return shell({ title, description, path: `/word-lists/${id}`, ogImage: "/pins/03-word-search.png", body, jsonld });
+  return shell({ title, description, path: `/word-lists/${id}`, ogImage: `/cards/word-list-${id}.png`, body, jsonld });
 };
 
 const ids = Object.keys(THEMES);
@@ -161,7 +163,7 @@ const index = shell({
   title: "Word Search Word Lists — 32 Themes, Free to Use",
   description: `${total} words across 32 themed lists — animals, Halloween, Christmas, dinosaurs, gardening and more — each sized for a 15×15 word search. Free for any use, with a generator that turns any list into a KDP book.`,
   path: "/word-lists/",
-  ogImage: "/pins/03-word-search.png",
+  ogImage: "/cards/word-lists.png",
   jsonld: {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
