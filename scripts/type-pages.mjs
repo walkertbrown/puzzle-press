@@ -12,6 +12,7 @@ import { pageGeometry, MIN_PAGES } from "../src/pdf/kdp.js";
 import { printingCost, royalty } from "../src/pdf/kdp-cost.js";
 import { SUDOKU_DIFFICULTY } from "../src/generator/sudoku.js";
 import { MAZE_DIFFICULTY } from "../src/generator/maze.js";
+import { CRISSCROSS_DIFFICULTY } from "../src/generator/crisscross.js";
 import { THEMES } from "../src/generator/wordlists.js";
 import { DIFFICULTY as WS_DIFFICULTY } from "../src/generator/wordsearch.js";
 
@@ -161,6 +162,39 @@ const pages = {
   },
 };
 
+pages["criss-cross-book-generator"] = {
+  title: "Criss-Cross (Word Fill-In) Puzzle Book Generator for KDP — Unique Fill Guaranteed",
+  description: `Make a criss-cross / word fill-in puzzle book for Amazon KDP: crossword-shaped grids with the word list given, ${CRISSCROSS_DIFFICULTY.easy.words} to ${CRISSCROSS_DIFFICULTY.expert.words} words, every puzzle verified to have exactly one fill, solutions included, print-ready PDF and cover. Free to use.`,
+  h1: "Criss-cross (word fill-in) book generator for Amazon KDP",
+  lede: "Fill-in puzzles — the crossword grid with the word list printed instead of clues — as a complete paperback: graded easy to expert, every grid verified to have exactly one way to fill it, solutions at the back, plus the matching cover. Free to use; the free book is watermarked.",
+  kind: "crisscross",
+  sample: "/samples/sample-crisscross-6x9.pdf",
+  cover: "/samples/sample-crisscross-cover-6x9.pdf",
+  sampleLabel: "See a finished fill-in book (PDF)",
+  image: { src: "/pins/06-crisscross.png", alt: "A criss-cross fill-in puzzle page from a generated KDP book" },
+  body: `
+  <section class="prose">
+    <h2>What a criss-cross is, and the one way it goes wrong</h2>
+    <p>A criss-cross (also sold as "word fill-in" or "fill-it-in") is a crossword-shaped grid with no clues: the words are listed by length, and the solver works out where each one goes from its length and from the letters where words cross. They are a large KDP category of their own, popular with the same readers who buy word search books, and easier on the eyes than a crossword because there is nothing to know — only to fit.</p>
+    <p>The one way they go wrong: a grid where two words of the same length could swap places. Then there are two correct fills, the answer key at the back matches only one of them, and the reader who found the other one leaves the review. Puzzle Press solves every grid it builds with a backtracking solver that counts fills; if it finds a second, the longest word is printed into the grid as a starter (as fill-in books do), and if that still leaves two, the grid is thrown away and rebuilt. Every puzzle in every book has exactly one fill.</p>
+  </section>
+
+  <section class="prose">
+    <h2>Grades</h2>
+    <table>
+      <tr><th>Level</th><th>Words in the grid</th><th>Grid up to</th></tr>
+      ${Object.values(CRISSCROSS_DIFFICULTY).map((d) => `<tr><td>${d.label}</td><td>${d.words}</td><td>${d.size} × ${d.size}</td></tr>`).join("\n      ")}
+      <tr><td>Graded</td><td colspan="2">Easy at the front through expert at the back, level printed on each puzzle</td></tr>
+    </table>
+    <p>Words come from the same ${themeNames.length} themes as the word search books, or a list you paste. Each puzzle draws its own words, so a Halloween fill-in book is fifty different Halloween grids. Grids are trimmed to the shape the words make — no black squares, no padding — and the word list beneath is grouped by length, the way printed fill-ins are.</p>
+  </section>
+
+  <section class="prose">
+    <h2>What a book costs to print, and earns</h2>
+    ${costTable}
+  </section>`,
+};
+
 const css = `
   :root { --ink:#1a1a1a; --muted:#5c6470; --line:#d9dde3; --bg:#f6f7f9; --card:#fff; --accent:#1d3557; }
   * { box-sizing: border-box; }
@@ -255,12 +289,12 @@ ${p.body}
   <div class="cta">
     <h2>Make one now</h2>
     <p>Choose the settings, watch the preview, download the interior and then the cover — the spine already sized from the page count of the book you just made. Free to use; $19 once removes the watermark, and the price is on the page before you click anything.</p>
-    <a class="btn" href="/?kind=${p.kind}#tool">Make a ${p.kind === "wordsearch" ? "word search" : p.kind} book free</a>
+    <a class="btn" href="/?kind=${p.kind}#tool">Make a ${p.kind === "wordsearch" ? "word search" : p.kind === "crisscross" ? "criss-cross" : p.kind} book free</a>
   </div>
 </main>
 
 <footer>
-  <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app. <a href="/#terms">Terms</a> · <a href="/word-search-book-generator">Word search</a> · <a href="/sudoku-book-generator">Sudoku</a> · <a href="/maze-book-generator">Mazes</a> · <a href="mailto:support@bananafest-destiny.com">support@bananafest-destiny.com</a></p>
+  <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app. <a href="/#terms">Terms</a> · <a href="/word-search-book-generator">Word search</a> · <a href="/sudoku-book-generator">Sudoku</a> · <a href="/maze-book-generator">Mazes</a> · <a href="/criss-cross-book-generator">Criss-cross</a> · <a href="mailto:support@bananafest-destiny.com">support@bananafest-destiny.com</a></p>
   <p>Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc. Figures are from Amazon's published specifications; check your proof.</p>
 </footer>
 </body>

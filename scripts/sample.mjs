@@ -69,3 +69,16 @@ for (const [name, book, title, subtitle, seed] of [
   writeFileSync(new URL(`../public/samples/sample-${name}-cover-6x9.pdf`, import.meta.url), c);
   console.log(`wrote public/samples/sample-${name}-cover-6x9.pdf`, c.length, "bytes, sized for", pc, "pages");
 }
+
+// Criss-cross sample and its cover.
+const { generateCrissCrossBook } = await import("../src/generator/crisscross.js");
+const cc = generateCrissCrossBook({ pools: [THEMES.halloween], count: 20, difficulty: "graded", seed: "public-crisscross-1" });
+const ccBytes = await renderBook(cc, { title: "Halloween Fill-In Puzzles", subtitle: "20 criss-cross puzzles, easy to expert — sample book", author: "Puzzle Press", trim: "6x9", licensed: true, fonts });
+writeFileSync(new URL("../public/samples/sample-crisscross-6x9.pdf", import.meta.url), ccBytes);
+console.log("wrote public/samples/sample-crisscross-6x9.pdf", ccBytes.length, "bytes", cc.warnings);
+{
+  const pc = planPages(20, solutionsThatFit(pageGeometry({ trim: "6x9" }))).total;
+  const c = await renderCover({ title: "Halloween Fill-In Puzzles", subtitle: "20 criss-cross puzzles, easy to expert — sample book", author: "Puzzle Press", trim: "6x9", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: cc.puzzles[0], seed: "public-crisscross-1", fonts });
+  writeFileSync(new URL("../public/samples/sample-crisscross-cover-6x9.pdf", import.meta.url), c);
+  console.log("wrote public/samples/sample-crisscross-cover-6x9.pdf", c.length, "bytes");
+}

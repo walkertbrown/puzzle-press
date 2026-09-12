@@ -20,7 +20,7 @@ Alternates:
 
 ## Description (260 char limit)
 
-> Word search, sudoku or mazes. Puzzle Press lays out the whole paperback — puzzles, solutions, page numbers — then a matching cover with the spine measured to your page count. Runs entirely in your browser. Free to use; pay to remove the watermark.
+> Word search, sudoku, mazes or fill-ins. Puzzle Press lays out the whole paperback — puzzles, solutions, page numbers — then a matching cover with the spine measured to your page count. Runs in your browser. Free to use; pay to remove the watermark.
 
 226 chars.
 
@@ -91,7 +91,7 @@ the vertical Short (`npm run video:short`) went out via Buffer the same day.
 >
 > The hard part was never the puzzle. It's the book. KDP bounces manuscripts for boring reasons: the inside margin has to get wider as the book gets thicker, fonts have to be embedded, there's a 24-page minimum, the page count has to be even. Get one wrong and you're back in the upload queue.
 >
-> Puzzle Press does the whole book. Pick word search, sudoku or mazes and a trim size, and you get a PDF with the puzzles, a solutions section and page numbers — margins, gutter, bleed and embedded fonts already correct. Every book has the same shape: title page, copyright page, the puzzles, a Solutions divider, the answers packed as tightly as the page allows, and four ruled Notes pages at the back.
+> Puzzle Press does the whole book. Pick word search, sudoku, mazes or criss-cross fill-ins and a trim size, and you get a PDF with the puzzles, a solutions section and page numbers — margins, gutter, bleed and embedded fonts already correct. Every book has the same shape: title page, copyright page, the puzzles, a Solutions divider, the answers packed as tightly as the page allows, and four ruled Notes pages at the back.
 >
 > Then it makes the cover, which is the part I expected to be easy and wasn't. A paperback spine is page count times paper thickness, so the cover can't be designed until the interior exists. Puzzle Press already knows the page count, because it just made the book — so the wrap comes out at the exact size, spine included, barcode area left clear. (Two of the top-ranked KDP spine calculators online add 0.06" to that number. Amazon's own documentation doesn't. That 0.06" is a hardcover rule, and it will get your cover rejected.)
 >
@@ -152,7 +152,7 @@ Me (Monday, before the 6:30pm reminder):
 - Be at the keyboard for the first few hours. Reply to every comment. Replies do more than the post.
 - Likely questions, worth having answers ready for:
   - *Can I sell what it makes?* Yes, no rights claimed, no royalty.
-  - *Does it do sudoku / mazes / crosswords?* Sudoku and mazes yes — four difficulties each, every puzzle verified to have exactly one solution. Crosswords not yet. Link the type page: /sudoku-book-generator or /maze-book-generator.
+  - *Does it do sudoku / mazes / crosswords?* Sudoku and mazes yes — four difficulties each, every puzzle verified to have exactly one solution. Crosswords with clues: not yet. Criss-cross fill-ins (the crossword grid with the word list given) yes, each verified to have exactly one fill. Link the type page: /sudoku-book-generator or /maze-book-generator.
   - *I've never published on KDP — where do I start?* /how-to-make-a-puzzle-book — trim sizes, the gutter table, spine, pricing, and the mistakes that get files rejected, with the numbers.
   - *Does it make the cover?* Yes — full wrap, spine sized from the page count, barcode area kept clear. Free to generate and look at; it carries a PREVIEW mark until you pay.
   - *What about large print?* There's a Large print checkbox — 8.5×11, fewer words per grid, ~23pt letters. Note it moves you to large trim, which costs more per page to print; the royalty line in the tool shows that as it happens.

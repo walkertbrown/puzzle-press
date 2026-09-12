@@ -79,6 +79,9 @@
   .page h3 span { font-weight: 400; font-size: 13px; color: var(--muted); }
   .grid { display: grid; border: 1px solid #000; width: 100%; aspect-ratio: 1; font-family: "Liberation Sans", Arial, Helvetica, sans-serif; }
   .grid div { display: flex; align-items: center; justify-content: center; font-size: clamp(9px, 2.6cqw, 22px); }
+  .crisscross { display: grid; width: 100%; gap: 0; font-family: "Liberation Sans", Arial, Helvetica, sans-serif; }
+  .crisscross .cell { border: 1px solid #000; display: flex; align-items: center; justify-content: center; font-size: clamp(8px, 2.4cqw, 20px); font-weight: 600; background: #fff; margin: -0.5px; }
+  .bank .len { break-after: avoid; font-weight: 600; color: var(--muted); font-size: 12px; margin-top: 6px; text-transform: uppercase; letter-spacing: .04em; }
   .sudoku { display: grid; grid-template-columns: repeat(9, 1fr); width: 100%; aspect-ratio: 1; border: 2px solid #000; font-family: "Liberation Sans", Arial, sans-serif; font-weight: 600; }
   .sudoku div { display: flex; align-items: center; justify-content: center; font-size: clamp(11px, 4cqw, 30px);
     border-right: 1px solid #bbb; border-bottom: 1px solid #bbb; aspect-ratio: 1; }
@@ -141,7 +144,7 @@
 <body>
 <header>
   <h1>Puzzle Press</h1>
-  <p>Word search, sudoku and maze books for Amazon KDP, made in your browser.</p>
+  <p>Word search, sudoku, maze and fill-in puzzle books for Amazon KDP, made in your browser.</p>
   <span class="spacer"></span>
   <a href="#pricing">Pricing</a>
   <a class="wide-only" href="/how-to-make-a-puzzle-book">How to make a puzzle book</a>
@@ -157,16 +160,16 @@
   <div class="hero-inner">
     <div>
       <h2>A finished KDP puzzle book, in about a minute.</h2>
-      <p class="lede">Pick word search, sudoku or mazes, choose a trim size, and Puzzle Press lays out the whole paperback interior — puzzles, solutions, page numbers — as one PDF that meets Amazon KDP's manuscript rules. Then it makes the matching cover, with the spine measured from the page count of the book it just built. No sign-up, nothing to install.</p>
+      <p class="lede">Pick word search, sudoku, mazes or criss-cross fill-ins, choose a trim size, and Puzzle Press lays out the whole paperback interior — puzzles, solutions, page numbers — as one PDF that meets Amazon KDP's manuscript rules. Then it makes the matching cover, with the spine measured from the page count of the book it just built. No sign-up, nothing to install.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="#tool">Make a book free</a>
         <a class="btn btn-ghost" href="samples/sample-6x9.pdf" target="_blank" rel="noopener">See a finished book (PDF)</a>
         <a class="btn btn-ghost" href="samples/sample-cover-6x9.pdf" target="_blank" rel="noopener">…and its cover</a>
-        <span class="note">Also: <a href="samples/sample-sudoku-6x9.pdf" target="_blank" rel="noopener">sudoku sample</a> · <a href="samples/sample-maze-6x9.pdf" target="_blank" rel="noopener">maze sample</a></span>
+        <span class="note">Also: <a href="samples/sample-sudoku-6x9.pdf" target="_blank" rel="noopener">sudoku sample</a> · <a href="samples/sample-maze-6x9.pdf" target="_blank" rel="noopener">maze sample</a> · <a href="samples/sample-crisscross-6x9.pdf" target="_blank" rel="noopener">fill-in sample</a></span>
         <span class="note">Free: a full-length book, watermarked. $19 once removes the mark.</span>
       </div>
       <ul class="trust">
-        <li>Word search, sudoku &amp; mazes</li>
+        <li>Word search, sudoku, mazes &amp; fill-ins</li>
         <li>32 word-search themes, or your own list</li>
         <li>Interior <em>and</em> cover</li>
         <li>Large print option</li>
@@ -191,6 +194,7 @@
         <option value="wordsearch" selected>Word search</option>
         <option value="sudoku">Sudoku</option>
         <option value="maze">Mazes</option>
+        <option value="crisscross">Criss-cross (word fill-in)</option>
       </select>
       <label for="title">Title</label>
       <input type="text" id="title" value="Animal Word Search" maxlength="120">
@@ -233,7 +237,7 @@
       <div class="check"><input type="checkbox" id="bleed"><label for="bleed" style="margin:0">Bleed (only if you add full-page images later)</label></div>
     </fieldset>
 
-    <fieldset class="ws-only">
+    <fieldset class="ws-only themed">
       <legend>Words</legend>
       <div class="themes" id="themes"></div>
       <label for="custom">Your own list (one per line or comma-separated)</label>
@@ -297,7 +301,7 @@ cherry"></textarea>
     <div class="card how">
       <b>How it works</b>
       <ol>
-        <li>Pick a puzzle type. Word search draws on 32 themes or a list you paste; sudoku and mazes just need a difficulty.</li>
+        <li>Pick a puzzle type. Word search and criss-cross draw on 32 themes or a list you paste; sudoku and mazes just need a difficulty.</li>
         <li>Download the interior PDF. Fonts are embedded; margins, gutter and bleed follow KDP's manuscript rules.</li>
         <li>Download the matching cover — spine measured from the page count of the book you just made.</li>
         <li>Upload both to KDP and publish.</li>
@@ -372,6 +376,10 @@ cherry"></textarea>
         <p>Each puzzle is dug out one symmetric pair of clues at a time, and a clue is only removed if the grid still solves exactly one way. A sudoku with two answers would make the solutions page at the back of your own book wrong.</p>
       </div>
       <div>
+        <h3>Criss-cross: exactly one fill</h3>
+        <p>A fill-in grid where two same-length words could swap is a puzzle with two answers. Every criss-cross here is solved by the generator before it is kept — if a second fill exists, a starter word is printed in, and if that is not enough the grid is thrown away.</p>
+      </div>
+      <div>
         <h3>Every book: graded if you want</h3>
         <p>Published puzzle books usually work up from easy to hard rather than staying at one level. Pick Graded and the book does that — four bands, evenly split, with the level printed on each puzzle so a solver knows what they are in for.</p>
       </div>
@@ -380,7 +388,7 @@ cherry"></textarea>
         <p>Each puzzle is generated from its own seed, so a 100-puzzle book is 100 different puzzles rather than a shuffle of the same twenty. In a word search, paste a list too short to keep that up and it tells you, instead of quietly repeating itself.</p>
       </div>
     </div>
-    <p class="sub" style="margin-top:18px">More on each type: <a href="/word-search-book-generator">word search books</a> · <a href="/sudoku-book-generator">sudoku books</a> · <a href="/maze-book-generator">maze books</a>.</p>
+    <p class="sub" style="margin-top:18px">More on each type: <a href="/word-search-book-generator">word search books</a> · <a href="/sudoku-book-generator">sudoku books</a> · <a href="/maze-book-generator">maze books</a> · <a href="/criss-cross-book-generator">criss-cross books</a>.</p>
   </div>
 </section>
 
@@ -393,7 +401,7 @@ cherry"></textarea>
         <div class="amount">Free</div>
         <ul>
           <li>Full-length books — as many puzzles as you like</li>
-          <li>All three puzzle types, every trim size</li>
+          <li>All four puzzle types, every trim size</li>
           <li>Solutions included</li>
           <li>Small "made with Puzzle Press" footer</li>
           <li>A cover of your own book, marked PREVIEW</li>
@@ -421,7 +429,7 @@ cherry"></textarea>
     <details class="faq"><summary>How is this different from Book Bolt or a free generator?</summary>
       <p>Subscription suites bill monthly and give you puzzle pages to assemble into a book yourself; free generators make one puzzle at a time and leave the layout to you. Puzzle Press makes the whole interior and the cover, checks every puzzle, and costs $19 once. There is an <a href="/compare">honest comparison</a> of the four routes — including when the others are the better choice.</p></details>
     <details class="faq"><summary>What kinds of puzzles can it make?</summary>
-      <p>Word search, sudoku and mazes. Word search books draw from 32 built-in themes or a list you paste. Sudoku comes in easy, medium, hard and expert — 40, 32, 28 and 26 clues respectively, laid out with the 180-degree symmetry printed books use, and every puzzle is checked to have exactly one solution. Mazes run 15×15 up to 39×39, each one a perfect maze: every cell reachable, no loops, exactly one route from start to finish. All three also offer <strong>Graded</strong>, which is how published puzzle books are usually built: easy at the front, hardest at the back, and the level printed on each puzzle.</p></details>
+      <p>Word search, sudoku, mazes and criss-cross fill-ins. Word search and criss-cross books draw from 32 built-in themes or a list you paste. Sudoku comes in easy, medium, hard and expert — 40, 32, 28 and 26 clues respectively, laid out with the 180-degree symmetry printed books use, and every puzzle is checked to have exactly one solution. Mazes run 15×15 up to 39×39, each one a perfect maze: every cell reachable, no loops, exactly one route from start to finish. Criss-cross puzzles are crossword-shaped grids with the word list given instead of clues — 8 to 22 words, and every grid is solved by the generator to confirm it has exactly one fill. All four also offer <strong>Graded</strong>, which is how published puzzle books are usually built: easy at the front, hardest at the back, and the level printed on each puzzle.</p></details>
     <details class="faq"><summary>What margins does KDP need for my book?</summary>
       <p>The outside, top and bottom need at least 0.25 inch (0.375 inch if you use bleed). The inside — the gutter — depends on thickness: 0.375 inch up to 150 pages, 0.5 inch to 300, 0.625 inch to 500, 0.75 inch to 700, and 0.875 inch beyond that. Puzzle Press works out your final page count and applies the right one automatically. If you are checking a book made elsewhere, the <a href="/margin-calculator">margin calculator</a> gives the exact figures for any trim, page count and bleed setting, and the <a href="/spine-calculator">spine calculator</a> does the cover.</p></details>
     <details class="faq"><summary>Which trim size should I pick?</summary>
@@ -470,7 +478,7 @@ cherry"></textarea>
 </section>
 
 <footer>
-  <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app. <a href="#terms">Terms</a> · <a href="/how-to-make-a-puzzle-book">Guide</a> · <a href="/spine-calculator">Spine calculator</a> · <a href="/royalty-calculator">Royalty calculator</a> · <a href="/margin-calculator">Margin calculator</a> · <a href="/compare">Compared</a> · <a href="/word-search-book-generator">Word search</a> · <a href="/sudoku-book-generator">Sudoku</a> · <a href="/maze-book-generator">Mazes</a> · <a href="/word-lists/">Word lists</a> · <a href="mailto:support@bananafest-destiny.com">support@bananafest-destiny.com</a></p>
+  <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app. <a href="#terms">Terms</a> · <a href="/how-to-make-a-puzzle-book">Guide</a> · <a href="/spine-calculator">Spine calculator</a> · <a href="/royalty-calculator">Royalty calculator</a> · <a href="/margin-calculator">Margin calculator</a> · <a href="/compare">Compared</a> · <a href="/word-search-book-generator">Word search</a> · <a href="/sudoku-book-generator">Sudoku</a> · <a href="/maze-book-generator">Mazes</a> · <a href="/criss-cross-book-generator">Criss-cross</a> · <a href="/word-lists/">Word lists</a> · <a href="mailto:support@bananafest-destiny.com">support@bananafest-destiny.com</a></p>
   <p>Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc.</p>
 </footer>
 
@@ -502,7 +510,7 @@ cherry"></textarea>
     {
       "@type": "FAQPage",
       "mainEntity": [
-        { "@type": "Question", "name": "What kinds of puzzle books can it make?", "acceptedAnswer": { "@type": "Answer", "text": "Word search, sudoku and mazes. Word search draws on 32 built-in themes or a list you paste. Sudoku comes in four difficulties, every puzzle verified to have exactly one solution. Mazes run 15x15 to 39x39, each a perfect maze with exactly one route." } },
+        { "@type": "Question", "name": "What kinds of puzzle books can it make?", "acceptedAnswer": { "@type": "Answer", "text": "Word search, sudoku, mazes and criss-cross fill-ins. Word search and criss-cross draw on 32 built-in themes or a list you paste. Sudoku comes in four difficulties, every puzzle verified to have exactly one solution. Mazes run 15x15 to 39x39, each a perfect maze with exactly one route. Every criss-cross is verified to have exactly one fill." } },
         { "@type": "Question", "name": "What margins does KDP need for my book?", "acceptedAnswer": { "@type": "Answer", "text": "Outside, top and bottom need at least 0.25 inch, or 0.375 inch with bleed. The inside gutter depends on page count: 0.375 inch up to 150 pages, 0.5 inch to 300, 0.625 inch to 500, 0.75 inch to 700, 0.875 inch beyond." } },
         { "@type": "Question", "name": "Which trim size should I pick?", "acceptedAnswer": { "@type": "Answer", "text": "6x9 inches is the most common for puzzle books and cheapest to print. 8.5x11 gives bigger grids and suits large-print books, but it is large trim and costs about 40 percent more per page to print." } },
         { "@type": "Question", "name": "Do I need bleed?", "acceptedAnswer": { "@type": "Answer", "text": "Only if artwork runs off the edge of the page. A plain puzzle book does not need bleed." } },
