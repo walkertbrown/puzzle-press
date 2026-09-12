@@ -27,8 +27,10 @@
     "test:pdfcheck": "bash test/pdfcheck.sh",
     "pins": "node scripts/pins.mjs",
     "type-pages": "node scripts/type-pages.mjs",
+    "cards": "node scripts/cards.mjs",
     "test:typepages": "node test/typepages.mjs",
     "test:margin": "node test/margin.mjs",
+    "test:links": "node test/links.mjs",
     "video": "node scripts/video.mjs",
     "video:short": "node scripts/video.mjs --short"
   },

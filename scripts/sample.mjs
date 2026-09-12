@@ -57,3 +57,15 @@ const mazeBytes = await renderBook(mazes, {
 });
 writeFileSync(new URL("../public/samples/sample-maze-6x9.pdf", import.meta.url), mazeBytes);
 console.log("wrote public/samples/sample-maze-6x9.pdf", mazeBytes.length, "bytes");
+
+// Covers for the sudoku and maze samples too, so each type can be judged
+// whole — interior and wrap — before anyone pays.
+for (const [name, book, title, subtitle, seed] of [
+  ["sudoku", sudoku, "Sudoku for Sunday", "20 puzzles, easy to expert — sample book", "public-sudoku-1"],
+  ["maze", mazes, "Mazes for Rainy Days", "20 mazes, easy to expert — sample book", "public-maze-1"],
+]) {
+  const pc = planPages(20, solutionsThatFit(pageGeometry({ trim: "6x9" }))).total;
+  const c = await renderCover({ title, subtitle, author: "Puzzle Press", trim: "6x9", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: book.puzzles[0], seed, fonts });
+  writeFileSync(new URL(`../public/samples/sample-${name}-cover-6x9.pdf`, import.meta.url), c);
+  console.log(`wrote public/samples/sample-${name}-cover-6x9.pdf`, c.length, "bytes, sized for", pc, "pages");
+}
