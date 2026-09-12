@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KDP Margin Calculator — Page Size, Gutter and Bleed for Any Page Count</title>
+<meta name="description" content="Exact KDP paperback margins for your trim size, page count and bleed setting: inside gutter, outside, top and bottom, which side the gutter goes on, and the PDF page size. From Amazon's published rules. Free, no sign-up.">
+<link rel="canonical" href="https://puzzlepress.bananafest-destiny.com/margin-calculator">
+<meta property="og:type" content="website">
+<meta property="og:title" content="KDP Margin Calculator">
+<meta property="og:description" content="Inside, outside, top and bottom margins and the PDF page size for a KDP paperback, for any trim, page count and bleed setting.">
+<meta property="og:url" content="https://puzzlepress.bananafest-destiny.com/margin-calculator">
+<meta property="og:image" content="https://puzzlepress.bananafest-destiny.com/social-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d3557'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-weight='700' font-size='18' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
+<style>
+  :root { --ink:#1a1a1a; --muted:#5c6470; --line:#d9dde3; --bg:#f6f7f9; --card:#fff; --accent:#1d3557; --ok:#2a7f3f; --warn:#a15c00; --warn-bg:#fff6e5; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  a { color: var(--accent); }
+  header { padding:18px 24px; border-bottom:1px solid var(--line); background:var(--card); display:flex; gap:16px; align-items:baseline; flex-wrap:wrap; }
+  header strong { font-size:18px; }
+  header .spacer { flex:1; }
+  main { max-width:860px; margin:0 auto; padding:32px 24px 8px; }
+  h1 { font-size:clamp(26px,4vw,36px); line-height:1.15; letter-spacing:-0.02em; margin:0 0 10px; }
+  .lede { color:var(--muted); margin:0 0 28px; }
+  .calc { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px; }
+  .fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; }
+  label { display:block; font-size:13px; color:var(--muted); margin-bottom:4px; }
+  select, input { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:7px; font:inherit; background:#fff; color:var(--ink); }
+  .out { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px; }
+  @media (max-width:560px){ .out { grid-template-columns:1fr; } }
+  .big { background:#f2f5fa; border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .big .k { font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .big .v { font-size:30px; font-weight:700; letter-spacing:-0.02em; margin-top:2px; }
+  .big .s { color:var(--muted); font-size:14px; }
+  .notes { margin-top:18px; display:grid; gap:8px; font-size:14px; color:var(--muted); }
+  .sum { margin-top:16px; padding:12px 14px; background:#f2f5fa; border-radius:8px; font-size:14px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; overflow-x:auto; }
+  .warnbox { margin:26px 0; padding:16px 18px; background:var(--warn-bg); color:var(--warn); border-radius:10px; }
+  .warnbox b { color:#7a4600; }
+  section.prose { margin:30px 0; }
+  section.prose h2 { font-size:21px; margin:0 0 8px; }
+  section.prose p { margin:0 0 12px; }
+  table { border-collapse:collapse; width:100%; font-size:14px; background:var(--card); }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; }
+  .cta { margin:34px 0 10px; padding:22px; background:var(--card); border:1px solid var(--line); border-radius:12px; }
+  .cta h2 { margin:0 0 6px; font-size:20px; }
+  .cta p { margin:0 0 14px; color:var(--muted); }
+  .btn { display:inline-block; text-decoration:none; font-weight:600; padding:11px 18px; border-radius:8px; background:var(--accent); color:#fff; border:1px solid var(--accent); }
+  footer { color:var(--muted); font-size:13px; text-align:center; padding:30px 24px; border-top:1px solid var(--line); background:var(--card); margin-top:30px; }
+  footer a { color: var(--muted); }
+</style>
+<style>
+  .check { display:flex; align-items:center; gap:10px; font-size:14px; margin-top:22px; }
+  .check input { width:20px; height:20px; margin:0; accent-color:var(--accent); }
+  .out3 { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
+  @media (max-width:560px){ .out3 { grid-template-columns:1fr; } }
+  .diagram { margin-top:18px; background:#f2f5fa; border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .diagram svg { width:100%; max-width:420px; height:auto; display:block; margin:0 auto; }
+  .diagram p { margin:10px 0 0; font-size:13px; color:var(--muted); text-align:center; }
+</style>
+</head>
+<body>
+<header>
+  <strong>Puzzle Press</strong>
+  <span class="spacer"></span>
+  <a href="/how-to-make-a-puzzle-book">Guide</a>
+  <a href="/spine-calculator">Spine calculator</a>
+  <a href="/royalty-calculator">Royalty calculator</a>
+  <a href="/">Puzzle book generator</a>
+</header>
+
+<main>
+  <h1>KDP margin calculator</h1>
+  <p class="lede">Trim size, page count and whether you use bleed — those three decide every margin on a KDP paperback page. Enter them and get the numbers to type into your document, plus which side the gutter goes on.</p>
+
+  <div class="calc">
+    <div class="fields">
+      <div>
+        <label for="trim">Trim size</label>
+        <select id="trim"></select>
+      </div>
+      <div>
+        <label for="pages">Page count</label>
+        <input type="number" id="pages" value="120" min="24" max="828">
+      </div>
+      <div>
+        <label class="check" style="margin-top:22px"><input type="checkbox" id="bleed"> Bleed (only if artwork runs off the page)</label>
+      </div>
+    </div>
+
+    <div class="out">
+      <div class="big">
+        <div class="k">PDF page size</div>
+        <div class="v" id="pageSize">—</div>
+        <div class="s"><span id="pageSizeMm">—</span> · <span id="pagePt">—</span></div>
+      </div>
+      <div class="big">
+        <div class="k">Inside margin (gutter)</div>
+        <div class="v" id="inside">—</div>
+        <div class="s">grows with page count — see the table</div>
+      </div>
+    </div>
+    <div class="out3">
+      <div class="big"><div class="k">Outside</div><div class="v" id="outside">—</div></div>
+      <div class="big"><div class="k">Top and bottom</div><div class="v" id="topBottom">—</div></div>
+      <div class="big"><div class="k">Live area</div><div class="s" id="live" style="margin-top:6px;font-size:15px;color:var(--ink)">—</div></div>
+    </div>
+
+    <div class="diagram">
+      <svg id="diagram" role="img" aria-label="A left-hand and a right-hand page with the safe area shaded and the gutter marked"></svg>
+      <p>Two facing pages, to scale. Shaded = where content may go. The gutter is the margin against the spine, and it swaps sides.</p>
+    </div>
+
+    <div class="sum" id="settings">—</div>
+    <div class="notes">
+      <div><strong>Which side:</strong> <span id="sides">—</span></div>
+      <div id="bleedNote" hidden><strong>Bleed:</strong> the PDF page is 0.125" wider and 0.25" taller than the trim, and content that should bleed must extend all the way to the page edge. Margins above are measured from the PDF page edge, not the trim line.</div>
+    </div>
+  </div>
+
+  <div class="warnbox">
+    <b>The two mistakes that get interiors rejected.</b> Putting the gutter on the same side of every page — it must mirror, left on odd pages and right on even. And turning on bleed without enlarging the page: with bleed the PDF must be 0.125" wider and 0.25" taller than the trim size, or KDP will reject it for the wrong page size.
+  </div>
+
+  <section class="prose">
+    <h2>The gutter table</h2>
+    <p>KDP's inside margin depends on the total page count, because a thicker book swallows more of the page in the binding:</p>
+    <table>
+      <tr><th>Page count</th><th>Inside (gutter)</th><th>Outside, top, bottom</th></tr>
+      <tr><td>24–150</td><td>0.375"</td><td rowspan="5">0.25" — or 0.375" with bleed</td></tr>
+      <tr><td>151–300</td><td>0.5"</td></tr>
+      <tr><td>301–500</td><td>0.625"</td></tr>
+      <tr><td>501–700</td><td>0.75"</td></tr>
+      <tr><td>701–828</td><td>0.875"</td></tr>
+    </table>
+    <p>These are minimums. Puzzle books usually sit at the minimum inside and a little more outside, so the grid does not crowd the edge.</p>
+  </section>
+
+  <section class="prose">
+    <h2>Setting it up in Word, Google Docs or InDesign</h2>
+    <p>Set the page size to the trim (or the trim plus bleed, if you use it). Turn on <em>mirror margins</em> (Word: Layout → Margins → Custom → Multiple pages: Mirror margins; InDesign: Facing pages). Then "inside" is the gutter figure above and "outside" is the outer figure. Export to PDF with fonts embedded — an un-embedded font is the other common rejection, and the previewer's message about it is not obvious.</p>
+  </section>
+
+  <section class="prose">
+    <h2>Then the cover, and the price</h2>
+    <p>The page count you used here also fixes the spine width and the cover size — the <a href="/spine-calculator">spine calculator</a> does that sum — and the printing cost, which the <a href="/royalty-calculator">royalty calculator</a> turns into what you keep per copy. All three use Amazon's published figures. If you are new to this, the <a href="/how-to-make-a-puzzle-book">guide</a> walks the whole thing in order.</p>
+  </section>
+
+  <div class="cta">
+    <h2>Making a puzzle book?</h2>
+    <p>Puzzle Press lays out the whole paperback — word search, sudoku or mazes with solutions — to exactly these margins, gutter side included, then the cover with the spine worked out from the page count. Free to use; pay only to remove the watermark.</p>
+    <a class="btn" href="/">Make a book free</a>
+    <p style="margin-top:-6px"><a href="/samples/sample-6x9.pdf" target="_blank" rel="noopener">See a finished book (PDF)</a> &middot; <a href="/samples/sample-cover-6x9.pdf" target="_blank" rel="noopener">and its cover</a> — made with it, nothing mocked up.</p>
+  </div>
+</main>
+
+<footer>
+  <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app. <a href="/#terms">Terms</a> · <a href="/spine-calculator">Spine calculator</a> · <a href="/royalty-calculator">Royalty calculator</a> · <a href="/word-lists/">Word lists</a> · <a href="mailto:support@bananafest-destiny.com">support@bananafest-destiny.com</a></p>
+  <p>Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc. Figures are from Amazon's published specifications; check your proof.</p>
+</footer>
+
+<script type="module" src="margin.js"></script>
+</body>
+</html>
