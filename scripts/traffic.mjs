@@ -38,9 +38,12 @@ const worker = await graphql(`query { viewer { accounts(filter: {accountTag: "${
 
 const w = worker.viewer.accounts[0].workersInvocationsAdaptive[0]?.sum ?? { requests: 0, errors: 0, subrequests: 0 };
 console.log(`\nPuzzle Press — last ${hours}h (since ${since})\n`);
-console.log(`  Requests to the site        ${w.requests}`);
+// The Worker only runs for /config.js, /api/* and paths that are not assets
+// (404s, i.e. scanners) — real page views are served as static assets and
+// never show up here. Both hosts are counted, including my test runs on
+// workers.dev. The zone funnel below is the number that means something.
+console.log(`  Worker invocations          ${w.requests}   (config.js, /api, and 404s on both hosts — not page views)`);
 console.log(`  Errors                      ${w.errors}${w.errors ? "   <-- look at these" : ""}`);
-console.log(`  Stripe verify calls         ${w.subrequests}   (every /api/verify makes one)`);
 
 // Money. The only source of truth for a sale.
 const res = await fetch("https://api.stripe.com/v1/checkout/sessions?limit=100", {
