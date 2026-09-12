@@ -142,6 +142,8 @@ Me (Monday, before the 6:30pm reminder):
 - [ ] `npm run traffic` for the honest pre-launch baseline, so Tuesday's
       numbers mean something.
 - [ ] Retry one Pinterest pin; if the block has cleared, queue all five.
+- [ ] Re-read the pricing section and the FAQ on the landing page against
+      what the product does *that day* — it drifted twice this week.
 
 ## Practical notes
 
