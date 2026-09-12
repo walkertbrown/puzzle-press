@@ -134,7 +134,7 @@ Boss:
       copy above; video as gallery item 1.
 - [ ] Post the first comment right after it goes live; keep the type-page and
       guide links handy for replies.
-- [ ] Pinterest blocked-site appeal (not yet filed as of 09-12).
+- [x] Pinterest spam-block appeal submitted (boss, 09-12 ~1am). Waiting on Pinterest; pins stay drafted until it clears.
 
 Me (Monday, before the 6:30pm reminder):
 - [ ] `npm run test:livecheckout`, `test:paidreturn`, `test:browser`,
