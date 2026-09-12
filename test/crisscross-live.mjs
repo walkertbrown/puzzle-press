@@ -1,0 +1,42 @@
+// Criss-cross, live: pick the type, download a graded book and its cover,
+// and check the PDF is valid and the pages count matches the plan.
+import { chromium } from "playwright";
+import { PDFDocument } from "pdf-lib";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { planPages, solutionsThatFit, solutionsPerPageFor } from "../src/pdf/layout.js";
+import { pageGeometry } from "../src/pdf/kdp.js";
+
+const base = (process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev").replace(/\/$/, "");
+const tmp = mkdtempSync(join(tmpdir(), "pp-cc-"));
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
+const errors = [];
+page.on("pageerror", (e) => errors.push(String(e)));
+await page.goto(`${base}/?kind=crisscross#tool`, { waitUntil: "networkidle" });
+await page.waitForSelector(".crisscross .cell");
+const kind = await page.$eval("#kind", (e) => e.value);
+if (kind !== "crisscross") throw new Error(`kind = ${kind}`);
+await page.fill("#count", "24");
+await page.selectOption("#difficulty", "graded");
+await page.check(".themes input[value='halloween']");
+await page.uncheck(".themes input[value='animals']");
+await page.waitForTimeout(400);
+const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 180000 }), page.click("#download")]);
+const pdfPath = join(tmp, "cc.pdf");
+await dl.saveAs(pdfPath);
+const status = await page.$eval("#status", (e) => e.textContent);
+const doc = await PDFDocument.load(await (await import("node:fs")).promises.readFile(pdfPath));
+const want = planPages(24, solutionsPerPageFor(24, solutionsThatFit(pageGeometry({ trim: "6x9" })))).total;
+if (doc.getPageCount() !== want) throw new Error(`pages ${doc.getPageCount()} ≠ ${want}`);
+execFileSync("gs", ["-q", "-dNOPAUSE", "-dBATCH", "-dNODISPLAY", "-dPDFSTOPONERROR", pdfPath]);
+const [cd] = await Promise.all([page.waitForEvent("download", { timeout: 180000 }), page.click("#downloadCover")]);
+const coverPath = join(tmp, "cover.pdf");
+await cd.saveAs(coverPath);
+execFileSync("gs", ["-q", "-dNOPAUSE", "-dBATCH", "-dNODISPLAY", "-dPDFSTOPONERROR", coverPath]);
+await browser.close();
+rmSync(tmp, { recursive: true, force: true });
+if (errors.length) throw new Error(`page errors: ${errors.join("; ")}`);
+console.log(`CRISS-CROSS LIVE OK — ${status} — ${want} pages, cover valid`);

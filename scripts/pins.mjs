@@ -10,6 +10,7 @@ import { chromium } from "playwright";
 import { generateBook } from "../src/generator/book.js";
 import { generateSudokuBook } from "../src/generator/sudoku.js";
 import { generateMazeBook } from "../src/generator/maze.js";
+import { generateCrissCrossBook } from "../src/generator/crisscross.js";
 import { THEMES } from "../src/generator/wordlists.js";
 import { renderBook } from "../src/pdf/render.js";
 import { renderCover } from "../src/pdf/cover.js";
@@ -26,6 +27,7 @@ const fonts = {
 const ws = generateBook({ pools: [THEMES.halloween], count: 50, wordsPerPuzzle: 15, difficulty: "graded", seed: "pin-ws" });
 const su = generateSudokuBook({ count: 50, difficulty: "graded", seed: "pin-su" });
 const mz = generateMazeBook({ count: 50, difficulty: "graded", seed: "pin-mz" });
+const cc = generateCrissCrossBook({ pools: [THEMES.halloween], count: 50, difficulty: "graded", seed: "pin-cc" });
 
 const pdf = async (name, book, title, subtitle) => {
   const f = join(tmp, `${name}.pdf`);
@@ -41,6 +43,7 @@ const cover = async (name, book, title, subtitle) => {
 const wsPdf = await pdf("ws", ws, "Halloween Word Search", "50 spooky puzzles, easy to hard");
 const suPdf = await pdf("su", su, "Sudoku for Sunday", "50 puzzles, easy to expert");
 const mzPdf = await pdf("mz", mz, "Mazes for Rainy Days", "50 mazes, easy to expert");
+const ccPdf = await pdf("cc", cc, "Halloween Fill-In Puzzles", "50 criss-cross puzzles, easy to expert");
 const wsCover = await cover("ws", ws, "Halloween Word Search", "50 spooky puzzles, easy to hard");
 const suCover = await cover("su", su, "Sudoku for Sunday", "50 puzzles, easy to expert");
 
@@ -132,6 +135,15 @@ await pin("05-mazes.png", {
   body: "Perfect mazes from 15×15 to 39×39, solutions at the back. A 50-maze book prints for $2.30 on KDP.",
   img: png(mzPdf, 4),
   foot: "Make a maze book free →",
+});
+
+// 6. Criss-cross → board "Puzzle Press — KDP puzzle books" (no board of its own yet)
+await pin("06-crisscross.png", {
+  kicker: "Word fill-in books",
+  title: "Every fill-in has exactly one answer.",
+  body: "Crossword grids with the word list instead of clues. Each grid is solved before it is kept, so the answer key is always right.",
+  img: png(ccPdf, 20),
+  foot: "Make a fill-in book free →",
 });
 
 await browser.close();

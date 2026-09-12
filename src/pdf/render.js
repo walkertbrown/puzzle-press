@@ -187,6 +187,7 @@ function drawDividerPage(ctx, text) {
 function drawPuzzlePage(ctx, puzzle) {
   if (puzzle.kind === "sudoku") return drawSudokuPage(ctx, puzzle);
   if (puzzle.kind === "maze") return drawMazePage(ctx, puzzle);
+  if (puzzle.kind === "crisscross") return drawCrissCrossPage(ctx, puzzle);
   const { page, box } = newPage(ctx);
   const F = ctx.F;
 
@@ -263,6 +264,85 @@ function drawGrid(page, F, puzzle, { x, top, side, solution }) {
   }
   // Thin frame
   page.drawRectangle({ x, y: top - side, width: side, height: side, borderWidth: 0.75, borderColor: BLACK });
+}
+
+// ---------- criss-cross ----------
+
+// The grid, the word list grouped by length beneath it. Starter words (given)
+// are printed in the grid; everything else is an empty white cell.
+function drawCrissCrossPage(ctx, puzzle) {
+  const { page, box } = newPage(ctx);
+  const F = ctx.F;
+  const headSize = 20;
+  page.drawText(`Puzzle ${puzzle.index}`, { x: box.x, y: box.y + box.h - headSize, size: headSize, font: F.bold });
+  const sub = puzzle.title;
+  const subW = F.regular.widthOfTextAtSize(sub, 12);
+  page.drawText(sub, { x: box.x + box.w - subW, y: box.y + box.h - headSize + 3, size: 12, font: F.regular, color: GREY });
+
+  // Word list grouped by length: "5 letters", then the words. Column count
+  // from the longest word, as the word search does.
+  const groups = new Map();
+  for (const w of puzzle.words) (groups.get(w.length) ?? groups.set(w.length, []).get(w.length)).push(w);
+  const lens = [...groups.keys()].sort((a, b) => a - b);
+  const bankSize = Math.max(9, Math.min(14, Math.round(box.w / 38)));
+  const line = bankSize * 1.4;
+  const cols = bankColumns(F.regular, puzzle.words, box.w, bankSize);
+  // Lay the list out as a flat sequence of lines: a heading, then its words in columns.
+  const lines = []; // { text, bold, col }
+  for (const len of lens) {
+    lines.push([{ text: `${len} letters`, bold: true }]);
+    const ws = groups.get(len);
+    for (let i = 0; i < ws.length; i += cols) lines.push(ws.slice(i, i + cols).map((text) => ({ text, bold: false })));
+  }
+  const bankH = lines.length * line + 16;
+  const starter = puzzle.given.length ? `${puzzle.given.join(", ")} is filled in to start you off.` : "";
+  const noteH = starter ? bankSize * 1.6 : 0;
+
+  const topY = box.y + box.h - headSize - 16;
+  const availH = topY - (box.y + 28) - bankH - noteH;
+  const cellSide = Math.min(box.w / puzzle.w, availH / puzzle.h, 30);
+  const gw = cellSide * puzzle.w, gh = cellSide * puzzle.h;
+  const gx = box.x + (box.w - gw) / 2;
+  drawCrissCrossGrid(page, F, puzzle, { x: gx, top: topY, side: gw, solution: false, cell: cellSide });
+
+  let y = topY - gh - 14;
+  if (starter) {
+    page.drawText(starter, { x: box.x, y: y - bankSize, size: bankSize, font: F.regular, color: GREY });
+    y -= noteH;
+  }
+  const colW = box.w / cols;
+  for (const row of lines) {
+    row.forEach((item, c) => {
+      page.drawText(item.text, { x: box.x + (item.bold ? 0 : c * colW), y: y - bankSize, size: bankSize, font: item.bold ? F.bold : F.regular });
+    });
+    y -= line;
+  }
+  footer(ctx, page, box);
+}
+
+// White cells with a border; blanks left empty. In the solution every letter
+// is printed; in the puzzle only the starter word's letters are.
+function drawCrissCrossGrid(page, F, puzzle, { x, top, side, solution, cell = null }) {
+  const c = cell ?? side / Math.max(puzzle.w, puzzle.h);
+  const givenCells = new Set();
+  for (const g of puzzle.given) {
+    const p = puzzle.placements.find((q) => q.word === g);
+    for (let i = 0; i < g.length; i++) givenCells.add(`${p.row + p.dr * i},${p.col + p.dc * i}`);
+  }
+  const letterSize = c * 0.6;
+  for (let r = 0; r < puzzle.h; r++) {
+    for (let k = 0; k < puzzle.w; k++) {
+      const ch = puzzle.cells[r][k];
+      if (!ch) continue;
+      const cx = x + k * c, cy = top - (r + 1) * c;
+      page.drawRectangle({ x: cx, y: cy, width: c, height: c, borderWidth: solution ? 0.4 : 0.75, borderColor: BLACK, color: rgb(1, 1, 1) });
+      const show = solution || givenCells.has(`${r},${k}`);
+      if (!show) continue;
+      const font = givenCells.has(`${r},${k}`) ? F.bold : F.regular;
+      const w = font.widthOfTextAtSize(ch, letterSize);
+      page.drawText(ch, { x: cx + (c - w) / 2, y: cy + c * 0.26, size: letterSize, font, color: BLACK });
+    }
+  }
 }
 
 // ---------- mazes ----------
@@ -398,6 +478,8 @@ function drawSolutionsPage(ctx, puzzles, perPage) {
       drawSudokuGrid(page, F, p.solution, { x, top: top - 16, side, givens: p.puzzle, small: true });
     } else if (p.kind === "maze") {
       drawMaze(page, F, p, { x, top: top - 16, side, path: p.solution });
+    } else if (p.kind === "crisscross") {
+      drawCrissCrossGrid(page, F, p, { x, top: top - 16, side, solution: true });
     } else {
       drawGrid(page, F, p, { x, top: top - 16, side, solution: true });
     }

@@ -325,6 +325,13 @@ function defaultBlurb(n, kind) {
       "Perfect for quiet evenings, waiting rooms and long journeys."
     );
   }
+  if (kind === "crisscross") {
+    return (
+      `A collection of ${n ? n + " " : ""}criss-cross fill-in puzzles with full solutions at the back. ` +
+      "Fit every word from the list into the grid by its length and the letters where it crosses — every puzzle has exactly one way in. " +
+      "Perfect for quiet evenings, waiting rooms and long journeys."
+    );
+  }
   if (kind === "sudoku") {
     return (
       `A collection of ${n ? n + " " : ""}sudoku puzzles with full solutions at the back. ` +
@@ -346,6 +353,7 @@ function defaultWordBlurb(n) {
 function drawMiniGrid(page, puzzle, { x, top, side, font }) {
   if (puzzle.kind === "sudoku") return drawMiniSudoku(page, puzzle, { x, top, side, font });
   if (puzzle.kind === "maze") return drawMiniMaze(page, puzzle, { x, top, side });
+  if (puzzle.kind === "crisscross") return drawMiniCrissCross(page, puzzle, { x, top, side, font });
   const n = puzzle.size;
   const cell = side / n;
   const size = cell * 0.66;
@@ -361,6 +369,26 @@ function drawMiniGrid(page, puzzle, { x, top, side, font }) {
         font,
         color: MUTED,
       });
+    }
+  }
+}
+
+// A criss-cross on the cover: the white cells of the grid, letters filled, on
+// a faint frame — the shape says what the book is.
+function drawMiniCrissCross(page, puzzle, { x, top, side, font }) {
+  const n = Math.max(puzzle.w, puzzle.h);
+  const cell = side / n;
+  const ox = x + (side - cell * puzzle.w) / 2;
+  const oy = top - (side - cell * puzzle.h) / 2;
+  page.drawRectangle({ x, y: top - side, width: side, height: side, color: WHITE, borderWidth: 0.6, borderColor: FAINT });
+  for (let r = 0; r < puzzle.h; r++) {
+    for (let c = 0; c < puzzle.w; c++) {
+      const ch = puzzle.cells[r][c];
+      if (!ch) continue;
+      page.drawRectangle({ x: ox + c * cell, y: oy - (r + 1) * cell, width: cell, height: cell, borderWidth: 0.4, borderColor: MUTED, color: WHITE });
+      const size = cell * 0.62;
+      const w = font.widthOfTextAtSize(ch, size);
+      page.drawText(ch, { x: ox + c * cell + (cell - w) / 2, y: oy - (r + 1) * cell + cell * 0.27, size, font, color: MUTED });
     }
   }
 }

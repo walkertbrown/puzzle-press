@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sudoku Book Generator for KDP — Every Puzzle Has One Solution</title>
-<meta name="description" content="Generate a graded sudoku puzzle book for Amazon KDP: 40/32/28/26 clues from easy to expert, every puzzle verified to have exactly one solution, solutions included, print-ready PDF. Free to use.">
-<link rel="canonical" href="https://puzzlepress.bananafest-destiny.com/sudoku-book-generator">
+<title>Criss-Cross (Word Fill-In) Puzzle Book Generator for KDP — Unique Fill Guaranteed</title>
+<meta name="description" content="Make a criss-cross / word fill-in puzzle book for Amazon KDP: crossword-shaped grids with the word list given, 8 to 22 words, every puzzle verified to have exactly one fill, solutions included, print-ready PDF and cover. Free to use.">
+<link rel="canonical" href="https://puzzlepress.bananafest-destiny.com/criss-cross-book-generator">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Sudoku book generator for Amazon KDP">
-<meta property="og:description" content="Generate a graded sudoku puzzle book for Amazon KDP: 40/32/28/26 clues from easy to expert, every puzzle verified to have exactly one solution, solutions included, print-ready PDF. Free to use.">
-<meta property="og:url" content="https://puzzlepress.bananafest-destiny.com/sudoku-book-generator">
-<meta property="og:image" content="https://puzzlepress.bananafest-destiny.com/cards/sudoku-book-generator.png">
+<meta property="og:title" content="Criss-cross (word fill-in) book generator for Amazon KDP">
+<meta property="og:description" content="Make a criss-cross / word fill-in puzzle book for Amazon KDP: crossword-shaped grids with the word list given, 8 to 22 words, every puzzle verified to have exactly one fill, solutions included, print-ready PDF and cover. Free to use.">
+<meta property="og:url" content="https://puzzlepress.bananafest-destiny.com/criss-cross-book-generator">
+<meta property="og:image" content="https://puzzlepress.bananafest-destiny.com/cards/criss-cross-book-generator.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -47,9 +47,9 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "name": "Sudoku book generator for Amazon KDP",
-  "url": "https://puzzlepress.bananafest-destiny.com/sudoku-book-generator",
-  "description": "Generate a graded sudoku puzzle book for Amazon KDP: 40/32/28/26 clues from easy to expert, every puzzle verified to have exactly one solution, solutions included, print-ready PDF. Free to use.",
+  "name": "Criss-cross (word fill-in) book generator for Amazon KDP",
+  "url": "https://puzzlepress.bananafest-destiny.com/criss-cross-book-generator",
+  "description": "Make a criss-cross / word fill-in puzzle book for Amazon KDP: crossword-shaped grids with the word list given, 8 to 22 words, every puzzle verified to have exactly one fill, solutions included, print-ready PDF and cover. Free to use.",
   "isPartOf": {
     "@type": "WebSite",
     "name": "Puzzle Press",
@@ -82,40 +82,35 @@
 <main>
   <div class="top">
     <div>
-      <h1>Sudoku book generator for Amazon KDP</h1>
-      <p class="lede">A complete sudoku paperback — graded easy to expert, every puzzle verified to have exactly one solution, answers at the back — as a print-ready interior PDF and a matching cover. Free to use; the free book is watermarked.</p>
+      <h1>Criss-cross (word fill-in) book generator for Amazon KDP</h1>
+      <p class="lede">Fill-in puzzles — the crossword grid with the word list printed instead of clues — as a complete paperback: graded easy to expert, every grid verified to have exactly one way to fill it, solutions at the back, plus the matching cover. Free to use; the free book is watermarked.</p>
       <div class="actions">
-        <a class="btn" href="/?kind=sudoku#tool">Make a book free</a>
-        <a href="/samples/sample-sudoku-6x9.pdf" target="_blank" rel="noopener">See a finished sudoku book (PDF)</a>
-        <a href="/samples/sample-sudoku-cover-6x9.pdf" target="_blank" rel="noopener">…and its cover</a>
+        <a class="btn" href="/?kind=crisscross#tool">Make a book free</a>
+        <a href="/samples/sample-crisscross-6x9.pdf" target="_blank" rel="noopener">See a finished fill-in book (PDF)</a>
+        <a href="/samples/sample-crisscross-cover-6x9.pdf" target="_blank" rel="noopener">…and its cover</a>
       </div>
       <p class="fine">Runs in your browser — nothing you type leaves your computer. No sign-up.</p>
     </div>
-    <img src="/pins/04-sudoku.png" width="1000" height="1500" alt="A sudoku puzzle page from a generated KDP book" loading="eager">
+    <img src="/pins/06-crisscross.png" width="1000" height="1500" alt="A criss-cross fill-in puzzle page from a generated KDP book" loading="eager">
   </div>
 
   <section class="prose">
-    <h2>The one thing a sudoku book must get right</h2>
-    <p>A sudoku with two valid solutions is broken: the solver who finds the other one checks the answer key, sees it disagree, and leaves a review saying the book is wrong. It is one of the most common complaints in sudoku book reviews, and it comes from generators that remove clues until the grid "looks hard" without checking that it still solves one way.</p>
-    <p>Puzzle Press starts from a full valid grid and digs clues out in symmetric pairs. Before each pair is removed, the grid is solved by a solver that counts solutions; if removing the pair would allow a second solution, the pair stays. Every puzzle in every book has exactly one answer, by construction. The expert grades take a few seconds each because of this check — the page shows progress while it works — which is the cost of getting it right.</p>
+    <h2>What a criss-cross is, and the one way it goes wrong</h2>
+    <p>A criss-cross (also sold as "word fill-in" or "fill-it-in") is a crossword-shaped grid with no clues: the words are listed by length, and the solver works out where each one goes from its length and from the letters where words cross. They are a large KDP category of their own, popular with the same readers who buy word search books, and easier on the eyes than a crossword because there is nothing to know — only to fit.</p>
+    <p>The one way they go wrong: a grid where two words of the same length could swap places. Then there are two correct fills, the answer key at the back matches only one of them, and the reader who found the other one leaves the review. Puzzle Press solves every grid it builds with a backtracking solver that counts fills; if it finds a second, the longest word is printed into the grid as a starter (as fill-in books do), and if that still leaves two, the grid is thrown away and rebuilt. Every puzzle in every book has exactly one fill.</p>
   </section>
 
   <section class="prose">
     <h2>Grades</h2>
     <table>
-      <tr><th>Level</th><th>Clues given</th></tr>
-      <tr><td>Easy</td><td>40</td></tr>
-      <tr><td>Medium</td><td>32</td></tr>
-      <tr><td>Hard</td><td>28</td></tr>
-      <tr><td>Expert</td><td>26</td></tr>
-      <tr><td>Graded</td><td>Easy at the front through expert at the back, level printed on each puzzle</td></tr>
+      <tr><th>Level</th><th>Words in the grid</th><th>Grid up to</th></tr>
+      <tr><td>Easy</td><td>8</td><td>11 × 11</td></tr>
+      <tr><td>Medium</td><td>12</td><td>13 × 13</td></tr>
+      <tr><td>Hard</td><td>16</td><td>15 × 15</td></tr>
+      <tr><td>Expert</td><td>22</td><td>17 × 17</td></tr>
+      <tr><td>Graded</td><td colspan="2">Easy at the front through expert at the back, level printed on each puzzle</td></tr>
     </table>
-    <p>Clue layouts are rotationally symmetric, as in newspaper and book sudoku. Grids are 9×9 with bold 3×3 boxes and numbering sized for a 6 × 9 page; large print at 8.5 × 11 gives bigger cells for pencil solvers.</p>
-  </section>
-
-  <section class="prose">
-    <h2>Solutions</h2>
-    <p>Filled grids, 6 to a page at 6 × 9, each labelled with its puzzle number and grade, after a "Solutions" divider. Large enough to read; small enough that a 100-puzzle book stays at 124 pages.</p>
+    <p>Words come from the same 32 themes as the word search books, or a list you paste. Each puzzle draws its own words, so a Halloween fill-in book is fifty different Halloween grids. Grids are trimmed to the shape the words make — no black squares, no padding — and the word list beneath is grouped by length, the way printed fill-ins are.</p>
   </section>
 
   <section class="prose">
@@ -128,7 +123,6 @@
       <tr><td>100</td><td>124</td><td>$2.49</td><td>$3.50</td></tr>
     </table>
     <p class="fine">Page count is title, copyright, one puzzle per page, a divider, solutions 6 to a page, and four notes pages, rounded to an even number. Printing is KDP's flat rate up to 110 pages, then about a penny a page. <a href="/royalty-calculator">Royalty calculator</a> for other prices and trims.</p>
-    <p>Sudoku books have no theme to choose, so the niche is in the audience: large print, travel size, "for beginners", "expert only", a volume number. See <a href="/how-to-make-a-puzzle-book#niche">choosing a niche</a> in the guide.</p>
   </section>
 
   <section class="prose">
@@ -139,7 +133,7 @@
   <div class="cta">
     <h2>Make one now</h2>
     <p>Choose the settings, watch the preview, download the interior and then the cover — the spine already sized from the page count of the book you just made. Free to use; $19 once removes the watermark, and the price is on the page before you click anything.</p>
-    <a class="btn" href="/?kind=sudoku#tool">Make a sudoku book free</a>
+    <a class="btn" href="/?kind=crisscross#tool">Make a criss-cross book free</a>
   </div>
 </main>
 
