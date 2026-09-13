@@ -122,6 +122,7 @@ const themePage = (id, t) => {
   <p class="lede">${n} words, hand-picked to fit a ${puzzle.size}×${puzzle.size} grid. Free to use in any puzzle you make, including ones you sell.${nested.length ? ` One thing to know if you build grids by hand: ${nested.map((d) => `${d.word} sits inside ${d.host}`).join(", ")} — never put both in the same puzzle, or the shorter one is found twice. The generator keeps them apart automatically.` : ""}</p>
   <div class="actions">
     <a class="btn" href="/?theme=${id}#tool">Make a ${esc(t.title)} word search book</a>
+    <a href="/?kind=crisscross&amp;theme=${id}#tool">…or a ${esc(t.title)} fill-in book</a>
     <a href="/word-lists/">All 32 lists</a>
   </div>
   <p class="fine">The button opens the free generator with this theme selected. It draws ${WPP} words per puzzle and can make ${sets >= 500 ? "hundreds of" : sets} different puzzles from this list without repeating a set — a ${bookOf}-puzzle book comes to ${pages} pages at 6 × 9.</p>
@@ -141,7 +142,7 @@ const themePage = (id, t) => {
 
   <div class="cta">
     <h2>Turn it into a book</h2>
-    <p>Puzzle Press makes the whole paperback for Amazon KDP — this theme or several mixed, graded easy to hard if you like, solutions at the back, margins and page count to KDP's rules — then the cover. Free to use; the free book is watermarked and $19 once removes the mark.</p>
+    <p>Puzzle Press makes the whole paperback for Amazon KDP — word search or <a href="/criss-cross-book-generator">criss-cross fill-in</a>, this theme or several mixed, graded easy to hard if you like, solutions at the back, margins and page count to KDP's rules — then the cover. Free to use; the free book is watermarked and $19 once removes the mark.</p>
     <a class="btn" href="/?theme=${id}#tool">Make a ${esc(t.title)} word search book free</a>
   </div>`;
   const jsonld = {
