@@ -475,6 +475,8 @@ function drawSudokuPage(ctx, puzzle) {
   // the header with dead space underneath.
   const areaTop = box.y + box.h - headSize - 22;
   const areaBottom = box.y + 34;
+  // A 4×4 at full page width has 1.3" cells — fine for a small child's pencil,
+  // and the books that sell are printed that big. Kept full size on purpose.
   const side = Math.min(box.w, areaTop - areaBottom);
   const top = areaTop - (areaTop - areaBottom - side) / 2;
   drawSudokuGrid(page, F, puzzle.puzzle, { x: box.x + (box.w - side) / 2, top, side, givens: puzzle.puzzle });
@@ -484,13 +486,15 @@ function drawSudokuPage(ctx, puzzle) {
 // A sudoku grid. Box borders are drawn thicker than cell borders — without
 // that the 3x3 structure disappears and the puzzle is unpleasant to solve.
 function drawSudokuGrid(page, F, values, { x, top, side, givens = null, small = false }) {
-  const cell = side / 9;
+  const n = Math.round(Math.sqrt(values.length));
+  const boxR = n === 9 ? 3 : 2, boxC = n === 4 ? 2 : 3; // 9: 3×3, 6: 2×3, 4: 2×2
+  const cell = side / n;
   const size = cell * (small ? 0.58 : 0.6);
-  for (let i = 0; i < 81; i++) {
+  for (let i = 0; i < n * n; i++) {
     const v = values[i];
     if (!v) continue;
-    const r = Math.floor(i / 9);
-    const c = i % 9;
+    const r = Math.floor(i / n);
+    const c = i % n;
     const isGiven = givens ? Boolean(givens[i]) : true;
     const font = isGiven ? F.bold : F.regular;
     const w = font.widthOfTextAtSize(String(v), size);
@@ -506,10 +510,10 @@ function drawSudokuGrid(page, F, values, { x, top, side, givens = null, small = 
   // two line weights and the puzzle is unpleasant to solve.
   const thin = small ? 0.25 : 0.4;
   const thick = small ? 1.0 : 2.2;
-  for (let k = 0; k <= 9; k++) {
-    const w = k % 3 === 0 ? thick : thin;
-    page.drawLine({ start: { x: x + k * cell, y: top }, end: { x: x + k * cell, y: top - side }, thickness: w, color: BLACK });
-    page.drawLine({ start: { x, y: top - k * cell }, end: { x: x + side, y: top - k * cell }, thickness: w, color: BLACK });
+  for (let k = 0; k <= n; k++) {
+    // Vertical lines bound box columns (every boxC); horizontal ones bound box rows (every boxR).
+    page.drawLine({ start: { x: x + k * cell, y: top }, end: { x: x + k * cell, y: top - side }, thickness: k % boxC === 0 ? thick : thin, color: BLACK });
+    page.drawLine({ start: { x, y: top - k * cell }, end: { x: x + side, y: top - k * cell }, thickness: k % boxR === 0 ? thick : thin, color: BLACK });
   }
 }
 

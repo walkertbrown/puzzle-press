@@ -33,6 +33,7 @@
     "test:links": "node test/links.mjs",
     "test:crisscross": "node test/crisscross-live.mjs",
     "test:crossword": "node test/crossword-live.mjs",
+    "test:kidsudoku": "node test/kidsudoku.mjs",
     "video": "node scripts/video.mjs",
     "video:short": "node scripts/video.mjs --short",
     "video:types": "node scripts/video-types.mjs",

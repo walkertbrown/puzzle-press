@@ -288,20 +288,20 @@ function drawBack(page, g, { title, blurb, puzzleCount, samplePuzzle, regular, b
 }
 
 function drawMiniSudoku(page, puzzle, { x, top, side, font }) {
-  const cell = side / 9;
+  const n = Math.round(Math.sqrt(puzzle.puzzle.length));
+  const boxR = n === 9 ? 3 : 2, boxC = n === 4 ? 2 : 3;
+  const cell = side / n;
   page.drawRectangle({ x, y: top - side, width: side, height: side, color: WHITE, borderWidth: 0.6, borderColor: FAINT });
   const size = cell * 0.62;
   puzzle.puzzle.forEach((v, i) => {
     if (!v) return;
-    const r = Math.floor(i / 9);
-    const c = i % 9;
+    const r = Math.floor(i / n);
+    const c = i % n;
     const w = font.widthOfTextAtSize(String(v), size);
     page.drawText(String(v), { x: x + c * cell + (cell - w) / 2, y: top - (r + 1) * cell + cell * 0.3, size, font, color: MUTED });
   });
-  for (let k = 0; k <= 9; k += 3) {
-    page.drawLine({ start: { x: x + k * cell, y: top }, end: { x: x + k * cell, y: top - side }, thickness: 0.5, color: FAINT });
-    page.drawLine({ start: { x, y: top - k * cell }, end: { x: x + side, y: top - k * cell }, thickness: 0.5, color: FAINT });
-  }
+  for (let k = 0; k <= n; k += boxC) page.drawLine({ start: { x: x + k * cell, y: top }, end: { x: x + k * cell, y: top - side }, thickness: 0.5, color: FAINT });
+  for (let k = 0; k <= n; k += boxR) page.drawLine({ start: { x, y: top - k * cell }, end: { x: x + side, y: top - k * cell }, thickness: 0.5, color: FAINT });
 }
 
 function drawMiniMaze(page, maze, { x, top, side }) {

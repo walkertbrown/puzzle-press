@@ -84,7 +84,7 @@ const pages = {
 
   "sudoku-book-generator": {
     title: "Sudoku Book Generator for KDP — Every Puzzle Has One Solution",
-    description: `Generate a graded sudoku puzzle book for Amazon KDP: ${Object.values(SUDOKU_DIFFICULTY).map((d) => d.givens).join("/")} clues from easy to expert, every puzzle verified to have exactly one solution, solutions included, print-ready PDF. Free to use.`,
+    description: `Generate a graded sudoku puzzle book for Amazon KDP: ${Object.values(SUDOKU_DIFFICULTY).map((d) => d.givens).join("/")} clues from easy to expert, plus 6×6 and 4×4 grids for children's books, every puzzle verified to have exactly one solution, solutions included, print-ready PDF. Free to use.`,
     h1: "Sudoku book generator for Amazon KDP",
     lede: "A complete sudoku paperback — graded easy to expert, every puzzle verified to have exactly one solution, answers at the back — as a print-ready interior PDF and a matching cover. Free to use; the free book is watermarked.",
     kind: "sudoku",
@@ -106,7 +106,7 @@ const pages = {
       ${Object.values(SUDOKU_DIFFICULTY).map((d) => `<tr><td>${d.label}</td><td>${d.givens}</td></tr>`).join("\n      ")}
       <tr><td>Graded</td><td>Easy at the front through expert at the back, level printed on each puzzle</td></tr>
     </table>
-    <p>Clue layouts are rotationally symmetric, as in newspaper and book sudoku. Grids are 9×9 with bold 3×3 boxes and numbering sized for a 6 × 9 page; large print at 8.5 × 11 gives bigger cells for pencil solvers.</p>
+    <p>Clue layouts are rotationally symmetric, as in newspaper and book sudoku. Grids are 9×9 with bold 3×3 boxes and numbering sized for a 6 × 9 page; large print at 8.5 × 11 gives bigger cells for pencil solvers. <strong>For children's books</strong> there are 6×6 grids (2×3 boxes, clue bands 20/16/12/10) and 4×4 grids (2×2 boxes, 10/8/6/4) — "sudoku for kids" is its own KDP category, and every small grid is verified to have one solution exactly as the 9×9 is.</p>
   </section>
 
   <section class="prose">

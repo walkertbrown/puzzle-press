@@ -154,7 +154,7 @@ Me (Monday, before the 6:30pm reminder):
 - Be at the keyboard for the first few hours. Reply to every comment. Replies do more than the post.
 - Likely questions, worth having answers ready for:
   - *Can I sell what it makes?* Yes, no rights claimed, no royalty.
-  - *Does it do sudoku / mazes / crosswords?* All of them. Sudoku and mazes: four difficulties, every puzzle verified to have one solution. Crosswords: themed, clued, 1,400 hand-written clues built in or paste "word — clue" lines. Criss-cross fill-ins too, each verified to have exactly one fill. Not dense newspaper-style crosswords — say so if asked. Link the type page: /sudoku-book-generator or /maze-book-generator.
+  - *Does it do sudoku / mazes / crosswords?* All of them. Sudoku and mazes: four difficulties, every puzzle verified to have one solution; sudoku also in 6×6 and 4×4 for kids' books. Crosswords: themed, clued, 1,400 hand-written clues built in or paste "word — clue" lines. Criss-cross fill-ins too, each verified to have exactly one fill. Not dense newspaper-style crosswords — say so if asked. Link the type page: /sudoku-book-generator or /maze-book-generator.
   - *I've never published on KDP — where do I start?* /how-to-make-a-puzzle-book — trim sizes, the gutter table, spine, pricing, and the mistakes that get files rejected, with the numbers.
   - *Does it make the cover?* Yes — full wrap, spine sized from the page count, barcode area kept clear. Free to generate and look at; it carries a PREVIEW mark until you pay.
   - *What about large print?* There's a Large print checkbox — 8.5×11, fewer words per grid, ~23pt letters. Note it moves you to large trim, which costs more per page to print; the royalty line in the tool shows that as it happens.
