@@ -49,6 +49,10 @@ export async function renderBook(book, opts = {}) {
   if (author) doc.setAuthor(author);
   doc.setProducer("Puzzle Press");
   doc.setCreator("Puzzle Press");
+  // The settings that made this file, in its properties: invisible in print,
+  // and there for anyone who still has the PDF and wants it again. Kept on
+  // paid books too — metadata is not a mark on the page.
+  if (opts.recipe) doc.setSubject(opts.recipe);
 
   let regular, bold;
   if (fonts) {
@@ -66,7 +70,10 @@ export async function renderBook(book, opts = {}) {
 
   // 1–2: title + copyright
   drawTitlePage(ctx, { title, subtitle, author });
-  drawCopyrightPage(ctx, { title, author });
+  // A paid book carries no marks at all, so the recipe is printed only on a
+  // free one — where a watermark already says where it came from, and the
+  // book cannot be published as it stands anyway.
+  drawCopyrightPage(ctx, { title, author, recipe: licensed ? null : opts.recipe ?? null });
 
   // Every eighth page: often enough that a phone never looks hung, rare
   // enough that the yields cost nothing measurable.
@@ -162,7 +169,7 @@ function drawTitlePage(ctx, { title, subtitle, author }) {
   footer(ctx, page, box, { number: false });
 }
 
-function drawCopyrightPage(ctx, { title, author }) {
+function drawCopyrightPage(ctx, { title, author, recipe = null }) {
   const { page, box } = newPage(ctx);
   const year = new Date().getFullYear();
   const lines = [
@@ -178,6 +185,14 @@ function drawCopyrightPage(ctx, { title, author }) {
     if (line) centered(page, line, { x: box.x, w: box.w, y, size: 9, font: ctx.F.regular, color: GREY });
     y += 13;
   }
+  // The settings that made this book, printed small at the foot of the page.
+  // The site promises you can regenerate a book from its seed — but if you
+  // lose the file you have lost the seed too, unless the book carries it.
+  // Now it does, so a printed copy is enough to make the file again.
+  if (recipe) {
+    centered(page, recipe, { x: box.x, w: box.w, y: box.y + 34, size: 6.5, font: ctx.F.regular, color: GREY });
+  }
+  void 0;
   footer(ctx, page, box, { number: false });
 }
 
