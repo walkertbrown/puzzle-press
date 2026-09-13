@@ -11,6 +11,8 @@ import { removeNested, normalizeWords } from "../src/generator/wordsearch.js";
 import { distinctSetsPossible, generateBook } from "../src/generator/book.js";
 import { planPages, solutionsPerPageFor, solutionsThatFit } from "../src/pdf/layout.js";
 import { pageGeometry } from "../src/pdf/kdp.js";
+import { CLUES } from "../src/generator/clues.js";
+import { normalizeWord } from "../src/generator/wordsearch.js";
 
 const SITE = "https://puzzlepress.bananafest-destiny.com";
 const WPP = 15; // words per puzzle, the tool's default
@@ -38,6 +40,9 @@ const css = `
   .words { columns: 3; column-gap: 24px; list-style: none; padding: 0; margin: 0 0 8px; font-size:15px; }
   .words li { break-inside: avoid; padding: 2px 0; border-bottom: 1px solid var(--line); }
   @media (max-width:600px) { .words { columns: 2; } }
+  .cluelist { list-style:none; padding:0; margin:0 0 8px; columns:2; column-gap:28px; font-size:14px; }
+  .cluelist li { break-inside:avoid; padding:3px 0; border-bottom:1px solid var(--line); }
+  @media (max-width:700px) { .cluelist { columns:1; } }
   .puzzle { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px; max-width:560px; }
   .puzzle svg { width:100%; height:auto; display:block; }
   .puzzle .wl { columns:3; font-size:13px; margin:12px 0 0; padding:0; list-style:none; text-transform:uppercase; letter-spacing:.04em; }
@@ -115,14 +120,15 @@ const themePage = (id, t) => {
   // The same pipeline the tool uses: one puzzle of a one-theme book.
   const puzzle = generateBook({ pools: [t], count: 1, wordsPerPuzzle: WPP, difficulty: "medium", size: 15, seed: `list-${id}` }).puzzles[0];
   const nested = removeNested(normalizeWords(t.words)).dropped.map((d) => ({ word: d.word, host: d.reason.replace("inside ", "") }));
-  const title = `${t.title} Word Search Word List — ${n} Words, Free`;
-  const description = `${n} ${t.title.toLowerCase()} words for a word search: ${words.slice(0, 6).map(cap).join(", ")} and more. Free to use in puzzles you make or sell, with a sample ${puzzle.size}×${puzzle.size} puzzle and a tool that turns the list into a whole KDP book.`;
+  const title = `${t.title} Word List — ${n} Words with Crossword Clues, Free`;
+  const description = `${n} ${t.title.toLowerCase()} words for a word search: ${words.slice(0, 6).map(cap).join(", ")} and more. Free to use in puzzles you make or sell, each with a crossword clue, plus a sample ${puzzle.size}×${puzzle.size} puzzle and a tool that turns the list into a whole KDP book.`;
   const body = `
   <h1>${esc(t.title)} word search word list</h1>
   <p class="lede">${n} words, hand-picked to fit a ${puzzle.size}×${puzzle.size} grid. Free to use in any puzzle you make, including ones you sell.${nested.length ? ` One thing to know if you build grids by hand: ${nested.map((d) => `${d.word} sits inside ${d.host}`).join(", ")} — never put both in the same puzzle, or the shorter one is found twice. The generator keeps them apart automatically.` : ""}</p>
   <div class="actions">
     <a class="btn" href="/?theme=${id}#tool">Make a ${esc(t.title)} word search book</a>
-    <a href="/?kind=crisscross&amp;theme=${id}#tool">…or a ${esc(t.title)} fill-in book</a>
+    <a href="/?kind=crisscross&amp;theme=${id}#tool">…or a fill-in book</a>
+    <a href="/?kind=crossword&amp;theme=${id}#tool">…or a crossword book</a>
     <a href="/word-lists/">All 32 lists</a>
   </div>
   <p class="fine">The button opens the free generator with this theme selected. It draws ${WPP} words per puzzle and can make ${sets >= 500 ? "hundreds of" : sets} different puzzles from this list without repeating a set — a ${bookOf}-puzzle book comes to ${pages} pages at 6 × 9.</p>
@@ -132,6 +138,12 @@ const themePage = (id, t) => {
     ${words.map((w) => `<li>${cap(w)}</li>`).join("\n    ")}
   </ul>
   <p class="fine">Copy freely. One per line or comma-separated pastes straight into the generator's "Your own list" box if you want to add or remove words.</p>
+
+  <h2>Crossword clues for every word</h2>
+  <p class="fine">The same list with a plain-language clue for each word — written for the crossword type, and free to use in a grid you build yourself. Copy the lines as they are (<code>word — clue</code>) into the generator's own-list box and it makes the crossword for you.</p>
+  <ul class="cluelist">
+    ${words.map((w) => `<li><b>${cap(w)}</b> — ${esc(CLUES[normalizeWord(w).toLowerCase()] ?? "")}</li>`).join("\n    ")}
+  </ul>
 
   <h2>A puzzle made from it</h2>
   <div class="puzzle">
