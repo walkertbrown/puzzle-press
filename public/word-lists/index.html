@@ -32,6 +32,9 @@
   .words { columns: 3; column-gap: 24px; list-style: none; padding: 0; margin: 0 0 8px; font-size:15px; }
   .words li { break-inside: avoid; padding: 2px 0; border-bottom: 1px solid var(--line); }
   @media (max-width:600px) { .words { columns: 2; } }
+  .cluelist { list-style:none; padding:0; margin:0 0 8px; columns:2; column-gap:28px; font-size:14px; }
+  .cluelist li { break-inside:avoid; padding:3px 0; border-bottom:1px solid var(--line); }
+  @media (max-width:700px) { .cluelist { columns:1; } }
   .puzzle { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px; max-width:560px; }
   .puzzle svg { width:100%; height:auto; display:block; }
   .puzzle .wl { columns:3; font-size:13px; margin:12px 0 0; padding:0; list-style:none; text-transform:uppercase; letter-spacing:.04em; }

@@ -38,6 +38,10 @@ for (const [id, t] of Object.entries(THEMES)) {
     const want = w === w.split("").reverse().join("") ? 2 : 1;
     check(hits === want, `${id}: ${w} appears ${hits}× in the sample grid`);
   }
+  // Every word has its clue on the page, and no clue is empty.
+  const clued = await page.$$eval(".cluelist li", (lis) => lis.map((li) => li.textContent.trim()));
+  check(clued.length === expected.length, `${id}: ${clued.length} clues for ${expected.length} words`);
+  check(clued.every((c) => /—\s\S/.test(c)), `${id}: a clue is empty`);
   check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${id}: no overflow`);
 }
 
