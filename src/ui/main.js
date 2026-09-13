@@ -261,7 +261,14 @@ function showMeta(s) {
 }
 
 function showPuzzle() {
-  if (!book || !book.puzzles.length) return;
+  if (!book || !book.puzzles.length) {
+    // Leaving the previous type's puzzle on screen implies it worked.
+    el.page.innerHTML = "<p style='color:#5c6470'>No puzzle could be made from these words. The note under the settings says what to change.</p>";
+    el.navLabel.textContent = "";
+    el.prev.disabled = true;
+    el.next.disabled = true;
+    return;
+  }
   const p = book.puzzles[shown];
   if (p.kind === "sudoku") return showSudoku(p);
   if (p.kind === "maze") return showMaze(p);
@@ -505,7 +512,17 @@ async function download() {
             ? generateCrosswordBook({ ...s, builtinClues: await loadClues(), count })
             : generateBook({ ...s, count });
     el.warnings.textContent = full.warnings.join("\n");
-    el.status.textContent = "Laying out pages…";
+    // A book with no puzzles in it is three pages of front matter and some
+    // ruled paper. Refuse it and say why rather than hand someone a file that
+    // makes them think the tool is broken.
+    if (!full.puzzles.length) {
+      el.status.textContent = "Nothing to put in the book — see the note above.";
+      return;
+    }
+    el.status.textContent =
+      full.puzzles.length < count
+        ? `Laying out ${full.puzzles.length} puzzles (${count - full.puzzles.length} could not be built)…`
+        : "Laying out pages…";
     await tick();
     const [fonts, { renderBook }] = await Promise.all([loadFonts(), loadPdf()]);
     const bytes = await renderBook(full, {
