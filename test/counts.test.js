@@ -100,3 +100,41 @@ test("a cover sized from a short book matches that book, not the count asked for
   assert.ok(Math.abs(spineAsked - spineMade) > 0.02, `spines differ by ${(spineAsked - spineMade).toFixed(4)}"`);
   assert.equal(coverGeometry({ trim: "6x9", pageCount: made, paper: "cream" }).pageCount, made);
 });
+
+test("the same seed and settings make the same book, for every type", () => {
+  const fingerprint = (b) => JSON.stringify(b.puzzles.map((p) => [p.index, p.title, p.grid ?? p.puzzle ?? p.cells]));
+  const pools = [THEMES.animals, THEMES.space];
+  const each = {
+    "word search": (seed) => generateBook({ pools, count: 8, wordsPerPuzzle: 15, difficulty: "graded", seed }),
+    sudoku: (seed) => generateSudokuBook({ count: 5, difficulty: "graded", seed }),
+    "sudoku 6×6": (seed) => generateSudokuBook({ count: 5, difficulty: "graded", seed, size: 6 }),
+    mazes: (seed) => generateMazeBook({ count: 5, difficulty: "graded", seed }),
+    "criss-cross": (seed) => generateCrissCrossBook({ pools, count: 5, difficulty: "graded", seed }),
+    crosswords: (seed) => generateCrosswordBook({ pools, builtinClues: CLUES, count: 5, difficulty: "graded", seed }),
+  };
+  for (const [kind, make] of Object.entries(each)) {
+    assert.equal(fingerprint(make("same-seed")), fingerprint(make("same-seed")), `${kind}: same seed gave a different book`);
+    assert.notEqual(fingerprint(make("same-seed")), fingerprint(make("other-seed")), `${kind}: the seed is being ignored`);
+  }
+});
+
+test("a free book carries its recipe on the page; a paid one carries it only in the file's properties", async () => {
+  const { renderBook } = await import("../src/pdf/render.js");
+  const { readFileSync } = await import("node:fs");
+  const fonts = {
+    regular: readFileSync(new URL("../public/fonts/LiberationSans-Regular.ttf", import.meta.url)),
+    bold: readFileSync(new URL("../public/fonts/LiberationSans-Bold.ttf", import.meta.url)),
+  };
+  const book = generateBook({ pools: [THEMES.halloween], count: 3, wordsPerPuzzle: 15, seed: "rec" });
+  const recipe = "Made with Puzzle Press · word search · seed rec";
+  const { PDFDocument } = await import("pdf-lib");
+  for (const licensed of [true, false]) {
+    const bytes = await renderBook(book, { title: "T", trim: "6x9", licensed, fonts, recipe });
+    const doc = await PDFDocument.load(bytes);
+    assert.equal(doc.getSubject(), recipe, `${licensed ? "paid" : "free"}: the recipe should be in the file's properties`);
+  }
+  // $19 removes every mark from the page — including this one.
+  const paid = await renderBook(book, { title: "T", trim: "6x9", licensed: true, fonts, recipe });
+  const free = await renderBook(book, { title: "T", trim: "6x9", licensed: false, fonts, recipe });
+  assert.ok(free.length > paid.length, "the free book should carry more ink than the paid one");
+});

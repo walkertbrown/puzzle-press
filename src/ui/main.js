@@ -321,6 +321,31 @@ function previewLabel() {
     : `${shown + 1} / ${book.puzzles.length}`;
 }
 
+// One line describing how to make this exact book again: the seed and the
+// settings that change the puzzles. Printed small on the copyright page.
+function recipeLine(s, made) {
+  const bits = [
+    `Made with Puzzle Press · ${KIND_LABEL[s.kind] ?? s.kind}`,
+    `${made} puzzles`,
+    s.difficulty,
+    s.kind === "sudoku" && s.size !== 9 ? `${s.size}×${s.size}` : null,
+    s.kind === "wordsearch" ? `${s.wordsPerPuzzle} words` : null,
+    // Only the types that draw on words: a maze book's recipe listing
+    // "Animals" would be a setting that had no effect on it.
+    WORD_KINDS.has(s.kind) && s.pools.length ? s.pools.map((p) => p.title).join(" + ") : null,
+    `seed ${s.seed}`,
+  ].filter(Boolean);
+  return bits.join(" · ");
+}
+const WORD_KINDS = new Set(["wordsearch", "crisscross", "crossword"]);
+const KIND_LABEL = {
+  wordsearch: "word search",
+  sudoku: "sudoku",
+  maze: "mazes",
+  crisscross: "criss-cross",
+  crossword: "crossword",
+};
+
 // "about 2 minutes" / "about 20 seconds", once enough work is done to have a
 // rate worth quoting. Returns "" while it would be guesswork.
 function remaining(started, done, total) {
@@ -553,6 +578,7 @@ async function download() {
       ...s,
       licensed: Boolean(lic),
       fonts,
+      recipe: recipeLine(s, full.puzzles.length),
       // Drawing a long book is seconds of work; hand the browser a moment
       // between batches of pages so the tab stays alive and says where it is.
       onProgress: async (done, total) => {
