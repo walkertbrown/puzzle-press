@@ -18,7 +18,7 @@ https://puzzlepress.bananafest-destiny.com
 
 ## Text (goes in the "text" box — HN shows it under the link)
 
-I built a browser-side generator for Amazon KDP puzzle books: word search, sudoku, mazes and criss-cross fill-ins. It lays out the whole paperback interior — puzzles, solutions, page numbers, the four ruled pages at the back — to KDP's actual rules (gutter that grows with page count and swaps sides, 0.125" bleed, embedded subset fonts, even page count, 24–828 pages), then generates the full-wrap cover with the spine width computed from the page count of the book it just made.
+I built a browser-side generator for Amazon KDP puzzle books: word search, sudoku, mazes, criss-cross fill-ins and themed crosswords. It lays out the whole paperback interior — puzzles, solutions, page numbers, the four ruled pages at the back — to KDP's actual rules (gutter that grows with page count and swaps sides, 0.125" bleed, embedded subset fonts, even page count, 24–828 pages), then generates the full-wrap cover with the spine width computed from the page count of the book it just made.
 
 Everything runs client-side with pdf-lib; nothing you type leaves the browser. The Worker only serves static files and checks Stripe for an unlock.
 
@@ -28,6 +28,7 @@ Things I cared about that most generators skip:
 - Every sudoku has exactly one solution — clues are removed in symmetric pairs and a removal is rejected if a counting solver finds a second solution.
 - Mazes are spanning trees, so exactly one route, no unreachable pockets.
 - Criss-cross (fill-in) grids are solved by a backtracking solver before they are kept; a second fill means a starter word is printed in, or the grid is discarded.
+- Crosswords are the same open themed grids with a clue per answer: 1,400 hand-written definition-style clues, checked by a test that no clue contains its answer; pasted lists take "word — clue" lines.
 - Books can be graded easy→expert with the level printed on each puzzle.
 
 Free to use with a watermark; $19 once removes it. No account.
@@ -52,7 +53,7 @@ Delete the last paragraph. But HN in particular will ask, and finding out later 
 > pdf-lib + fontkit load lazily on first download; the page itself is ~40 KB of JS, ~250 KB total with the hero image, ~0.95 s to first puzzle on a throttled phone. Fonts are Liberation Sans, subset per book.
 
 **"Crosswords?"**
-> With clues, not yet — that needs a clue database and a much harder fill. There is a criss-cross / fill-in type (the crossword shape with the word list given instead of clues), which is its own KDP category, and every one is verified to have a unique fill. Clued crosswords are the next build if people want them.
+> Yes, themed ones — the open interlocking grids KDP crossword books use, 8–22 answers on a subject, clued in plain language (1,400 clues written for the tool, or paste your own). Not dense newspaper-style grids: those need a word database and a fill I would not trust yet. There is also a criss-cross / fill-in type, verified to have a unique fill.
 
 **"The 0.06" spine thing — source?"**
 > Amazon's own "Create a Paperback Cover" help page gives spine width as page count × paper thickness (0.0025" cream, 0.002252" white) with nothing added. The 0.06" appears in KDP's hardcover guidance. Several popular calculators apply it to paperbacks. The calculator on the site shows the arithmetic: https://puzzlepress.bananafest-destiny.com/spine-calculator

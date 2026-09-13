@@ -82,3 +82,17 @@ console.log("wrote public/samples/sample-crisscross-6x9.pdf", ccBytes.length, "b
   writeFileSync(new URL("../public/samples/sample-crisscross-cover-6x9.pdf", import.meta.url), c);
   console.log("wrote public/samples/sample-crisscross-cover-6x9.pdf", c.length, "bytes");
 }
+
+// Crossword sample and its cover.
+const { generateCrosswordBook } = await import("../src/generator/crossword.js");
+const { CLUES } = await import("../src/generator/clues.js");
+const xw = generateCrosswordBook({ pools: [THEMES.garden], builtinClues: CLUES, count: 20, difficulty: "graded", seed: "public-crossword-1" });
+const xwBytes = await renderBook(xw, { title: "Garden Crosswords", subtitle: "20 themed crosswords, easy to expert — sample book", author: "Puzzle Press", trim: "6x9", licensed: true, fonts });
+writeFileSync(new URL("../public/samples/sample-crossword-6x9.pdf", import.meta.url), xwBytes);
+console.log("wrote public/samples/sample-crossword-6x9.pdf", xwBytes.length, "bytes", xw.warnings);
+{
+  const pc = planPages(20, solutionsThatFit(pageGeometry({ trim: "6x9" }))).total;
+  const c = await renderCover({ title: "Garden Crosswords", subtitle: "20 themed crosswords, easy to expert — sample book", author: "Puzzle Press", trim: "6x9", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: xw.puzzles[0], seed: "public-crossword-1", fonts });
+  writeFileSync(new URL("../public/samples/sample-crossword-cover-6x9.pdf", import.meta.url), c);
+  console.log("wrote public/samples/sample-crossword-cover-6x9.pdf", c.length, "bytes");
+}

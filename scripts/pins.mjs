@@ -11,6 +11,8 @@ import { generateBook } from "../src/generator/book.js";
 import { generateSudokuBook } from "../src/generator/sudoku.js";
 import { generateMazeBook } from "../src/generator/maze.js";
 import { generateCrissCrossBook } from "../src/generator/crisscross.js";
+import { generateCrosswordBook } from "../src/generator/crossword.js";
+import { CLUES } from "../src/generator/clues.js";
 import { THEMES } from "../src/generator/wordlists.js";
 import { renderBook } from "../src/pdf/render.js";
 import { renderCover } from "../src/pdf/cover.js";
@@ -28,6 +30,7 @@ const ws = generateBook({ pools: [THEMES.halloween], count: 50, wordsPerPuzzle: 
 const su = generateSudokuBook({ count: 50, difficulty: "graded", seed: "pin-su" });
 const mz = generateMazeBook({ count: 50, difficulty: "graded", seed: "pin-mz" });
 const cc = generateCrissCrossBook({ pools: [THEMES.halloween], count: 50, difficulty: "graded", seed: "pin-cc" });
+const xw = generateCrosswordBook({ pools: [THEMES.garden], builtinClues: CLUES, count: 50, difficulty: "graded", seed: "pin-xw" });
 
 const pdf = async (name, book, title, subtitle) => {
   const f = join(tmp, `${name}.pdf`);
@@ -44,6 +47,7 @@ const wsPdf = await pdf("ws", ws, "Halloween Word Search", "50 spooky puzzles, e
 const suPdf = await pdf("su", su, "Sudoku for Sunday", "50 puzzles, easy to expert");
 const mzPdf = await pdf("mz", mz, "Mazes for Rainy Days", "50 mazes, easy to expert");
 const ccPdf = await pdf("cc", cc, "Halloween Fill-In Puzzles", "50 criss-cross puzzles, easy to expert");
+const xwPdf = await pdf("xw", xw, "Garden Crosswords", "50 themed crosswords, easy to expert");
 const wsCover = await cover("ws", ws, "Halloween Word Search", "50 spooky puzzles, easy to hard");
 const suCover = await cover("su", su, "Sudoku for Sunday", "50 puzzles, easy to expert");
 
@@ -144,6 +148,15 @@ await pin("06-crisscross.png", {
   body: "Crossword grids with the word list instead of clues. Each grid is solved before it is kept, so the answer key is always right.",
   img: png(ccPdf, 20),
   foot: "Make a fill-in book free →",
+});
+
+// 7. Crossword
+await pin("07-crossword.png", {
+  kicker: "Themed crossword books",
+  title: "Crosswords with clues, a whole book at a time.",
+  body: "Plain-language clues for 1,400 words across 32 themes, or paste your own word — clue lines. Solutions at the back.",
+  img: png(xwPdf, 20),
+  foot: "Make a crossword book free →",
 });
 
 await browser.close();

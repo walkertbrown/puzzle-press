@@ -188,6 +188,7 @@ function drawPuzzlePage(ctx, puzzle) {
   if (puzzle.kind === "sudoku") return drawSudokuPage(ctx, puzzle);
   if (puzzle.kind === "maze") return drawMazePage(ctx, puzzle);
   if (puzzle.kind === "crisscross") return drawCrissCrossPage(ctx, puzzle);
+  if (puzzle.kind === "crossword") return drawCrosswordPage(ctx, puzzle);
   const { page, box } = newPage(ctx);
   const F = ctx.F;
 
@@ -322,7 +323,7 @@ function drawCrissCrossPage(ctx, puzzle) {
 
 // White cells with a border; blanks left empty. In the solution every letter
 // is printed; in the puzzle only the starter word's letters are.
-function drawCrissCrossGrid(page, F, puzzle, { x, top, side, solution, cell = null }) {
+function drawCrissCrossGrid(page, F, puzzle, { x, top, side, solution, cell = null, numbers = null }) {
   const c = cell ?? side / Math.max(puzzle.w, puzzle.h);
   const givenCells = new Set();
   for (const g of puzzle.given) {
@@ -336,6 +337,8 @@ function drawCrissCrossGrid(page, F, puzzle, { x, top, side, solution, cell = nu
       if (!ch) continue;
       const cx = x + k * c, cy = top - (r + 1) * c;
       page.drawRectangle({ x: cx, y: cy, width: c, height: c, borderWidth: solution ? 0.4 : 0.75, borderColor: BLACK, color: rgb(1, 1, 1) });
+      const num = numbers && !solution ? numbers[`${r},${k}`] : null;
+      if (num) page.drawText(String(num), { x: cx + c * 0.07, y: cy + c * 0.66, size: Math.max(4, c * 0.3), font: F.regular, color: BLACK });
       const show = solution || givenCells.has(`${r},${k}`);
       if (!show) continue;
       const font = givenCells.has(`${r},${k}`) ? F.bold : F.regular;
@@ -343,6 +346,57 @@ function drawCrissCrossGrid(page, F, puzzle, { x, top, side, solution, cell = nu
       page.drawText(ch, { x: cx + (c - w) / 2, y: cy + c * 0.26, size: letterSize, font, color: BLACK });
     }
   }
+}
+
+// ---------- crossword ----------
+
+// Numbered grid, then Across and Down clue columns. The clue block is measured
+// first (wrapped at the column width) and the grid takes what is left, so a
+// 22-clue expert puzzle still fits a 6×9 page.
+function drawCrosswordPage(ctx, puzzle) {
+  const { page, box } = newPage(ctx);
+  const F = ctx.F;
+  const headSize = 20;
+  page.drawText(`Puzzle ${puzzle.index}`, { x: box.x, y: box.y + box.h - headSize, size: headSize, font: F.bold });
+  const sub = puzzle.title;
+  const subW = F.regular.widthOfTextAtSize(sub, 12);
+  page.drawText(sub, { x: box.x + box.w - subW, y: box.y + box.h - headSize + 3, size: 12, font: F.regular, color: GREY });
+
+  const clueSize = Math.max(8.5, Math.min(11, Math.round(box.w / 42)));
+  const line = clueSize * 1.32;
+  const gap = 14;
+  const colW = (box.w - gap) / 2;
+  const column = (heading, list) => {
+    const lines = [{ text: heading, bold: true }];
+    for (const e of list) {
+      const wrapped = wrap(F.regular, `${e.num}. ${e.clue} (${e.len})`, colW - 2, clueSize);
+      wrapped.forEach((t, i) => lines.push({ text: t, bold: false, indent: i > 0 }));
+    }
+    return lines;
+  };
+  const left = column("Across", puzzle.across);
+  const right = column("Down", puzzle.down);
+  const clueLines = Math.max(left.length, right.length);
+  const clueH = clueLines * line + 8;
+
+  const topY = box.y + box.h - headSize - 16;
+  const availH = topY - (box.y + 28) - clueH - 12;
+  const cellSide = Math.max(9, Math.min(box.w / puzzle.w, availH / puzzle.h, 26));
+  const gw = cellSide * puzzle.w, gh = cellSide * puzzle.h;
+  const gx = box.x + (box.w - gw) / 2;
+  drawCrissCrossGrid(page, F, puzzle, { x: gx, top: topY, side: gw, solution: false, cell: cellSide, numbers: puzzle.numbers });
+
+  let y = topY - gh - 16;
+  const drawCol = (lines, x) => {
+    let yy = y;
+    for (const l of lines) {
+      page.drawText(l.text, { x: x + (l.indent ? clueSize * 1.3 : 0), y: yy - clueSize, size: clueSize, font: l.bold ? F.bold : F.regular });
+      yy -= line;
+    }
+  };
+  drawCol(left, box.x);
+  drawCol(right, box.x + colW + gap);
+  footer(ctx, page, box);
 }
 
 // ---------- mazes ----------
@@ -478,7 +532,7 @@ function drawSolutionsPage(ctx, puzzles, perPage) {
       drawSudokuGrid(page, F, p.solution, { x, top: top - 16, side, givens: p.puzzle, small: true });
     } else if (p.kind === "maze") {
       drawMaze(page, F, p, { x, top: top - 16, side, path: p.solution });
-    } else if (p.kind === "crisscross") {
+    } else if (p.kind === "crisscross" || p.kind === "crossword") {
       drawCrissCrossGrid(page, F, p, { x, top: top - 16, side, solution: true });
     } else {
       drawGrid(page, F, p, { x, top: top - 16, side, solution: true });

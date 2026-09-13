@@ -183,23 +183,30 @@ export function countFills(cells, slots, words, given, limit = 2) {
   return count;
 }
 
-export function generateCrissCross({ words, difficulty = "medium", seed = "crisscross" } = {}) {
+// One cropped grid from a word pool: the shared first half of a criss-cross
+// and a crossword. `attempt` varies the draw. Null if the words will not lay.
+export function buildGrid({ words, difficulty = "medium", seed = "grid", attempt = 0, grow = 0 } = {}) {
   const spec = CRISSCROSS_DIFFICULTY[difficulty] ?? CRISSCROSS_DIFFICULTY.medium;
-  const pool = [...new Set(normalizeWords(words))].filter((w) => w.length >= 3 && w.length <= spec.size);
-  const rng = makeRng(`${seed}|crisscross|${difficulty}`);
+  const size = spec.size + grow;
+  const pool = [...new Set(normalizeWords(words))].filter((w) => w.length >= 3 && w.length <= size);
+  const rng = makeRng(`${seed}|grid|${difficulty}|${attempt}`);
   const want = Math.min(spec.words, pool.length);
   if (want < 3) return null;
+  const candidates = rng.shuffle(pool).slice(0, Math.min(pool.length, want + 8));
+  const laid = layout(candidates, want, size, rng);
+  if (!laid) return null;
+  const { cells, placements, w, h } = crop(laid.cells, laid.placements);
+  const slots = slotsOf(cells);
+  if (slots.length !== placements.length) return null; // an unintended run — never ship it
+  return { cells, placements, w, h, slots, words: placements.map((p) => p.word).sort() };
+}
 
-  for (let attempt = 0; attempt < MAX_LAYOUTS; attempt++) {
-    // A slightly larger candidate set than we need, so skipped words have
-    // replacements; a different draw each attempt.
-    const candidates = rng.shuffle(pool).slice(0, Math.min(pool.length, want + 8));
-    const laid = layout(candidates, want, spec.size, rng);
-    if (!laid) continue;
-    const { cells, placements, w, h } = crop(laid.cells, laid.placements);
-    const list = placements.map((p) => p.word).sort();
-    const slots = slotsOf(cells);
-    if (slots.length !== placements.length) continue; // an unintended run — should not happen, but never ship it
+export function generateCrissCross({ words, difficulty = "medium", seed = "crisscross" } = {}) {
+  for (let attempt = 0; attempt < MAX_LAYOUTS * 2; attempt++) {
+    const g = buildGrid({ words, difficulty, seed, attempt, grow: attempt >= MAX_LAYOUTS ? 2 : 0 });
+    if (!g) { if (attempt === 0 && [...new Set(normalizeWords(words))].length < 3) return null; continue; }
+    const { cells, placements, w, h, slots } = g;
+    const list = g.words;
 
     // Unique without help? Then with the longest word given as a starter?
     const none = cells.map((row) => row.map(() => false));

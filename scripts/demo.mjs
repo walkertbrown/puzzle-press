@@ -111,6 +111,21 @@ await cdl2.saveAs(ccPath);
 await page.waitForTimeout(300);
 await shoot(1300);
 
+// 9. And crosswords.
+await page.selectOption("#kind", "crossword");
+await page.fill("#title", "Garden Crosswords");
+await page.fill("#subtitle", "60 themed crosswords, easy to expert");
+await page.selectOption("#difficulty", "graded");
+await page.waitForSelector(".crisscross .cell i");
+await page.waitForTimeout(900);
+await shoot(1600);
+
+const [xdl] = await Promise.all([page.waitForEvent("download", { timeout: 300000 }), page.click("#download")]);
+const xwPath = join(tmp, "crossword.pdf");
+await xdl.saveAs(xwPath);
+await page.waitForTimeout(300);
+await shoot(1300);
+
 await browser.close();
 
 // 6. Finish on real pages from the PDF it just made.
@@ -123,9 +138,10 @@ const finals = [
   [4, "Sudoku too — one answer each", sudokuPath],
   [3, "And mazes — one route through", mazePath],
   [3, "Fill-ins — one way to fill each grid", ccPath],
+  [3, "Crosswords — clued, themed, numbered", xwPath],
 ];
 for (const [pageNo, caption, src] of finals) {
-  const tag = src === coverPath ? "c" : src === sudokuPath ? "s" : src === mazePath ? "m" : src === ccPath ? "x" : "w";
+  const tag = src === coverPath ? "c" : src === sudokuPath ? "s" : src === mazePath ? "m" : src === ccPath ? "x" : src === xwPath ? "q" : "w";
   const prefix = join(tmp, `pg${tag}${pageNo}`);
   execFileSync("pdftoppm", ["-r", "110", "-f", String(pageNo), "-l", String(pageNo), "-png", src, prefix]);
   const file = `${prefix}-${src === coverPath ? pageNo : "0" + pageNo}.png`;

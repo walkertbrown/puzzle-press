@@ -13,6 +13,7 @@ import { printingCost, royalty } from "../src/pdf/kdp-cost.js";
 import { SUDOKU_DIFFICULTY } from "../src/generator/sudoku.js";
 import { MAZE_DIFFICULTY } from "../src/generator/maze.js";
 import { CRISSCROSS_DIFFICULTY } from "../src/generator/crisscross.js";
+import { CLUES } from "../src/generator/clues.js";
 import { THEMES } from "../src/generator/wordlists.js";
 import { DIFFICULTY as WS_DIFFICULTY } from "../src/generator/wordsearch.js";
 
@@ -195,6 +196,39 @@ pages["criss-cross-book-generator"] = {
   </section>`,
 };
 
+pages["crossword-book-generator"] = {
+  title: "Crossword Puzzle Book Generator for KDP — Themed, Clued, Print-Ready",
+  description: `Make a themed crossword puzzle book for Amazon KDP: clued crosswords from ${themeNames.length} themes (${Object.keys(CLUES).length.toLocaleString()} plain-language clues) or your own word — clue lines, graded easy to expert, solutions included, print-ready PDF and cover. Free to use.`,
+  h1: "Crossword book generator for Amazon KDP",
+  lede: "Themed crosswords with clues — the sparse, friendly grids that fill KDP's crossword books — as a complete paperback: graded easy to expert, numbered grids, Across and Down clue lists, solutions at the back, plus the matching cover. Free to use; the free book is watermarked.",
+  kind: "crossword",
+  sample: "/samples/sample-crossword-6x9.pdf",
+  cover: "/samples/sample-crossword-cover-6x9.pdf",
+  sampleLabel: "See a finished crossword book (PDF)",
+  image: { src: "/pins/07-crossword.png", alt: "A themed crossword page from a generated KDP book" },
+  body: `
+  <section class="prose">
+    <h2>What kind of crossword this makes</h2>
+    <p>Not the dense newspaper kind, where every square is checked and the setter needs a dictionary of obscurities to make it close. These are <strong>themed crosswords</strong> — ${CRISSCROSS_DIFFICULTY.easy.words} to ${CRISSCROSS_DIFFICULTY.expert.words} answers on one subject, laid out in the open, interlocking shape that KDP crossword books actually use, with a plain-language clue for each. A solver who knows the theme can finish one; a solver who does not learns the theme. That is the whole appeal of the category, and why they sell to the same readers as word search books.</p>
+    <p>Every one of the ${Object.keys(CLUES).length.toLocaleString()} built-in clues was written by hand for this tool, definition-style — "Reef-building sea creature", "Tradesman who cuts keys" — with no clue containing its own answer and no trivia a general reader could not reasonably know. The clue list is checked by the test suite for both of those, every build. Paste your own list as <code>word — clue</code> lines and your clues are used instead; a pasted word without a clue is reported by name and left out rather than given an invented one.</p>
+  </section>
+
+  <section class="prose">
+    <h2>Grades</h2>
+    <table>
+      <tr><th>Level</th><th>Answers</th><th>Grid up to</th></tr>
+      ${Object.values(CRISSCROSS_DIFFICULTY).map((d) => `<tr><td>${d.label}</td><td>${d.words}</td><td>${d.size} × ${d.size}</td></tr>`).join("\n      ")}
+      <tr><td>Graded</td><td colspan="2">Easy at the front through expert at the back, level printed on each puzzle</td></tr>
+    </table>
+    <p>Grids are numbered the conventional way — one number where an answer starts, across or down — and the clue lists carry the answer length in brackets. Each puzzle draws its own answers from the theme, so a fifty-puzzle book is fifty different grids. Solutions are the filled grids, ${fits} to a page at the back.</p>
+  </section>
+
+  <section class="prose">
+    <h2>What a book costs to print, and earns</h2>
+    ${costTable}
+  </section>`,
+};
+
 const css = `
   :root { --ink:#1a1a1a; --muted:#5c6470; --line:#d9dde3; --bg:#f6f7f9; --card:#fff; --accent:#1d3557; }
   * { box-sizing: border-box; }
@@ -294,7 +328,7 @@ ${p.body}
 </main>
 
 <footer>
-  <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app. <a href="/#terms">Terms</a> · <a href="/word-search-book-generator">Word search</a> · <a href="/sudoku-book-generator">Sudoku</a> · <a href="/maze-book-generator">Mazes</a> · <a href="/criss-cross-book-generator">Criss-cross</a> · <a href="mailto:support@bananafest-destiny.com">support@bananafest-destiny.com</a></p>
+  <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app. <a href="/#terms">Terms</a> · <a href="/word-search-book-generator">Word search</a> · <a href="/sudoku-book-generator">Sudoku</a> · <a href="/maze-book-generator">Mazes</a> · <a href="/criss-cross-book-generator">Criss-cross</a> · <a href="/crossword-book-generator">Crosswords</a> · <a href="mailto:support@bananafest-destiny.com">support@bananafest-destiny.com</a></p>
   <p>Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc. Figures are from Amazon's published specifications; check your proof.</p>
 </footer>
 </body>
