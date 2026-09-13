@@ -31,7 +31,12 @@ async function loadPdf() {
 import { coverGeometry, spineWidthInches, SPINE_TEXT_MIN_PAGES } from "../pdf/cover-geometry.js";
 import { royalty } from "../pdf/kdp-cost.js";
 import { pageGeometry } from "../pdf/kdp.js";
-import { FREE_LIMIT, PRICE_LABEL, getLicense, setLicense, verifyEmail } from "./license.js";
+import { FREE_LIMIT, PRICE_LABEL, getLicense as storedLicense, setLicense, verifyEmail } from "./license.js";
+
+// A licence verified in this tab, kept in memory so a browser that refuses
+// localStorage still gets what it paid for until the tab closes.
+let sessionLicense = null;
+const getLicense = () => storedLicense() ?? sessionLicense;
 
 // The pay link is injected by the Worker at request time (config.js) or is
 // absent in local dev. No link, no Buy button.
@@ -422,11 +427,15 @@ function showSudoku(p) {
 
 // ---------- tier ----------
 
-function refreshTier() {
+function refreshTier(note = "") {
   const lic = getLicense();
   if (lic) {
     el.tier.className = "tier licensed";
-    el.tier.innerHTML = `<b>Unlocked</b> for ${escapeHtml(lic.email)}. Unlimited puzzles, no watermark.`;
+    el.tier.innerHTML =
+      `<b>Unlocked</b> for ${escapeHtml(lic.email)}. Unlimited puzzles, no watermark.` +
+      (note === "storage"
+        ? ` <b>This tab only:</b> your browser is blocking site storage (a private window, or cookies turned off), so the unlock will not survive a reload. Enter the same email again after reloading, or use a normal window — your payment is recorded either way.`
+        : "");
   } else {
     el.tier.className = "tier";
     el.tier.innerHTML = `<b>Free:</b> full-length books, with one small line in the footer of every page and a cover marked PREVIEW. ` +
@@ -650,9 +659,11 @@ el.verify.addEventListener("click", async () => {
   el.verify.disabled = true;
   el.unlockErr.textContent = "";
   try {
-    setLicense(await verifyEmail(email));
+    const rec = await verifyEmail(email);
+    sessionLicense = rec; // so this tab stays unlocked even if storage is refused
+    const stored = setLicense(rec);
     el.dialog.close();
-    refreshTier();
+    refreshTier(stored ? "" : "storage");
     regenerate();
   } catch (err) {
     el.unlockErr.textContent =
