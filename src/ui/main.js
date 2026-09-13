@@ -285,6 +285,17 @@ function showPuzzle() {
   el.next.disabled = shown >= book.puzzles.length - 1;
 }
 
+// "about 2 minutes" / "about 20 seconds", once enough work is done to have a
+// rate worth quoting. Returns "" while it would be guesswork.
+function remaining(started, done, total) {
+  if (done < 3 || done >= total) return "";
+  const perItem = (Date.now() - started) / done;
+  const secs = Math.round((perItem * (total - done)) / 1000);
+  if (secs < 10) return "";
+  if (secs < 90) return `${Math.round(secs / 5) * 5} seconds`;
+  return `${Math.round(secs / 60)} minute${Math.round(secs / 60) === 1 ? "" : "s"}`;
+}
+
 // The free tier no longer shortens a book — it watermarks it — so what is
 // quoted on screen is simply what you asked for.
 function effectiveCount(requested) {
@@ -467,10 +478,15 @@ async function download() {
   el.download.disabled = true;
   try {
     el.status.textContent = `Generating ${count} puzzles…`;
+    const started = Date.now();
     await tick();
     const full = s.kind === "sudoku"
       ? await generateSudokuBookAsync({ ...s, count }, (done, total) => {
-          el.status.textContent = `Generating puzzle ${done} of ${total}…`;
+          // 200 expert puzzles is a minute on a laptop and several on a phone.
+          // "37 of 200" is honest but says nothing about how long that is, so
+          // once there is a rate to measure, say how long is left.
+          const left = remaining(started, done, total);
+          el.status.textContent = `Generating puzzle ${done} of ${total}…${left ? ` about ${left} left` : ""}`;
         })
       : s.kind === "maze"
         ? generateMazeBook({ ...s, count })
@@ -483,7 +499,17 @@ async function download() {
     el.status.textContent = "Laying out pages…";
     await tick();
     const [fonts, { renderBook }] = await Promise.all([loadFonts(), loadPdf()]);
-    const bytes = await renderBook(full, { ...s, licensed: Boolean(lic), fonts });
+    const bytes = await renderBook(full, {
+      ...s,
+      licensed: Boolean(lic),
+      fonts,
+      // Drawing a long book is seconds of work; hand the browser a moment
+      // between batches of pages so the tab stays alive and says where it is.
+      onProgress: async (done, total) => {
+        el.status.textContent = `Laying out page ${done} of ${total}…`;
+        await tick();
+      },
+    });
     const blob = new Blob([bytes], { type: "application/pdf" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);

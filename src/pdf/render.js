@@ -30,6 +30,12 @@ export async function renderBook(book, opts = {}) {
     bleed = false,
     licensed = false,
     fonts = null, // { regular: Uint8Array, bold: Uint8Array } — required for embedding
+    // Optional: awaited every few pages so a browser tab stays responsive and
+    // can report progress. A 200-puzzle book is ~10 s of drawing on a laptop
+    // and several times that on a phone; without this the tab simply freezes
+    // and the browser offers to kill the page. Node callers pass nothing and
+    // nothing changes for them.
+    onProgress = null,
   } = opts;
 
   const puzzles = book.puzzles;
@@ -62,12 +68,24 @@ export async function renderBook(book, opts = {}) {
   drawTitlePage(ctx, { title, subtitle, author });
   drawCopyrightPage(ctx, { title, author });
 
+  // Every eighth page: often enough that a phone never looks hung, rare
+  // enough that the yields cost nothing measurable.
+  const BREATHE_EVERY = 8;
+  const breathe = async () => {
+    if (!onProgress || ctx.pageNo % BREATHE_EVERY) return;
+    await onProgress(ctx.pageNo, plan.total);
+  };
+
   // Puzzles
-  for (const p of puzzles) drawPuzzlePage(ctx, p);
+  for (const p of puzzles) {
+    drawPuzzlePage(ctx, p);
+    await breathe();
+  }
 
   drawDividerPage(ctx, "Solutions");
   for (let i = 0; i < puzzles.length; i += solutionsPerPage) {
     drawSolutionsPage(ctx, puzzles.slice(i, i + solutionsPerPage), solutionsPerPage);
+    await breathe();
   }
 
   // The ruled pages at the back are part of the book, and planPages already
