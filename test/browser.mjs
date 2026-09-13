@@ -85,6 +85,48 @@ const overflow = await page.evaluate(() => document.documentElement.scrollWidth 
 await page.screenshot({ path: new URL("ui-phone.png", out).pathname, fullPage: true });
 if (overflow) throw new Error("horizontal overflow at 400px");
 
+// 4. No control clips its own label.
+//
+// A closed <select> cannot wrap, ellipsise or scroll — it silently cuts the
+// text off mid-word, and the setting a stranger is being asked to choose reads
+// as `6" × 9" — most comr`. It shipped like that on every desktop width for
+// weeks because the only guard was a phone media query, and the settings
+// column is capped at a fixed width, so the window being wider never helped.
+// Measure the text against the box it has to fit in, at four widths, for every
+// puzzle type — each type reveals a different set of controls.
+const clipped = [];
+for (const width of [1280, 1000, 860, 400]) {
+  await page.setViewportSize({ width, height: 1000 });
+  for (const type of ["wordsearch", "sudoku", "maze", "crisscross", "crossword"]) {
+    await page.selectOption("#kind", type);
+    await page.waitForTimeout(250);
+    clipped.push(...await page.evaluate(({ width: w, type: t }) => {
+      const out = [];
+      const probe = document.createElement("span");
+      probe.style.cssText = "position:absolute;visibility:hidden;white-space:pre";
+      document.body.append(probe);
+      for (const s of document.querySelectorAll("select")) {
+        if (!s.offsetParent) continue;
+        const cs = getComputedStyle(s);
+        probe.style.font = cs.font;
+        probe.style.letterSpacing = cs.letterSpacing;
+        // The dropdown arrow is drawn inside the padding box; 22px covers it
+        // on every engine I can check, and erring high is the safe direction.
+        const room = s.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 22;
+        for (const o of s.options) {
+          probe.textContent = o.textContent;
+          const need = probe.getBoundingClientRect().width;
+          if (need > room) out.push(`${w}px ${t} #${s.id}: "${o.textContent}" needs ${Math.round(need)}px, has ${Math.round(room)}px`);
+        }
+      }
+      probe.remove();
+      return out;
+    }, { width, type }));
+  }
+}
+if (clipped.length) throw new Error(`select labels are cut off:\n  ${clipped.join("\n  ")}`);
+console.log(`no clipped control labels at 1280/1000/860/400px across all five puzzle types`);
+
 await browser.close();
 if (errors.length) {
   console.error("Browser errors:", errors);
