@@ -80,7 +80,9 @@ Live copies: /social-card.png, /demo.gif, /hero-book.jpg,
 /gallery/07-mazes.png
 
 The video is on the Bananafest Destiny channel (uploaded by the boss
-2026-09-11). Source: `npm run video` → `app/public/video/puzzle-press.webm`;
+2026-09-11). It shows three types; a five-type montage is rendered at
+/video/five-types.mp4 (1440×810, 45 s) if you want to upload a replacement
+before Tuesday — optional. Source: `npm run video` → `app/public/video/puzzle-press.webm`;
 the vertical Short (`npm run video:short`) went out via Buffer the same day.
 
 ---
