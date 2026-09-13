@@ -179,7 +179,7 @@ function settings() {
 function regenerate() {
   const s = settings();
   if (s.kind === "maze") {
-    book = generateMazeBook({ count: Math.min(s.count, 3), difficulty: s.difficulty, seed: s.seed });
+    book = generateMazeBook({ count: Math.min(s.count, 3), gradeCount: s.count, difficulty: s.difficulty, seed: s.seed });
     shown = 0;
     showPuzzle();
     showMeta(s);
@@ -188,7 +188,7 @@ function regenerate() {
   }
   if (s.kind === "sudoku") {
     // Only a few, and only for the preview — an expert puzzle is real work.
-    book = generateSudokuBook({ count: Math.min(s.count, 3), difficulty: s.difficulty, seed: s.seed, size: s.size });
+    book = generateSudokuBook({ count: Math.min(s.count, 3), gradeCount: s.count, difficulty: s.difficulty, seed: s.seed, size: s.size });
     shown = 0;
     showPuzzle();
     showMeta(s);
@@ -211,10 +211,10 @@ function regenerate() {
     return;
   }
   book = s.kind === "crisscross"
-    ? generateCrissCrossBook({ ...s, count: previewCount })
+    ? generateCrissCrossBook({ ...s, count: previewCount, gradeCount: s.count })
     : s.kind === "crossword"
-      ? generateCrosswordBook({ ...s, builtinClues: CLUES, count: previewCount })
-      : generateBook({ ...s, count: previewCount });
+      ? generateCrosswordBook({ ...s, builtinClues: CLUES, count: previewCount, gradeCount: s.count })
+      : generateBook({ ...s, count: previewCount, gradeCount: s.count });
   shown = 0;
   showPuzzle();
   showMeta(s);
@@ -226,8 +226,13 @@ function showMeta(s) {
   const effective = effectiveCount(s.count);
   const plan = planPages(effective, solutionsPerPageFor(effective, fits));
   const pages = plan.total;
+  // The preview shows the book's first pages, so on a graded book they are all
+  // easy — which would read as "this is an easy book" without saying that the
+  // grading is deliberate and where it ends up.
+  const hardest = { wordsearch: "hard", sudoku: "expert", maze: "expert", crisscross: "expert", crossword: "expert" }[s.kind] ?? "expert";
   el.meta.textContent =
-    `${effective} puzzle${effective === 1 ? "" : "s"} · ${TRIMS[s.trim].label} · ${pages} pages`;
+    `${effective} puzzle${effective === 1 ? "" : "s"} · ${TRIMS[s.trim].label} · ${pages} pages` +
+    (s.difficulty === "graded" ? ` · graded, easy at the front to ${hardest} at the back` : "");
 
   // A book too short for KDP has to say so here, before the download, not
   // after somebody uploads it and gets rejected.
@@ -292,9 +297,18 @@ function showPuzzle() {
   const h = document.createElement("h3");
   h.append(`Puzzle ${p.index}`, Object.assign(document.createElement("span"), { textContent: p.title }));
   el.page.replaceChildren(h, grid, bank);
-  el.navLabel.textContent = `${shown + 1} / ${book.puzzles.length} (preview)`;
+  el.navLabel.textContent = previewLabel();
   el.prev.disabled = shown === 0;
   el.next.disabled = shown >= book.puzzles.length - 1;
+}
+
+// The preview builds the first few puzzles of the book you asked for — not a
+// sample of three — so say which they are rather than "1 / 3".
+function previewLabel() {
+  const asked = effectiveCount(settings().count);
+  return asked > book.puzzles.length
+    ? `Puzzle ${shown + 1} of ${asked} — showing the first ${book.puzzles.length}`
+    : `${shown + 1} / ${book.puzzles.length}`;
 }
 
 // "about 2 minutes" / "about 20 seconds", once enough work is done to have a
@@ -348,7 +362,7 @@ function showCrissCross(p) {
   const h = document.createElement("h3");
   h.append(`Puzzle ${p.index}`, Object.assign(document.createElement("span"), { textContent: `${p.title}${p.given.length ? " · " + p.given[0] + " given" : ""}` }));
   el.page.replaceChildren(h, grid, bank);
-  el.navLabel.textContent = `${shown + 1} / ${book.puzzles.length} (preview)`;
+  el.navLabel.textContent = previewLabel();
   el.prev.disabled = shown === 0;
   el.next.disabled = shown >= book.puzzles.length - 1;
 }
@@ -384,7 +398,7 @@ function showCrossword(p) {
   const h = document.createElement("h3");
   h.append(`Puzzle ${p.index}`, Object.assign(document.createElement("span"), { textContent: p.title }));
   el.page.replaceChildren(h, grid, clues);
-  el.navLabel.textContent = `${shown + 1} / ${book.puzzles.length} (preview)`;
+  el.navLabel.textContent = previewLabel();
   el.prev.disabled = shown === 0;
   el.next.disabled = shown >= book.puzzles.length - 1;
 }
@@ -402,7 +416,7 @@ function showMaze(p) {
   const h = document.createElement("h3");
   h.append(`Puzzle ${p.index}`, Object.assign(document.createElement("span"), { textContent: `${p.title} · ${p.w}×${p.h}` }));
   el.page.replaceChildren(h, wrap);
-  el.navLabel.textContent = `${shown + 1} / ${book.puzzles.length} (preview)`;
+  el.navLabel.textContent = previewLabel();
   el.prev.disabled = shown === 0;
   el.next.disabled = shown >= book.puzzles.length - 1;
 }
@@ -427,7 +441,7 @@ function showSudoku(p) {
   const h = document.createElement("h3");
   h.append(`Puzzle ${p.index}`, Object.assign(document.createElement("span"), { textContent: `${p.title} · ${p.givens} clues` }));
   el.page.replaceChildren(h, grid);
-  el.navLabel.textContent = `${shown + 1} / ${book.puzzles.length} (preview)`;
+  el.navLabel.textContent = previewLabel();
   el.prev.disabled = shown === 0;
   el.next.disabled = shown >= book.puzzles.length - 1;
 }

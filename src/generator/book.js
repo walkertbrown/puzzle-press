@@ -17,6 +17,10 @@ export function gradeFor(index, count, difficulty) {
 export function generateBook({
   pools,
   count = 20,
+  // How many puzzles the grading spreads over. The preview builds three
+  // puzzles but must grade them as the first three of the real book, or it
+  // shows a difficulty the file will not contain.
+  gradeCount = null,
   wordsPerPuzzle = 15,
   size = null, // null -> suggested from the words chosen for each puzzle
   difficulty = "medium",
@@ -101,7 +105,7 @@ export function generateBook({
       );
     }
 
-    const level = gradeFor(i, count, difficulty);
+    const level = gradeFor(i, gradeCount ?? count, difficulty);
     const gridSize = size ?? suggestSize(chosen, level);
     const puzzle = generatePuzzle({ words: chosen, size: gridSize, difficulty: level, seed: `${seed}|${i}` });
     if (puzzle.unplaced.length) {

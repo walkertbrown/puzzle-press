@@ -185,10 +185,10 @@ export function gradeFor(index, count, difficulty) {
   return levels[band];
 }
 
-export function generateMazeBook({ count = 20, difficulty = "medium", seed = "book" } = {}) {
+export function generateMazeBook({ count = 20, difficulty = "medium", seed = "book", gradeCount = null } = {}) {
   const puzzles = [];
   for (let i = 0; i < count; i++) {
-    const level = gradeFor(i, count, difficulty);
+    const level = gradeFor(i, gradeCount ?? count, difficulty);
     const m = generateMaze({ difficulty: level, seed: `${seed}|${i}` });
     puzzles.push({ index: i + 1, title: MAZE_DIFFICULTY[level]?.label ?? "Maze", kind: "maze", ...m });
   }

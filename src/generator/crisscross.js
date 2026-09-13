@@ -233,14 +233,14 @@ export function gradeFor(index, count, difficulty) {
 // A book: each puzzle draws its own words from the pool(s), themed like the
 // word search books. Falls back a difficulty level when a pool is too small
 // for the word count asked for.
-export function generateCrissCrossBook({ pools, count = 20, difficulty = "medium", seed = "book" } = {}) {
+export function generateCrissCrossBook({ pools, count = 20, difficulty = "medium", seed = "book", gradeCount = null } = {}) {
   const warnings = [];
   const puzzles = [];
   const failures = [];
   const all = [...new Set(pools.flatMap((p) => normalizeWords(p.words)))];
   const rng = makeRng(`${seed}|crisscross-book`);
   for (let i = 0; i < count; i++) {
-    let level = gradeFor(i, count, difficulty);
+    let level = gradeFor(i, gradeCount ?? count, difficulty);
     const pool = pools.length > 1 ? rng.pick(pools) : pools[0];
     let puzzle = generateCrissCross({ words: pool.words, difficulty: level, seed: `${seed}|${i}` });
     if (!puzzle) {

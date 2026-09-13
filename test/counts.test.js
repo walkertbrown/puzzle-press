@@ -61,3 +61,25 @@ test("puzzles are numbered 1..n with no gaps even when some could not be built",
   const book = generateCrissCrossBook({ pools: [thin], count: 12, difficulty: "graded", seed: "gap" });
   assert.deepEqual(book.puzzles.map((p) => p.index), book.puzzles.map((_, i) => i + 1));
 });
+
+test("the preview is the first pages of the book you asked for, not a differently graded sample", () => {
+  // A graded book spreads four bands across the count. Building three puzzles
+  // to show would grade them 1-of-3 — easy, medium, hard — while the file's
+  // first three are all easy. The preview must grade against the real count.
+  const pool = THEMES.animals;
+  const cases = [
+    ["word search", (n, g) => generateBook({ pools: [pool], count: n, gradeCount: g, wordsPerPuzzle: 15, difficulty: "graded", seed: "p" }), (p) => p.grid.flat().join("")],
+    ["sudoku", (n, g) => generateSudokuBook({ count: n, gradeCount: g, difficulty: "graded", seed: "p" }), (p) => p.puzzle.join(",")],
+    ["mazes", (n, g) => generateMazeBook({ count: n, gradeCount: g, difficulty: "graded", seed: "p" }), (p) => `${p.w}x${p.h}:${p.cells.join(",")}`],
+    ["criss-cross", (n, g) => generateCrissCrossBook({ pools: [pool], count: n, gradeCount: g, difficulty: "graded", seed: "p" }), (p) => p.cells.flat().join("")],
+    ["crosswords", (n, g) => generateCrosswordBook({ pools: [pool], builtinClues: CLUES, count: n, gradeCount: g, difficulty: "graded", seed: "p" }), (p) => p.cells.flat().join("")],
+  ];
+  for (const [kind, make, fingerprint] of cases) {
+    const preview = make(3, 50);
+    const book = make(50, null);
+    for (let i = 0; i < 3; i++) {
+      assert.equal(preview.puzzles[i].title, book.puzzles[i].title, `${kind}: preview puzzle ${i + 1} is graded differently from the book`);
+      assert.equal(fingerprint(preview.puzzles[i]), fingerprint(book.puzzles[i]), `${kind}: preview puzzle ${i + 1} is not the puzzle the book contains`);
+    }
+  }
+});

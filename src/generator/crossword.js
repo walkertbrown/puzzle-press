@@ -90,7 +90,7 @@ export function gradeFor(index, count, difficulty) {
   return levels[band];
 }
 
-export function generateCrosswordBook({ pools, builtinClues = {}, count = 20, difficulty = "medium", seed = "book" } = {}) {
+export function generateCrosswordBook({ pools, builtinClues = {}, count = 20, difficulty = "medium", seed = "book", gradeCount = null } = {}) {
   const warnings = [];
   const puzzles = [];
   const failures = [];
@@ -105,7 +105,7 @@ export function generateCrosswordBook({ pools, builtinClues = {}, count = 20, di
     }
   }
   for (let i = 0; i < count; i++) {
-    let level = gradeFor(i, count, difficulty);
+    let level = gradeFor(i, gradeCount ?? count, difficulty);
     const pool = pools.length > 1 ? rng.pick(pools) : pools[0];
     const clueOf = cluesFor(pool, builtinClues);
     let puzzle = generateCrossword({ words: pool.words, clueOf, difficulty: level, seed: `${seed}|${i}` });

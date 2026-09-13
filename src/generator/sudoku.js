@@ -228,10 +228,10 @@ function titleFor(level, size) {
 }
 
 // A book's worth, each with its own seed so it is reproducible.
-export function generateSudokuBook({ count = 20, difficulty = "medium", seed = "book", size = 9 } = {}) {
+export function generateSudokuBook({ count = 20, difficulty = "medium", seed = "book", size = 9, gradeCount = null } = {}) {
   const puzzles = [];
   for (let i = 0; i < count; i++) {
-    const level = gradeFor(i, count, difficulty);
+    const level = gradeFor(i, gradeCount ?? count, difficulty);
     const s = generateSudoku({ difficulty: level, seed: `${seed}|${i}`, size });
     puzzles.push({ index: i + 1, title: titleFor(level, s.size), kind: "sudoku", ...s });
   }
@@ -242,12 +242,12 @@ export function generateSudokuBook({ count = 20, difficulty = "medium", seed = "
 // stays alive and can report progress. An expert book is real work — around a
 // quarter of a second per puzzle — and a frozen tab reads as a crash.
 export async function generateSudokuBookAsync(
-  { count = 20, difficulty = "medium", seed = "book", size = 9 } = {},
+  { count = 20, difficulty = "medium", seed = "book", size = 9, gradeCount = null } = {},
   onProgress = null,
 ) {
   const puzzles = [];
   for (let i = 0; i < count; i++) {
-    const level = gradeFor(i, count, difficulty);
+    const level = gradeFor(i, gradeCount ?? count, difficulty);
     const s = generateSudoku({ difficulty: level, seed: `${seed}|${i}`, size });
     puzzles.push({ index: i + 1, title: titleFor(level, s.size), kind: "sudoku", ...s });
     if (onProgress) onProgress(i + 1, count);
