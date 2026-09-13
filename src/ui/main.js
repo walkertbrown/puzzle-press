@@ -33,6 +33,16 @@ import { royalty } from "../pdf/kdp-cost.js";
 import { pageGeometry } from "../pdf/kdp.js";
 import { FREE_LIMIT, PRICE_LABEL, getLicense as storedLicense, setLicense, verifyEmail } from "./license.js";
 
+// What the last interior download actually came to. The cover's spine is
+// worked out from a page count, and if some puzzles could not be built the
+// real book is shorter than the plan — a cover sized for the plan would then
+// be too wide for the book it wraps, which KDP rejects. Keyed by the settings
+// that produced it, so it is only trusted while they still apply.
+let lastInterior = null; // { key, pages, puzzles }
+const settingsKey = (s) =>
+  JSON.stringify([s.kind, s.trim, s.bleed, s.count, s.difficulty, s.wordsPerPuzzle, s.size, s.seed,
+    s.pools.map((p) => `${p.title}:${p.words.length}`)]);
+
 // A licence verified in this tab, kept in memory so a browser that refuses
 // localStorage still gets what it paid for until the tab closes.
 let sessionLicense = null;
@@ -556,7 +566,10 @@ async function download() {
     a.download = `${slug(s.title)}-${s.trim}.pdf`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    el.status.textContent = `Done — ${full.puzzles.length} puzzles, ${(blob.size / 1024).toFixed(0)} KB.`;
+    lastInterior = { key: settingsKey(s), pages: planPages(full.puzzles.length, solutionsPerPageFor(full.puzzles.length, solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed })))).total, puzzles: full.puzzles.length };
+    el.status.textContent =
+      `Done — ${full.puzzles.length} puzzles, ${lastInterior.pages} pages, ${(blob.size / 1024).toFixed(0)} KB.` +
+      (full.puzzles.length < count ? ` (${count - full.puzzles.length} could not be built — the cover will be sized for this book.)` : "");
   } catch (err) {
     console.error(err);
     el.status.textContent = `Something went wrong: ${err.message}`;
@@ -576,7 +589,9 @@ async function downloadCover() {
     el.status.textContent = "Building the cover…";
     await tick();
     const perPage = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }));
-    const pages = planPages(effectiveCount(s.count), perPage).total;
+    // Prefer the page count of the book actually made with these settings.
+    const matches = lastInterior && lastInterior.key === settingsKey(s);
+    const pages = matches ? lastInterior.pages : planPages(effectiveCount(s.count), perPage).total;
     const one = s.kind === "sudoku"
       ? generateSudokuBook({ ...s, count: 1 })
       : s.kind === "maze"

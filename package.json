@@ -33,6 +33,7 @@
     "test:links": "node test/links.mjs",
     "test:seo": "node test/seo.mjs",
     "test:ink": "node test/inkcheck.mjs",
+    "test:coverink": "node test/coverink.mjs",
     "test:crisscross": "node test/crisscross-live.mjs",
     "test:crossword": "node test/crossword-live.mjs",
     "test:kidsudoku": "node test/kidsudoku.mjs",

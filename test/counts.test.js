@@ -10,6 +10,9 @@ import { generateMazeBook } from "../src/generator/maze.js";
 import { generateCrissCrossBook } from "../src/generator/crisscross.js";
 import { generateCrosswordBook } from "../src/generator/crossword.js";
 import { CLUES } from "../src/generator/clues.js";
+import { planPages, solutionsPerPageFor, solutionsThatFit } from "../src/pdf/layout.js";
+import { pageGeometry } from "../src/pdf/kdp.js";
+import { coverGeometry, spineWidthInches } from "../src/pdf/cover-geometry.js";
 
 const make = {
   "word search": (n, pool) => generateBook({ pools: [pool], count: n, wordsPerPuzzle: 15, difficulty: "graded", seed: "c" }),
@@ -82,4 +85,18 @@ test("the preview is the first pages of the book you asked for, not a differentl
       assert.equal(fingerprint(preview.puzzles[i]), fingerprint(book.puzzles[i]), `${kind}: preview puzzle ${i + 1} is not the puzzle the book contains`);
     }
   }
+});
+
+test("a cover sized from a short book matches that book, not the count asked for", () => {
+  // The tool sizes the spine from the book it actually made. This is the
+  // arithmetic that must agree: a book of 38 puzzles is not a book of 50.
+  const fits = solutionsThatFit(pageGeometry({ trim: "6x9" }));
+  const asked = planPages(50, solutionsPerPageFor(50, fits)).total;
+  const made = planPages(38, solutionsPerPageFor(38, fits)).total;
+  assert.notEqual(asked, made, "the two page counts must differ or this test proves nothing");
+  const spineAsked = spineWidthInches(asked, "cream");
+  const spineMade = spineWidthInches(made, "cream");
+  // 12 fewer pages on cream is 0.03" of spine — enough to matter on a wrap.
+  assert.ok(Math.abs(spineAsked - spineMade) > 0.02, `spines differ by ${(spineAsked - spineMade).toFixed(4)}"`);
+  assert.equal(coverGeometry({ trim: "6x9", pageCount: made, paper: "cream" }).pageCount, made);
 });
