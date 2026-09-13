@@ -1,10 +1,10 @@
 // Build the marketing images from the real generated book, not a mockup:
-//   public/hero-book.png    — a puzzle page beside its solutions page
+//   public/hero-book.webp   — a puzzle page beside its solutions page (jpg fallback)
 //   public/social-card.png  — 1200x630 Open Graph / Twitter card
 //
 // Needs pdftoppm (poppler-utils) and Playwright's chromium.
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
@@ -47,6 +47,27 @@ await hero.waitForTimeout(300);
 // PNG was 520 KB — the single heaviest thing on the page, above the fold.
 await hero.screenshot({ path: join(outDir, "hero-book.jpg"), type: "jpeg", quality: 86 });
 
+// That JPEG came out 1500px wide and 226 KB — about 90% of the page's weight
+// and 660 ms of the 987 ms to first puzzle on a throttled phone. Nothing ever
+// displays it wider than ~1100 device pixels, so re-encode at 1200 and offer
+// WebP first. Chromium's canvas does both, so there is no new dependency, and
+// the JPEG stays as the <picture> fallback.
+const source = `data:image/jpeg;base64,${readFileSync(join(outDir, "hero-book.jpg")).toString("base64")}`;
+const encoded = await hero.evaluate(async (uri) => {
+  const img = new Image();
+  img.src = uri;
+  await img.decode();
+  const w = 1200, h = Math.round((img.naturalHeight / img.naturalWidth) * 1200);
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  c.getContext("2d").drawImage(img, 0, 0, w, h);
+  const strip = (d) => d.slice(d.indexOf(",") + 1);
+  return { w, h, webp: strip(c.toDataURL("image/webp", 0.8)), jpeg: strip(c.toDataURL("image/jpeg", 0.85)) };
+}, source);
+writeFileSync(join(outDir, "hero-book.webp"), Buffer.from(encoded.webp, "base64"));
+writeFileSync(join(outDir, "hero-book.jpg"), Buffer.from(encoded.jpeg, "base64"));
+console.log(`hero ${encoded.w}x${encoded.h}: webp ${Math.round(Buffer.from(encoded.webp, "base64").length / 1024)} KB, jpeg ${Math.round(Buffer.from(encoded.jpeg, "base64").length / 1024)} KB`);
+
 // --- social card: headline + one page ---
 const card = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 await card.setContent(shell(
@@ -74,4 +95,4 @@ await card.screenshot({ path: join(outDir, "social-card.png") });
 
 await browser.close();
 rmSync(tmp, { recursive: true, force: true });
-console.log("wrote public/hero-book.jpg and public/social-card.png");
+console.log("wrote public/hero-book.webp, public/hero-book.jpg and public/social-card.png");
