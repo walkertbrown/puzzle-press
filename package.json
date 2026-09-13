@@ -36,6 +36,7 @@
     "test:kidsudoku": "node test/kidsudoku.mjs",
     "test:bigbook": "node test/bigbook.mjs",
     "test:nostorage": "node test/nostorage.mjs",
+    "test:mobile": "node test/mobile.mjs && node test/mobile.mjs \"iPhone SE\" && node test/mobile.mjs \"Pixel 7\"",
     "video": "node scripts/video.mjs",
     "video:short": "node scripts/video.mjs --short",
     "video:types": "node scripts/video-types.mjs",
