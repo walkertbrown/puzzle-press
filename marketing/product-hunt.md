@@ -22,7 +22,7 @@ Alternates:
 
 > Word search, sudoku, mazes, fill-ins or crosswords. Puzzle Press lays out the whole paperback — puzzles, solutions, page numbers — then a matching cover with the spine sized to your page count. Runs in your browser. Free; pay to remove the watermark.
 
-226 chars.
+250 chars.
 
 ## Links
 
@@ -62,22 +62,50 @@ Considered and rejected:
 - **Adult Coloring Books** — genuinely adjacent (same low-content KDP niche) but
   this is not a coloring book. Picking it would read as tag-stuffing.
 
+## Thumbnail
+
+`thumbnail.png` — 512×512 (Product Hunt asks for a square and recommends
+240×240; shot at 2× so it stays sharp). Live at /thumbnail.png.
+
+Four cells of a solved word search — WORD down the diagonal, shaded the way the
+solutions pages shade found answers — on a white page on the brand navy.
+
+It began as a crop of a real printed page, like every other image here. Held up
+against the name and tagline at 96, 64, 48 and 36px, that version was a grey
+square: fifteen letters across 48 pixels is three pixels a letter, and no
+photographic detail survives it. The mark does: at full size it is legibly a
+word search, and at feed size it is a white page with a dark diagonal, which is
+the same idea. Both versions were looked at small before this one was chosen.
+
 ## Gallery, in order
 
 1. **Video** — https://youtu.be/ph6q2ih6cBs (60 s, real time, no narration; Product Hunt takes the YouTube link directly)
-2. `social-card.png` — the card, sets the frame
+2. `gallery/01-card.png` — the card, sets the frame
 3. `demo.gif` — the whole flow: a word search book, its cover, then sudoku, mazes, fill-ins and crosswords, ending on real pages from each; this is the one that converts
-4. `hero-book.jpg` — a puzzle page beside its solutions page
-5. `gallery/04-the-tool.png` — the tool mid-use, preview showing
-6. `gallery/05-solutions.png` — a solutions page, close
-7. `gallery/06-sudoku.png` — a sudoku puzzle page and its solutions page
-8. `gallery/07-mazes.png` — a maze page and its solutions page
+4. `gallery/02-pages.png` — a puzzle page beside its solutions page
+5. `gallery/03-the-tool.png` — the tool mid-use, preview showing
+6. `gallery/04-solutions.png` — a solutions page, close
+7. `gallery/05-sudoku.png` — a sudoku puzzle page and its solutions page
+8. `gallery/06-mazes.png` — a maze page and its solutions page
+
+The numbers are the upload order. Every frame is 2540×1520 — Product Hunt's
+recommended 1270×760 at 2× — so nothing gets letterboxed or cropped by their
+viewer, and all are well under their 3 MB ceiling.
+
+Two of these are new, and they replace assets that were the wrong shape for
+this job: `social-card.png` is 1200×630 because that is the Open Graph size and
+has to stay that way, and `hero-book.jpg` was shrunk to 1200×840 for page
+weight. Both are still right for the website; neither belongs in a 1.671:1
+Product Hunt frame.
 
 All are in `app/public/` and regenerate with `npm run images`, `npm run gallery`
 and `npm run demo`, so they never drift from what the product actually does.
-Live copies: /social-card.png, /demo.gif, /hero-book.jpg,
-/gallery/04-the-tool.png, /gallery/05-solutions.png, /gallery/06-sudoku.png,
-/gallery/07-mazes.png
+`npm run test:launch` measures every one of them against the requirements above
+and fails if a file is missing, the wrong shape, over the limit, or named here
+but not on disk.
+Live copies: /thumbnail.png, /demo.gif, /gallery/01-card.png,
+/gallery/02-pages.png, /gallery/03-the-tool.png, /gallery/04-solutions.png,
+/gallery/05-sudoku.png, /gallery/06-mazes.png
 
 The video is on the Bananafest Destiny channel (uploaded by the boss
 2026-09-11). It shows three types; a five-type montage is rendered at
@@ -133,7 +161,8 @@ Boss:
 - [x] Search Console indexing requested for the guide and the three type
       pages (boss, 09-11).
 - [ ] Product Hunt: schedule the launch for Tue 2026-09-15 12:01am PT with the
-      copy above; video as gallery item 1.
+      copy above; `thumbnail.png` as the thumbnail, video as gallery item 1,
+      then the six gallery frames and the GIF in the order listed.
 - [ ] Post the first comment right after it goes live; keep the type-page and
       guide links handy for replies.
 - [x] Pinterest appeal submitted and DENIED (09-12). Pins now link to the YouTube video instead. Re-appeal ~mid-October once the domain has age and traffic.

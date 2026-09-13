@@ -1,6 +1,7 @@
 // Build the marketing images from the real generated book, not a mockup:
 //   public/hero-book.webp   — a puzzle page beside its solutions page (jpg fallback)
 //   public/social-card.png  — 1200x630 Open Graph / Twitter card
+//   public/thumbnail.png    — 512x512 square mark, for the Product Hunt feed row
 //
 // Needs pdftoppm (poppler-utils) and Playwright's chromium.
 import { execFileSync } from "node:child_process";
@@ -68,6 +69,43 @@ writeFileSync(join(outDir, "hero-book.webp"), Buffer.from(encoded.webp, "base64"
 writeFileSync(join(outDir, "hero-book.jpg"), Buffer.from(encoded.jpeg, "base64"));
 console.log(`hero ${encoded.w}x${encoded.h}: webp ${Math.round(Buffer.from(encoded.webp, "base64").length / 1024)} KB, jpeg ${Math.round(Buffer.from(encoded.jpeg, "base64").length / 1024)} KB`);
 
+// --- Product Hunt thumbnail: square, and it has to read at 48px ---
+//
+// Product Hunt asks for a square and recommends 240x240, but in the feed the
+// row is nearer 48px, and in a comment list smaller still. The first version
+// of this was a crop of a real printed page — which is what every other image
+// here is, and the right instinct — and at 48px it was a grey square. I put it
+// beside the name and tagline at 96, 64, 48 and 36px and looked: fifteen
+// letters across a 48px square is three pixels a letter. Photographic detail
+// cannot survive that, so this one is a drawn mark rather than product output.
+// Four cells of a solved word search, the found word shaded the way the
+// solutions pages shade answers. At full size it is legibly a word search; at
+// 48px it is a white page with a dark diagonal, which is the same idea.
+// WORD down the diagonal; the other twelve letters are filler chosen so no
+// row, column or diagonal spells anything — the same rule the generator's own
+// filler pass enforces.
+const GRID = [
+  ["W", "J", "V", "K"],
+  ["T", "O", "B", "H"],
+  ["X", "M", "R", "L"],
+  ["P", "Q", "Z", "D"],
+];
+const thumb = await browser.newPage({ viewport: { width: 512, height: 512 }, deviceScaleFactor: 1 });
+await thumb.setContent(shell(
+  `<div class="page"><div class="grid">${GRID.map((row, y) =>
+    row.map((ch, x) => `<div class="${x === y ? "hit" : ""}">${ch}</div>`).join(""),
+  ).join("")}</div></div>`,
+  `body{background:#1d3557;display:flex;align-items:center;justify-content:center;height:512px}
+   .page{width:412px;height:412px;background:#fff;border-radius:30px;padding:26px;
+         box-shadow:0 18px 46px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.3)}
+   .grid{display:grid;grid-template-columns:repeat(4,1fr);width:100%;height:100%}
+   .grid div{display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:700;
+             letter-spacing:.01em;color:#1a1a1a;border-radius:12px}
+   .hit{background:#1d3557;color:#fff}`,
+));
+await thumb.waitForTimeout(300);
+await thumb.screenshot({ path: join(outDir, "thumbnail.png") });
+
 // --- social card: headline + one page ---
 const card = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 await card.setContent(shell(
@@ -95,4 +133,4 @@ await card.screenshot({ path: join(outDir, "social-card.png") });
 
 await browser.close();
 rmSync(tmp, { recursive: true, force: true });
-console.log("wrote public/hero-book.webp, public/hero-book.jpg and public/social-card.png");
+console.log("wrote public/hero-book.webp, public/hero-book.jpg, public/thumbnail.png and public/social-card.png");

@@ -32,7 +32,7 @@
   header h1 { margin: 0; font-size: 20px; letter-spacing: -0.01em; }
   header p { margin: 0; color: var(--muted); }
   header .spacer { flex: 1; }
-  main { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: 24px; padding: 24px; max-width: 1280px; margin: 0 auto; }
+  main { display: grid; grid-template-columns: minmax(300px, 480px) 1fr; gap: 24px; padding: 24px; max-width: 1280px; margin: 0 auto; }
   @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
   fieldset { border: 0; padding: 0; margin: 0 0 18px; }
@@ -40,17 +40,20 @@
   label { display: block; font-size: 13px; color: var(--muted); margin: 8px 0 3px; }
   input[type=text], input[type=number], select, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: #fff; color: var(--ink); }
   textarea { min-height: 96px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  @media (min-width: 481px) and (max-width: 800px) { .row { grid-template-columns: 1fr 1fr; } }
+  /* Two-up only when two fields actually fit. A closed <select> cannot wrap or
+     scroll — it just clips, and "6" × 9" — most common" became "6" × 9" — most
+     comr". That was fixed once with a viewport media query, which was the wrong
+     ruler: the settings column is capped, so the field is the same ~184px wide
+     at 1280px as it is at 860px, and the label was truncated on every desktop.
+     auto-fit measures the space the row has rather than the space the window
+     has, so the rule cannot drift out of step with the column width again. */
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
   .themes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
   .themes label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; color: var(--ink); }
   .check { display: flex; align-items: center; gap: 10px; margin-top: 6px; min-height: 40px; font-size: 14px; }
   input[type=checkbox] { width: 20px; height: 20px; margin: 0; flex: 0 0 auto; accent-color: var(--accent); }
   .themes label { min-height: 36px; }
   @media (max-width: 800px) {
-    /* A two-up row of selects truncates its labels on a phone ("6" × 9" — most
-       c…"), so rows stack below 420px where the squeeze actually happens. */
-    .row { grid-template-columns: 1fr; }
     header .wide-only { display: none; }
     /* On a phone the first screen is about 630px tall and the header was
        spending a fifth of it repeating the hero's first sentence. The strap
@@ -244,7 +247,7 @@
       </div>
       <div class="row">
         <div>
-          <label for="list">List price (USD, for the royalty estimate)</label>
+          <label for="list">List price (USD)</label>
           <input type="number" id="list" value="9.99" min="0" step="0.01">
         </div>
         <div>
