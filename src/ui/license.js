@@ -24,10 +24,17 @@ export function getLicense() {
   }
 }
 
+// Returns false when the browser refused to store it — private windows and
+// "block all cookies" both throw here. The unlock still works for this tab;
+// the caller has to say so, because a buyer who pays, unlocks, reloads and is
+// locked out again with no explanation is a refund and a bad review.
 export function setLicense(rec) {
   try {
     localStorage.setItem(KEY, JSON.stringify(rec));
-  } catch {}
+    return localStorage.getItem(KEY) !== null;
+  } catch {
+    return false;
+  }
 }
 
 export function clearLicense() {

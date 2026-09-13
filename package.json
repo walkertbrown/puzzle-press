@@ -35,6 +35,7 @@
     "test:crossword": "node test/crossword-live.mjs",
     "test:kidsudoku": "node test/kidsudoku.mjs",
     "test:bigbook": "node test/bigbook.mjs",
+    "test:nostorage": "node test/nostorage.mjs",
     "video": "node scripts/video.mjs",
     "video:short": "node scripts/video.mjs --short",
     "video:types": "node scripts/video-types.mjs",
