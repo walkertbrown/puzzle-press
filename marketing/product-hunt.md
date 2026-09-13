@@ -66,7 +66,7 @@ Considered and rejected:
 
 1. **Video** — https://youtu.be/ph6q2ih6cBs (60 s, real time, no narration; Product Hunt takes the YouTube link directly)
 2. `social-card.png` — the card, sets the frame
-3. `demo.gif` — the whole flow: a word search book, its cover, then sudoku and mazes, ending on real pages from each; this is the one that converts
+3. `demo.gif` — the whole flow: a word search book, its cover, then sudoku, mazes and fill-ins, ending on real pages from each; this is the one that converts
 4. `hero-book.jpg` — a puzzle page beside its solutions page
 5. `gallery/04-the-tool.png` — the tool mid-use, preview showing
 6. `gallery/05-solutions.png` — a solutions page, close
