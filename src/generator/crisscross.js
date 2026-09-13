@@ -236,6 +236,7 @@ export function gradeFor(index, count, difficulty) {
 export function generateCrissCrossBook({ pools, count = 20, difficulty = "medium", seed = "book" } = {}) {
   const warnings = [];
   const puzzles = [];
+  const failures = [];
   const all = [...new Set(pools.flatMap((p) => normalizeWords(p.words)))];
   const rng = makeRng(`${seed}|crisscross-book`);
   for (let i = 0; i < count; i++) {
@@ -252,7 +253,7 @@ export function generateCrissCrossBook({ pools, count = 20, difficulty = "medium
       }
     }
     if (!puzzle) {
-      warnings.push(`Puzzle ${i + 1}: could not build a criss-cross with a unique fill from "${pool.title}" — add more words of varied lengths.`);
+      failures.push(i + 1);
       continue;
     }
     // Title after any fallback, so the printed level is the real one.
@@ -260,6 +261,15 @@ export function generateCrissCrossBook({ pools, count = 20, difficulty = "medium
       ? `${pool.title} · ${CRISSCROSS_DIFFICULTY[level].label}`
       : pool.title;
     puzzles.push({ index: puzzles.length + 1, title, ...puzzle });
+  }
+  // One line, however many failed — a hundred identical warnings is not a
+  // warning, it is a wall of text nobody reads.
+  if (failures.length) {
+    warnings.push(
+      failures.length === count
+        ? `None of these words can make a criss-cross: they need to be at least three letters and to share letters with each other so the grid can interlock. Add more words, or longer ones.`
+        : `${failures.length} of ${count} puzzles could not be built with a unique fill and were left out — add more words of varied lengths for a full book.`,
+    );
   }
   return { kind: "crisscross", puzzles, warnings };
 }

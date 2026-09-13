@@ -93,6 +93,7 @@ export function gradeFor(index, count, difficulty) {
 export function generateCrosswordBook({ pools, builtinClues = {}, count = 20, difficulty = "medium", seed = "book" } = {}) {
   const warnings = [];
   const puzzles = [];
+  const failures = [];
   const rng = makeRng(`${seed}|crossword-book`);
   // Say once, up front, which pasted words have no clue.
   for (const pool of pools) {
@@ -114,13 +115,20 @@ export function generateCrosswordBook({ pools, builtinClues = {}, count = 20, di
       puzzle = generateCrossword({ words: pool.words, clueOf, difficulty: level, seed: `${seed}|${i}|${level}` });
     }
     if (!puzzle) {
-      warnings.push(`Puzzle ${i + 1}: could not build a crossword from "${pool.title}" — it needs more clued words of varied lengths.`);
+      failures.push(i + 1);
       continue;
     }
     const title = pools.length > 1 || difficulty === "graded"
       ? `${pool.title} · ${CROSSWORD_DIFFICULTY[level].label}`
       : pool.title;
     puzzles.push({ index: puzzles.length + 1, title, ...puzzle });
+  }
+  if (failures.length) {
+    warnings.push(
+      failures.length === count
+        ? `None of these words can make a crossword: they need a clue each, at least three letters, and enough shared letters to interlock. Add more words, or longer ones.`
+        : `${failures.length} of ${count} puzzles could not be built and were left out — add more clued words of varied lengths for a full book.`,
+    );
   }
   return { kind: "crossword", puzzles, warnings };
 }
