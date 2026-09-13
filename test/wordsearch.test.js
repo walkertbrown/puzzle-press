@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { generatePuzzle, normalizeWords, removeNested, suggestSize } from "../src/generator/wordsearch.js";
-import { generateBook } from "../src/generator/book.js";
+import { generateBook, REPEAT_WARNING } from "../src/generator/book.js";
 import { THEMES } from "../src/generator/wordlists.js";
 import { BLOCKED } from "../src/generator/blocklist.js";
 
@@ -109,4 +109,22 @@ test("every built-in theme generates a clean 20-puzzle hard book", () => {
     const book = generateBook({ pools: [theme], count: 20, wordsPerPuzzle: 15, difficulty: "hard", seed: id });
     for (const p of book.puzzles) assert.equal(p.unplaced.length, 0, `${id} puzzle ${p.index}`);
   }
+});
+
+test("a book that runs out of different word lists says so instead of repeating quietly", () => {
+  // Six words taken five at a time is six possible lists; ask for twelve
+  // puzzles and some must repeat. The book must say so.
+  const pool = { title: "Tiny", words: ["alpha", "bravo", "delta", "gamma", "sigma", "omega"] };
+  const book = generateBook({ pools: [pool], count: 12, wordsPerPuzzle: 5, difficulty: "easy", seed: "tiny" });
+  assert.equal(book.puzzles.length, 12);
+  assert.ok(book.warnings.some((w) => /repeat|different word lists/i.test(w)), `no repeat warning: ${JSON.stringify(book.warnings)}`);
+  // And it is said once, not twelve times.
+  assert.ok(book.warnings.filter((w) => w.startsWith(REPEAT_WARNING)).length <= 1);
+});
+
+test("a book with room for distinct lists gets no repeat warning and no repeated list", () => {
+  const book = generateBook({ pools: [THEMES.animals], count: 40, wordsPerPuzzle: 15, difficulty: "graded", seed: "roomy" });
+  assert.ok(!book.warnings.some((w) => w.startsWith(REPEAT_WARNING)), book.warnings.join("; "));
+  const keys = book.puzzles.map((p) => [...p.words].sort().join(","));
+  assert.equal(new Set(keys).size, keys.length, "a word list repeats");
 });
