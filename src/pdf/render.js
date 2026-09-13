@@ -427,18 +427,22 @@ function drawMazePage(ctx, maze) {
   const subW = F.regular.widthOfTextAtSize(maze.title, 12);
   page.drawText(maze.title, { x: box.x + box.w - subW, y: box.y + box.h - headSize + 3, size: 12, font: F.regular, color: GREY });
 
+  // The "start" and "end" labels hang outside the grid, so the grid has to be
+  // narrower than the box by enough to hold them — otherwise the labels land
+  // in the margin, which is exactly what KDP rejects a file for.
+  const labelRoom = 2 * (F.regular.widthOfTextAtSize("start", 11) + 6);
   const areaTop = box.y + box.h - headSize - 26;
   const areaBottom = box.y + 40;
-  const side = Math.min(box.w - 24, areaTop - areaBottom);
+  const side = Math.min(box.w - labelRoom, areaTop - areaBottom);
   const top = areaTop - (areaTop - areaBottom - side) / 2;
   const x = box.x + (box.w - side) / 2;
-  drawMaze(page, F, maze, { x, top, side });
+  drawMaze(page, F, maze, { x, top, side, bounds: box });
   footer(ctx, page, box);
 }
 
 // Walls come pre-merged into runs, so even a 39x39 maze is a few hundred
 // lines rather than a few thousand — a smaller PDF and a faster render.
-function drawMaze(page, F, maze, { x, top, side, path = null }) {
+function drawMaze(page, F, maze, { x, top, side, path = null, bounds = null }) {
   const cell = side / Math.max(maze.w, maze.h);
   const gw = cell * maze.w;
   const gh = cell * maze.h;
@@ -472,10 +476,23 @@ function drawMaze(page, F, maze, { x, top, side, path = null }) {
     });
   }
 
-  // Label the way in and the way out, outside the walls.
+  // Label the way in and the way out, outside the walls — but never outside
+  // the page's safe area. On the solutions sheet there are no bounds and no
+  // labels; a six-up thumbnail has no room for them.
+  if (!bounds) return;
   const label = Math.max(6, Math.min(11, cell * 1.1));
-  page.drawText("start", { x: x - F.regular.widthOfTextAtSize("start", label) - 4, y: top - cell * 0.75, size: label, font: F.regular, color: GREY });
-  page.drawText("end", { x: x + gw + 4, y: top - gh + cell * 0.25, size: label, font: F.regular, color: GREY });
+  const startW = F.regular.widthOfTextAtSize("start", label);
+  const endW = F.regular.widthOfTextAtSize("end", label);
+  page.drawText("start", {
+    x: Math.max(bounds.x, x - startW - 4),
+    y: top - cell * 0.75,
+    size: label, font: F.regular, color: GREY,
+  });
+  page.drawText("end", {
+    x: Math.min(x + gw + 4, bounds.x + bounds.w - endW),
+    y: top - gh + cell * 0.25,
+    size: label, font: F.regular, color: GREY,
+  });
 }
 
 // ---------- sudoku ----------
@@ -528,10 +545,16 @@ function drawSudokuGrid(page, F, values, { x, top, side, givens = null, small = 
   // two line weights and the puzzle is unpleasant to solve.
   const thin = small ? 0.25 : 0.4;
   const thick = small ? 1.0 : 2.2;
+  // A stroke straddles its path, so the outermost lines would put half their
+  // width past the grid — over the safe-area edge on a full-page grid. Pull
+  // the outer lines in by that half.
+  const half = thick / 2;
   for (let k = 0; k <= n; k++) {
     // Vertical lines bound box columns (every boxC); horizontal ones bound box rows (every boxR).
-    page.drawLine({ start: { x: x + k * cell, y: top }, end: { x: x + k * cell, y: top - side }, thickness: k % boxC === 0 ? thick : thin, color: BLACK });
-    page.drawLine({ start: { x, y: top - k * cell }, end: { x: x + side, y: top - k * cell }, thickness: k % boxR === 0 ? thick : thin, color: BLACK });
+    const vx = x + k * cell + (k === 0 ? half : k === n ? -half : 0);
+    const hy = top - k * cell - (k === 0 ? half : k === n ? -half : 0);
+    page.drawLine({ start: { x: vx, y: top - half }, end: { x: vx, y: top - side + half }, thickness: k % boxC === 0 ? thick : thin, color: BLACK });
+    page.drawLine({ start: { x: x + half, y: hy }, end: { x: x + side - half, y: hy }, thickness: k % boxR === 0 ? thick : thin, color: BLACK });
   }
 }
 
