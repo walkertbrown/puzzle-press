@@ -95,35 +95,75 @@ if (real.length && !paid.length) {
 // is always "the last day" regardless of what was asked for above.
 const ZONE = "4169ea6b92a0920d72f9ebc5f7653e9d";
 const daySince = new Date(Date.now() - 23.5 * 3600e3).toISOString().replace(/\.\d+Z$/, "Z");
-try {
+// The live suites now run against the customer-facing domain — which is the
+// right thing for testing and the wrong thing for this dashboard, because a
+// full sweep makes dozens of books and covers and every one lands in the
+// funnel. So ask twice and subtract: everything, and everything from this
+// machine. Cloudflare tells us which IP it sees us as, so no guessing.
+// Two queries rather than grouping by IP, because grouping truncates once a
+// launch brings thousands of addresses and this has to survive that day.
+const myIp = await fetch("https://puzzlepress.bananafest-destiny.com/cdn-cgi/trace")
+  .then((r) => r.text())
+  .then((t) => (t.match(/^ip=(.*)$/m) || [])[1]?.trim())
+  .catch(() => null);
+
+const pathCounts = async (extra = "") => {
   const zone = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
-    httpRequestsAdaptiveGroups(limit: 40, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%"}, orderBy: [count_DESC]) {
+    httpRequestsAdaptiveGroups(limit: 200, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%"${extra}}, orderBy: [count_DESC]) {
       count dimensions { clientRequestPath }
     } } } }`);
-  const all = zone.viewer.zones[0].httpRequestsAdaptiveGroups;
+  const out = new Map();
+  for (const r of zone.viewer.zones[0].httpRequestsAdaptiveGroups) out.set(r.dimensions.clientRequestPath, r.count);
+  return out;
+};
+
+try {
+  const everyone = await pathCounts();
+  const mine = myIp ? await pathCounts(`, clientIP: "${myIp}"`) : new Map();
+  const all = [...everyone].map(([path, count]) => ({
+    count: count - (mine.get(path) ?? 0),
+    dimensions: { clientRequestPath: path },
+  })).filter((r) => r.count > 0);
+  const minePaths = [...mine.values()].reduce((a, c) => a + c, 0);
   // Vulnerability scanners probe for leaked config files all day long and
   // every one of them 404s. They are not visitors, so keep them out of the
   // numbers — but say how many there were, so a jump is not mistaken for
-  // interest. Only the workers.dev host escapes this zone, which is where my
-  // own tests run, so the funnel below is real people on the real domain.
+  // interest.
   const served = /^\/($|js\/|fonts\/|samples\/|gallery\/|spine-calculator|royalty-calculator|config\.js|api\/|demo\.gif|social-card|hero-book|robots|sitemap)/;
   const rows = all.filter((r) => served.test(r.dimensions.clientRequestPath));
   const noise = all.filter((r) => !served.test(r.dimensions.clientRequestPath)).reduce((a, r) => a + r.count, 0);
   const hits = (re) => rows.filter((r) => re.test(r.dimensions.clientRequestPath)).reduce((a, r) => a + r.count, 0);
-  const landed = hits(/^\/$/);
-  const pdfEngine = hits(/^\/js\/chunk-/);        // fetched only on the first Download click
-  const fonts = hits(/^\/fonts\//);                 // ditto
+  // What a browser really fetches, recorded from a live session rather than
+  // assumed (test/funnel.mjs re-checks this and fails if a build moves it):
+  //
+  //   page load ............ main.js + several chunk-*.js
+  //   Download clicked ..... render-*.js, the fonts, and one more chunk
+  //   Cover made ........... cover-*.js
+  //
+  // The old version keyed "made a book" on any chunk-*.js, which every visitor
+  // fetches just by landing. It reported people making books who had done
+  // nothing but open the page.
+  const requested = hits(/^\/$/);
+  const ranTheApp = hits(/^\/js\/main\.js$/);
+  const madeBook = hits(/^\/js\/render-/);
+  const fonts = hits(/^\/fonts\//);
   const covers = hits(/^\/js\/cover-/);
   const samples = hits(/^\/samples\//);
   const calc = hits(/calculator/);
   console.log("\n  Last 24h, by what people did (free plan keeps one day):");
-  console.log(`    Landed on the page          ${landed}`);
+  console.log(`    Requests for the page       ${requested}`);
+  console.log(`    ...that ran the app         ${ranTheApp}   <-- a real browser; the rest are crawlers`);
   console.log(`    Opened a sample PDF         ${samples}`);
   console.log(`    Used a calculator page      ${calc}`);
-  console.log(`    Clicked Download (engine)   ${pdfEngine}   <-- people who made a book`);
+  console.log(`    Made a book                 ${madeBook}   <-- clicked Download and it rendered`);
   console.log(`    Made a cover                ${covers}`);
-  console.log(`    Font fetches                ${fonts}`);
+  console.log(`    Font fetches                ${fonts}   (should track "made a book")`);
   console.log(`    (scanner/bot noise ignored: ${noise} requests to paths that do not exist)`);
+  if (minePaths) console.log(`    (my own machine ignored:    ${minePaths} requests from ${myIp})`);
+  else if (!myIp) console.log("    (could not work out this machine's IP — my own test runs are IN these numbers)");
+  if (requested && !ranTheApp) {
+    console.log("\n  Every request for the page came from something that does not run JavaScript.");
+  }
   console.log("\n  Top paths:");
   for (const r of rows.slice(0, 12)) console.log(`    ${String(r.count).padStart(5)}  ${r.dimensions.clientRequestPath}`);
 } catch (e) {
