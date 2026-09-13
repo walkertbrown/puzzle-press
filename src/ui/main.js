@@ -20,13 +20,21 @@ import { TRIMS } from "../pdf/kdp.js";
 // instead of before the page is usable.
 import { planPages, solutionsThatFit, solutionsPerPageFor, puzzlesForMinimum } from "../pdf/layout.js";
 
-let pdfModules = null;
-async function loadPdf() {
-  if (!pdfModules) {
-    const [render, cover] = await Promise.all([import("../pdf/render.js"), import("../pdf/cover.js")]);
-    pdfModules = { renderBook: render.renderBook, renderCover: cover.renderCover };
-  }
-  return pdfModules;
+// Loaded separately rather than together. They share the heavy chunk, so the
+// second one costs almost nothing once the first has been fetched — and the
+// launch dashboard reads the funnel out of the request log, with no analytics
+// script and no beacon, so "made a book" and "made a cover" have to be
+// distinguishable by which file was asked for. Loading both on either click
+// made every book download look like a cover download too.
+let renderMod = null;
+async function loadRender() {
+  if (!renderMod) renderMod = await import("../pdf/render.js");
+  return renderMod;
+}
+let coverMod = null;
+async function loadCover() {
+  if (!coverMod) coverMod = await import("../pdf/cover.js");
+  return coverMod;
 }
 import { coverGeometry, spineWidthInches, SPINE_TEXT_MIN_PAGES } from "../pdf/cover-geometry.js";
 import { royalty } from "../pdf/kdp-cost.js";
@@ -573,7 +581,7 @@ async function download() {
         ? `Laying out ${full.puzzles.length} puzzles (${count - full.puzzles.length} could not be built)…`
         : "Laying out pages…";
     await tick();
-    const [fonts, { renderBook }] = await Promise.all([loadFonts(), loadPdf()]);
+    const [fonts, { renderBook }] = await Promise.all([loadFonts(), loadRender()]);
     const bytes = await renderBook(full, {
       ...s,
       licensed: Boolean(lic),
@@ -627,7 +635,7 @@ async function downloadCover() {
           : s.kind === "crossword"
             ? generateCrosswordBook({ ...s, builtinClues: await loadClues(), count: 1 })
             : generateBook({ ...s, count: 1 });
-    const [fonts, { renderCover }] = await Promise.all([loadFonts(), loadPdf()]);
+    const [fonts, { renderCover }] = await Promise.all([loadFonts(), loadCover()]);
     const bytes = await renderCover({
       title: s.title,
       subtitle: s.subtitle,
