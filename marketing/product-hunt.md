@@ -158,6 +158,7 @@ Me (Monday, before the 6:30pm reminder):
   - *I've never published on KDP — where do I start?* /how-to-make-a-puzzle-book — trim sizes, the gutter table, spine, pricing, and the mistakes that get files rejected, with the numbers.
   - *Does it make the cover?* Yes — full wrap, spine sized from the page count, barcode area kept clear. Free to generate and look at; it carries a PREVIEW mark until you pay.
   - *What about large print?* There's a Large print checkbox — 8.5×11, fewer words per grid, ~23pt letters. Note it moves you to large trim, which costs more per page to print; the royalty line in the tool shows that as it happens.
+  - *What if I pay and it is not what I expected?* 30-day refund, no questions, email support@bananafest-destiny.com. The free version makes the whole book first, so you can check the output before paying.
   - *Why is it free? What's the catch?* No catch: the free book is complete but watermarked — a footer line on each page and PREVIEW across the cover — so it can't be published. $19 removes both.
   - *How much will I earn?* The tool shows printing cost and royalty live, and there's a full royalty calculator on the site.
   - *Is my word list uploaded?* No. Generation and PDF rendering are entirely client-side.
@@ -167,6 +168,10 @@ Me (Monday, before the 6:30pm reminder):
   launch day; it is a slow channel anyway.
 - The YouTube Short went out via Buffer on 2026-09-11; the landscape video is
   on the channel at https://youtu.be/ph6q2ih6cBs.
+- Support answers for every likely email are in `app/marketing/support.md`,
+  including how to issue a refund in Stripe (ten seconds) and what the common
+  KDP rejection messages actually mean. Read it before launch day; do not
+  draft replies at 7am.
 - Stripe checkout has been walked in a real browser against the live link:
   "Puzzle Press Unlimited", $19.00, no sandbox badge, unit label cleared. It is
   ready. (`npm run test:livecheckout` re-checks it without charging anything.)

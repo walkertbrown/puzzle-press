@@ -65,4 +65,4 @@ Delete the last paragraph. But HN in particular will ask, and finding out later 
 > No — generation and PDF rendering happen in the browser. There's a test in the repo that watches the network during a download and fails if anything but the unlock email leaves the page.
 
 **"Price?"**
-> Free with a footer line and a PREVIEW cover; $19 once removes both. No subscription, no account — the unlock is tied to the Stripe email.
+> Free with a footer line and a PREVIEW cover; $19 once removes both. No subscription, no account — the unlock is tied to the Stripe email. 30-day refund, no questions, though you can make the entire book free first so you should not need one.
