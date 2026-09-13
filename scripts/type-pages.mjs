@@ -164,7 +164,7 @@ const pages = {
 };
 
 pages["criss-cross-book-generator"] = {
-  title: "Criss-Cross (Word Fill-In) Puzzle Book Generator for KDP — Unique Fill Guaranteed",
+  title: "Criss-Cross (Word Fill-In) Book Generator for KDP",
   description: `Make a criss-cross / word fill-in puzzle book for Amazon KDP: crossword-shaped grids with the word list given, ${CRISSCROSS_DIFFICULTY.easy.words} to ${CRISSCROSS_DIFFICULTY.expert.words} words, every puzzle verified to have exactly one fill, solutions included, print-ready PDF and cover. Free to use.`,
   h1: "Criss-cross (word fill-in) book generator for Amazon KDP",
   lede: "Fill-in puzzles — the crossword grid with the word list printed instead of clues — as a complete paperback: graded easy to expert, every grid verified to have exactly one way to fill it, solutions at the back, plus the matching cover. Free to use; the free book is watermarked.",

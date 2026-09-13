@@ -31,6 +31,7 @@
     "test:typepages": "node test/typepages.mjs",
     "test:margin": "node test/margin.mjs",
     "test:links": "node test/links.mjs",
+    "test:seo": "node test/seo.mjs",
     "test:crisscross": "node test/crisscross-live.mjs",
     "test:crossword": "node test/crossword-live.mjs",
     "test:kidsudoku": "node test/kidsudoku.mjs",
