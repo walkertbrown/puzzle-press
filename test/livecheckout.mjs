@@ -11,7 +11,7 @@
 import { chromium } from "playwright";
 import { readFileSync } from "node:fs";
 export const SELFTEST_PREFIX = "selftest-";
-const base = process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev";
+const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport: { width: 1280, height: 1000 } });
 const p = await ctx.newPage();

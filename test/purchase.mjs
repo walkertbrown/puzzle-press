@@ -9,7 +9,7 @@ import { PDFDocument } from "pdf-lib";
 import { mkdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 
-const base = process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev";
+const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
 const email = `pp-test-${Date.now()}@bananafest-destiny.com`;
 const out = new URL("../samples/browser/", import.meta.url);
 mkdirSync(out, { recursive: true });

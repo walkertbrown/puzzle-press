@@ -4,7 +4,7 @@
 import { chromium } from "playwright";
 import { TRIMS, PT, pageGeometry } from "../src/pdf/kdp.js";
 
-const base = (process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev").replace(/\/$/, "");
+const base = (process.argv[2] || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
 let failed = 0;
 const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } };
 const inch = (n) => `${(Math.round(n * 1000) / 1000).toString()}"`;

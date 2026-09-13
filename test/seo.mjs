@@ -2,7 +2,7 @@
 // whose main channel is search cannot afford a canonical pointing at the
 // wrong URL or two pages claiming the same title — and neither is visible
 // by looking at the pages.
-const base = (process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev").replace(/\/$/, "");
+const base = (process.argv[2] || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
 const SITE = "https://puzzlepress.bananafest-destiny.com";
 let failed = 0;
 const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } };
@@ -69,7 +69,53 @@ for (const img of assets) {
 
 const robots = await (await fetch(`${base}/robots.txt`)).text();
 check(/Sitemap:\s*https:\/\/puzzlepress\.bananafest-destiny\.com\/sitemap\.xml/i.test(robots), `robots.txt points at the sitemap: ${robots.slice(0, 120)}`);
-check(!/^\s*Disallow:\s*\/\s*$/im.test(robots), "robots.txt does not disallow the whole site");
+
+// Cloudflare injects a managed block on the custom domain that disallows named
+// AI crawlers (GPTBot, ClaudeBot, Google-Extended and friends) ahead of our own
+// file. Grepping for "Disallow: /" therefore fails on the real site while the
+// real site is perfectly crawlable — so read robots.txt the way a crawler does,
+// group by group, and ask only the question that matters: can the search
+// engines that send buyers reach every page?
+const groups = [];
+for (const line of robots.split("\n")) {
+  const [, field, value] = line.match(/^\s*([a-z-]+)\s*:\s*(.*?)\s*(?:#.*)?$/i) || [];
+  if (!field) continue;
+  const f = field.toLowerCase();
+  if (f === "user-agent") {
+    const last = groups[groups.length - 1];
+    if (last && last.rules.length === 0) last.agents.push(value.toLowerCase());
+    else groups.push({ agents: [value.toLowerCase()], rules: [] });
+  } else if (f === "allow" || f === "disallow") {
+    if (groups.length) groups[groups.length - 1].rules.push([f, value]);
+  }
+}
+// A crawler obeys the most specific group naming it, else the "*" group.
+const groupFor = (ua) =>
+  groups.find((g) => g.agents.includes(ua.toLowerCase())) ?? groups.find((g) => g.agents.includes("*"));
+const blocked = (ua) => {
+  const g = groupFor(ua);
+  if (!g) return false;                                   // no group at all = allowed
+  const match = (v) => v === "/" || v === "";             // we only care about the whole site
+  const dis = g.rules.some(([f, v]) => f === "disallow" && v === "/");
+  const allow = g.rules.some(([f, v]) => f === "allow" && match(v));
+  return dis && !allow;                                   // longest-match: "Allow: /" ties and wins
+};
+// Two sets matter, for different reasons. The search engines send buyers from
+// a results page. The *retrieval* agents are what an assistant uses when a
+// person asks it a question right now — "easiest way to make a KDP word search
+// book" — and it goes and reads pages before answering. Those are a live
+// channel to exactly our buyer, and they are not the training crawlers.
+for (const ua of ["Googlebot", "Bingbot", "DuckDuckBot", "*"]) {
+  check(!blocked(ua), `robots.txt lets ${ua} crawl the site`);
+}
+for (const ua of ["OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "Claude-User", "Claude-SearchBot"]) {
+  check(!blocked(ua), `robots.txt lets ${ua} (live retrieval, not training) reach the site`);
+}
+// Say what is blocked, so a managed list that quietly grows is visible rather
+// than a surprise. Not a failure — see marketing/ai-crawlers.md for the call.
+const denied = groups.filter((g) => g.rules.some(([f, v]) => f === "disallow" && v === "/") && !g.agents.includes("*"))
+  .flatMap((g) => g.agents);
+if (denied.length) console.log(`  robots.txt blocks ${denied.length} named crawler(s): ${denied.join(", ")}`);
 
 console.log(`${pages.length} pages, ${assets.size} share images, ${failed} problem(s)`);
 if (failed) process.exit(1);

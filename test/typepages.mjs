@@ -7,7 +7,7 @@ import { planPages, solutionsPerPageFor, solutionsThatFit } from "../src/pdf/lay
 import { pageGeometry } from "../src/pdf/kdp.js";
 import { printingCost } from "../src/pdf/kdp-cost.js";
 
-const base = (process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev").replace(/\/$/, "");
+const base = (process.argv[2] || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
 const slugs = { "word-search-book-generator": "wordsearch", "sudoku-book-generator": "sudoku", "maze-book-generator": "maze", "criss-cross-book-generator": "crisscross", "crossword-book-generator": "crossword" };
 let failed = 0;
 const check = (ok, msg) => { console.log(`${ok ? "ok  " : "FAIL"} ${msg}`); if (!ok) failed++; };

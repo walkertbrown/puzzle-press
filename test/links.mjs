@@ -1,7 +1,7 @@
 // Every page in the sitemap, plus every internal link and image on each of
 // them, resolves with 200 on the live site. No browser; plain fetches.
 // Run: node test/links.mjs [baseUrl]
-const base = (process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev").replace(/\/$/, "");
+const base = (process.argv[2] || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
 const site = "https://puzzlepress.bananafest-destiny.com";
 const sitemap = await (await fetch(`${base}/sitemap.xml`)).text();
 const pages = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(site, "")).filter((p) => !p.endsWith(".pdf"));

@@ -1,7 +1,7 @@
 import { chromium } from "playwright";
 import { PDFDocument } from "pdf-lib";
 import { readFile } from "node:fs/promises";
-const base = process.argv[2];
+const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1280, height: 1000 }, acceptDownloads: true });
 const errs = [];

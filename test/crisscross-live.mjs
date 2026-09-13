@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { planPages, solutionsThatFit, solutionsPerPageFor } from "../src/pdf/layout.js";
 import { pageGeometry } from "../src/pdf/kdp.js";
 
-const base = (process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev").replace(/\/$/, "");
+const base = (process.argv[2] || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
 const tmp = mkdtempSync(join(tmpdir(), "pp-cc-"));
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });

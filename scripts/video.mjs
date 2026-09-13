@@ -15,7 +15,7 @@ import { join } from "node:path";
 import { chromium } from "playwright";
 
 const SHORT = process.argv.includes("--short");
-const base = process.argv.find((a) => a.startsWith("http")) || "https://puzzle-press.walkertbrown.workers.dev";
+const base = process.argv.find((a) => a.startsWith("http")) || "https://puzzlepress.bananafest-destiny.com";
 // Landscape: 16:9, tall enough that the sticky preview and its header both fit.
 const [W, H, Z] = SHORT ? [1080, 1920, 2] : [1440, 810, 1];
 const outName = SHORT ? "puzzle-press-short.webm" : "puzzle-press.webm";
