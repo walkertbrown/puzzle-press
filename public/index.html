@@ -41,12 +41,16 @@
   input[type=text], input[type=number], select, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: #fff; color: var(--ink); }
   textarea { min-height: 96px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (min-width: 481px) and (max-width: 800px) { .row { grid-template-columns: 1fr 1fr; } }
   .themes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
   .themes label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; color: var(--ink); }
   .check { display: flex; align-items: center; gap: 10px; margin-top: 6px; min-height: 40px; font-size: 14px; }
   input[type=checkbox] { width: 20px; height: 20px; margin: 0; flex: 0 0 auto; accent-color: var(--accent); }
   .themes label { min-height: 36px; }
   @media (max-width: 800px) {
+    /* A two-up row of selects truncates its labels on a phone ("6" × 9" — most
+       c…"), so rows stack below 420px where the squeeze actually happens. */
+    .row { grid-template-columns: 1fr; }
     header .wide-only { display: none; }
     header { padding: 14px 16px; }
     .hero { padding: 24px 16px 20px; }
