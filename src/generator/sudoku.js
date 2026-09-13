@@ -12,41 +12,59 @@ import { makeRng } from "./rng.js";
 export const SIZE = 9;
 export const CELLS = 81;
 
+// Grid sizes. 9×9 is the book-standard; 6×6 (2×3 boxes) and 4×4 (2×2) are
+// what "sudoku for kids" books are made of.
+export const SUDOKU_SIZES = {
+  9: { size: 9, boxR: 3, boxC: 3, label: "9 × 9 — standard" },
+  6: { size: 6, boxR: 2, boxC: 3, label: "6 × 6 — for kids" },
+  4: { size: 4, boxR: 2, boxC: 2, label: "4 × 4 — for young children" },
+};
+
 // Printed sudoku books quote difficulty by how much is given away. These are
-// the bands the big publishers use, give or take a clue.
+// the bands the big publishers use, give or take a clue. Smaller grids carry
+// proportionally fewer — and even counts only: on a 4×4 or 6×6 there is no
+// centre cell, so symmetric digging removes clues two at a time.
 export const SUDOKU_DIFFICULTY = {
-  easy: { label: "Easy", givens: 40 },
-  medium: { label: "Medium", givens: 32 },
-  hard: { label: "Hard", givens: 28 },
+  easy: { label: "Easy", givens: 40, givens6: 20, givens4: 10 },
+  medium: { label: "Medium", givens: 32, givens6: 16, givens4: 8 },
+  hard: { label: "Hard", givens: 28, givens6: 12, givens4: 6 },
   // 26 is where 180-degree symmetry stops being cheap: 28 clues costs ~14ms a
   // puzzle, 26 costs ~264ms, 24 over a second. 26 is what published "expert"
   // puzzles carry, so it is the honest floor rather than an arbitrary one.
-  expert: { label: "Expert", givens: 26 },
+  expert: { label: "Expert", givens: 26, givens6: 10, givens4: 4 },
 };
+export function givensFor(spec, size) {
+  return size === 6 ? spec.givens6 : size === 4 ? spec.givens4 : spec.givens;
+}
 
-const ROW = (i) => Math.floor(i / SIZE);
-const COL = (i) => i % SIZE;
-const BOX = (i) => Math.floor(ROW(i) / 3) * 3 + Math.floor(COL(i) / 3);
-
-// Precomputed peers: every cell that shares a row, column or box.
-const PEERS = (() => {
+// Geometry per size, with peers precomputed: every cell that shares a row,
+// column or box.
+const GEOM = {};
+export function geometry(size = 9) {
+  if (GEOM[size]) return GEOM[size];
+  const v = SUDOKU_SIZES[size] ?? SUDOKU_SIZES[9];
+  const n = v.size, cells = n * n;
+  const ROW = (i) => Math.floor(i / n);
+  const COL = (i) => i % n;
+  const BOX = (i) => Math.floor(ROW(i) / v.boxR) * (n / v.boxC) + Math.floor(COL(i) / v.boxC);
   const peers = [];
-  for (let i = 0; i < CELLS; i++) {
+  for (let i = 0; i < cells; i++) {
     const set = new Set();
-    for (let j = 0; j < CELLS; j++) {
+    for (let j = 0; j < cells; j++) {
       if (j === i) continue;
       if (ROW(j) === ROW(i) || COL(j) === COL(i) || BOX(j) === BOX(i)) set.add(j);
     }
     peers.push([...set]);
   }
-  return peers;
-})();
+  return (GEOM[size] = { size: n, cells, boxR: v.boxR, boxC: v.boxC, peers });
+}
+const sizeOf = (grid) => Math.round(Math.sqrt(grid.length));
 
-function candidates(grid, i) {
+function candidates(grid, i, g = geometry(sizeOf(grid))) {
   const used = new Set();
-  for (const p of PEERS[i]) if (grid[p]) used.add(grid[p]);
+  for (const p of g.peers[i]) if (grid[p]) used.add(grid[p]);
   const out = [];
-  for (let v = 1; v <= SIZE; v++) if (!used.has(v)) out.push(v);
+  for (let v = 1; v <= g.size; v++) if (!used.has(v)) out.push(v);
   return out;
 }
 
@@ -54,14 +72,15 @@ function candidates(grid, i) {
 // constrained cell first keeps this fast enough to run once per dig.
 export function countSolutions(grid, limit = 2) {
   const work = grid.slice();
+  const g = geometry(sizeOf(grid));
   let found = 0;
 
   const step = () => {
     let best = -1;
     let bestCands = null;
-    for (let i = 0; i < CELLS; i++) {
+    for (let i = 0; i < g.cells; i++) {
       if (work[i]) continue;
-      const c = candidates(work, i);
+      const c = candidates(work, i, g);
       if (c.length === 0) return false; // dead end
       if (!bestCands || c.length < bestCands.length) {
         best = i;
@@ -90,12 +109,13 @@ export function countSolutions(grid, limit = 2) {
 
 export function solve(grid) {
   const work = grid.slice();
+  const g = geometry(sizeOf(grid));
   const step = () => {
     let best = -1;
     let bestCands = null;
-    for (let i = 0; i < CELLS; i++) {
+    for (let i = 0; i < g.cells; i++) {
       if (work[i]) continue;
-      const c = candidates(work, i);
+      const c = candidates(work, i, g);
       if (c.length === 0) return false;
       if (!bestCands || c.length < bestCands.length) {
         best = i;
@@ -115,11 +135,12 @@ export function solve(grid) {
 }
 
 // A complete, valid grid, built by randomised backtracking.
-export function completeGrid(rng) {
-  const grid = new Array(CELLS).fill(0);
+export function completeGrid(rng, size = 9) {
+  const g = geometry(size);
+  const grid = new Array(g.cells).fill(0);
   const fill = (i) => {
-    if (i === CELLS) return true;
-    for (const v of rng.shuffle(candidates(grid, i))) {
+    if (i === g.cells) return true;
+    for (const v of rng.shuffle(candidates(grid, i, g))) {
       grid[i] = v;
       if (fill(i + 1)) return true;
       grid[i] = 0;
@@ -132,9 +153,10 @@ export function completeGrid(rng) {
 }
 
 export function isValidComplete(grid) {
-  if (grid.length !== CELLS || grid.some((v) => v < 1 || v > SIZE)) return false;
-  for (let i = 0; i < CELLS; i++) {
-    for (const p of PEERS[i]) if (grid[p] === grid[i]) return false;
+  const g = geometry(sizeOf(grid));
+  if (grid.length !== g.cells || grid.some((v) => v < 1 || v > g.size)) return false;
+  for (let i = 0; i < g.cells; i++) {
+    for (const p of g.peers[i]) if (grid[p] === grid[i]) return false;
   }
   return true;
 }
@@ -144,13 +166,14 @@ export function isValidComplete(grid) {
 // deep as others, so this reports what it managed rather than pretending.
 function dig(solution, target, rng) {
   const puzzle = solution.slice();
-  let givens = CELLS;
+  const cells = solution.length;
+  let givens = cells;
   // Several passes: a pair that could not be removed early often can be once
   // its neighbours are gone.
   for (let pass = 0; pass < 3 && givens > target; pass++) {
-    for (const i of rng.shuffle(Array.from({ length: CELLS }, (_, k) => k))) {
+    for (const i of rng.shuffle(Array.from({ length: cells }, (_, k) => k))) {
       if (givens <= target) break;
-      const mirror = CELLS - 1 - i;
+      const mirror = cells - 1 - i;
       const savedI = puzzle[i];
       const savedM = puzzle[mirror];
       if (!savedI && !savedM) continue;
@@ -169,21 +192,24 @@ function dig(solution, target, rng) {
   return { puzzle, givens };
 }
 
-export function generateSudoku({ difficulty = "medium", seed = "sudoku" } = {}) {
+export function generateSudoku({ difficulty = "medium", seed = "sudoku", size = 9 } = {}) {
   const spec = SUDOKU_DIFFICULTY[difficulty] ?? SUDOKU_DIFFICULTY.medium;
-  const rng = makeRng(`${seed}|sudoku|${difficulty}`);
+  const n = SUDOKU_SIZES[size] ? Number(size) : 9;
+  const target = givensFor(spec, n);
+  // The 9×9 seed string is unchanged, so every existing book regenerates identically.
+  const rng = makeRng(n === 9 ? `${seed}|sudoku|${difficulty}` : `${seed}|sudoku${n}|${difficulty}`);
 
   // Try whole grids until one digs down to the band. Expert sits close to what
   // 180-degree symmetry allows at all, so this matters most there.
   let best = null;
   for (let attempt = 0; attempt < 12; attempt++) {
-    const solution = completeGrid(rng);
-    const { puzzle, givens } = dig(solution, spec.givens, rng);
+    const solution = completeGrid(rng, n);
+    const { puzzle, givens } = dig(solution, target, rng);
     if (!best || givens < best.givens) best = { puzzle, solution, givens };
-    if (givens <= spec.givens) break;
+    if (givens <= target) break;
   }
 
-  return { puzzle: best.puzzle, solution: best.solution, givens: best.givens, difficulty, seed };
+  return { puzzle: best.puzzle, solution: best.solution, givens: best.givens, difficulty, seed, size: n };
 }
 
 // Published sudoku books are graded: easy at the front, hardest at the back.
@@ -195,13 +221,19 @@ export function gradeFor(index, count, difficulty) {
   return levels[band];
 }
 
+// "Easy" on a 9×9; "6 × 6 · Easy" on the smaller grids, so the page says so.
+function titleFor(level, size) {
+  const label = SUDOKU_DIFFICULTY[level]?.label ?? "Sudoku";
+  return size === 9 ? label : `${size} × ${size} · ${label}`;
+}
+
 // A book's worth, each with its own seed so it is reproducible.
-export function generateSudokuBook({ count = 20, difficulty = "medium", seed = "book" } = {}) {
+export function generateSudokuBook({ count = 20, difficulty = "medium", seed = "book", size = 9 } = {}) {
   const puzzles = [];
   for (let i = 0; i < count; i++) {
     const level = gradeFor(i, count, difficulty);
-    const s = generateSudoku({ difficulty: level, seed: `${seed}|${i}` });
-    puzzles.push({ index: i + 1, title: SUDOKU_DIFFICULTY[level]?.label ?? "Sudoku", kind: "sudoku", ...s });
+    const s = generateSudoku({ difficulty: level, seed: `${seed}|${i}`, size });
+    puzzles.push({ index: i + 1, title: titleFor(level, s.size), kind: "sudoku", ...s });
   }
   return { kind: "sudoku", puzzles, warnings: [] };
 }
@@ -210,14 +242,14 @@ export function generateSudokuBook({ count = 20, difficulty = "medium", seed = "
 // stays alive and can report progress. An expert book is real work — around a
 // quarter of a second per puzzle — and a frozen tab reads as a crash.
 export async function generateSudokuBookAsync(
-  { count = 20, difficulty = "medium", seed = "book" } = {},
+  { count = 20, difficulty = "medium", seed = "book", size = 9 } = {},
   onProgress = null,
 ) {
   const puzzles = [];
   for (let i = 0; i < count; i++) {
     const level = gradeFor(i, count, difficulty);
-    const s = generateSudoku({ difficulty: level, seed: `${seed}|${i}` });
-    puzzles.push({ index: i + 1, title: SUDOKU_DIFFICULTY[level]?.label ?? "Sudoku", kind: "sudoku", ...s });
+    const s = generateSudoku({ difficulty: level, seed: `${seed}|${i}`, size });
+    puzzles.push({ index: i + 1, title: titleFor(level, s.size), kind: "sudoku", ...s });
     if (onProgress) onProgress(i + 1, count);
     await new Promise((r) => setTimeout(r, 0));
   }

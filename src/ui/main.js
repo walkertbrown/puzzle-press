@@ -1,6 +1,6 @@
 import { THEMES } from "../generator/wordlists.js";
 import { generateBook } from "../generator/book.js";
-import { generateSudokuBook, generateSudokuBookAsync, SUDOKU_DIFFICULTY } from "../generator/sudoku.js";
+import { generateSudokuBook, generateSudokuBookAsync, SUDOKU_DIFFICULTY, SUDOKU_SIZES, givensFor } from "../generator/sudoku.js";
 import { generateMazeBook, wallSegments, MAZE_DIFFICULTY } from "../generator/maze.js";
 import { generateCrissCrossBook, CRISSCROSS_DIFFICULTY } from "../generator/crisscross.js";
 import { generateCrosswordBook, CROSSWORD_DIFFICULTY, parseClueLine } from "../generator/crossword.js";
@@ -41,7 +41,7 @@ const $ = (id) => document.getElementById(id);
 const el = {
   title: $("title"), subtitle: $("subtitle"), author: $("author"), trim: $("trim"), count: $("count"), bleed: $("bleed"),
   themes: $("themes"), custom: $("custom"), customTitle: $("customTitle"),
-  wpp: $("wpp"), difficulty: $("difficulty"), size: $("size"), seed: $("seed"), largePrint: $("largePrint"), kind: $("kind"),
+  wpp: $("wpp"), difficulty: $("difficulty"), size: $("size"), seed: $("seed"), largePrint: $("largePrint"), kind: $("kind"), sudokuSize: $("sudokuSize"),
   download: $("download"), downloadCover: $("downloadCover"), coverNote: $("coverNote"), moneyNote: $("moneyNote"), list: $("list"), ink: $("ink"), paper: $("paper"), reshuffle: $("reshuffle"), status: $("status"), tier: $("tier"), warnings: $("warnings"),
   meta: $("meta"), lengthWarn: $("lengthWarn"), page: $("page"), prev: $("prev"), next: $("next"), navLabel: $("navLabel"),
   dialog: $("unlockDialog"), dialogTitle: $("dialogTitle"), dialogLede: $("dialogLede"), buyLine: $("buyLine"), email: $("email"), unlockErr: $("unlockErr"), verify: $("verify"), closeDialog: $("closeDialog"),
@@ -105,12 +105,13 @@ function refreshKind() {
     node.classList.toggle("hidden", wordless || (themed && !node.classList.contains("themed")));
   }
   // Crosswords need a clue per pasted word; say so where the words go in.
+  document.getElementById("sudokuSizeRow").classList.toggle("hidden", kind !== "sudoku");
   el.custom.placeholder = kind === "crossword" ? "harbor — Sheltered place for ships\nreef — Ridge of coral near the surface" : "apple\nbanana\ncherry";
   const opts =
     kind === "crisscross" || kind === "crossword"
       ? { ...Object.fromEntries(Object.entries(CRISSCROSS_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.words} words`])), graded: GRADED_LABEL }
       : kind === "sudoku"
-      ? { ...Object.fromEntries(Object.entries(SUDOKU_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.givens} clues`])), graded: GRADED_LABEL }
+      ? { ...Object.fromEntries(Object.entries(SUDOKU_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${givensFor(v, Number(el.sudokuSize.value) || 9)} clues`])), graded: GRADED_LABEL }
       : kind === "maze"
         ? { ...Object.fromEntries(Object.entries(MAZE_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.w}×${v.h}`])), graded: GRADED_LABEL }
         : WS_DIFFICULTY;
@@ -162,7 +163,7 @@ function settings() {
     count: n(el.count.value, 1, 200, 50),
     wordsPerPuzzle: n(el.wpp.value, 5, 30, 15),
     difficulty: el.difficulty.value,
-    size: el.size.value ? n(el.size.value, 8, 30, 15) : null,
+    size: el.kind.value === "sudoku" ? Number(el.sudokuSize.value) || 9 : el.size.value ? n(el.size.value, 8, 30, 15) : null,
     seed: el.seed.value.trim() || "book",
     pools,
   };
@@ -182,7 +183,7 @@ function regenerate() {
   }
   if (s.kind === "sudoku") {
     // Only a few, and only for the preview — an expert puzzle is real work.
-    book = generateSudokuBook({ count: Math.min(s.count, 3), difficulty: s.difficulty, seed: s.seed });
+    book = generateSudokuBook({ count: Math.min(s.count, 3), difficulty: s.difficulty, seed: s.seed, size: s.size });
     shown = 0;
     showPuzzle();
     showMeta(s);
@@ -384,15 +385,20 @@ function showMaze(p) {
 }
 
 function showSudoku(p) {
+  const n = p.size ?? 9;
+  const boxR = n === 9 ? 3 : 2, boxC = n === 4 ? 2 : 3;
   const grid = document.createElement("div");
   grid.className = "sudoku";
+  grid.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
   p.puzzle.forEach((v, i) => {
     const d = document.createElement("div");
     d.textContent = v || "";
-    const c = i % 9;
-    const r = Math.floor(i / 9);
-    if (c === 2 || c === 5) d.classList.add("br");
-    if (r === 2 || r === 5) d.classList.add("bb");
+    const c = i % n;
+    const r = Math.floor(i / n);
+    if ((c + 1) % boxC === 0 && c < n - 1) d.classList.add("br");
+    if ((r + 1) % boxR === 0 && r < n - 1) d.classList.add("bb");
+    if (c === n - 1) d.classList.add("last-col");
+    if (r === n - 1) d.classList.add("last-row");
     grid.append(d);
   });
   const h = document.createElement("h3");
@@ -580,6 +586,18 @@ for (const id of ["trim", "size", "wpp"]) {
 
 el.kind.addEventListener("change", () => {
   refreshKind();
+  regenerate();
+});
+for (const id of ["9", "6", "4"]) {
+  const v = SUDOKU_SIZES[id];
+  const o = document.createElement("option");
+  o.value = id;
+  o.textContent = v.label;
+  if (id === "9") o.selected = true;
+  el.sudokuSize.append(o);
+}
+el.sudokuSize.addEventListener("change", () => {
+  refreshKind(); // clue counts in the difficulty labels follow the size
   regenerate();
 });
 

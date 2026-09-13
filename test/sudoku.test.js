@@ -3,6 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  givensFor,
   generateSudoku, generateSudokuBook, countSolutions, solve, completeGrid,
   isValidComplete, SUDOKU_DIFFICULTY, CELLS,
 } from "../src/generator/sudoku.js";
@@ -80,4 +81,31 @@ test("a 40-puzzle book is 40 different puzzles, each uniquely solvable", () => {
   assert.equal(book.puzzles.length, 40);
   assert.equal(new Set(book.puzzles.map((p) => p.puzzle.join(""))).size, 40);
   for (const p of book.puzzles) assert.equal(countSolutions(p.puzzle, 2), 1, `puzzle ${p.index}`);
+});
+
+test("4×4 and 6×6 grids: valid boxes, unique solutions, even clue bands reached, 9×9 unchanged", () => {
+  for (const size of [4, 6]) {
+    for (const d of Object.keys(SUDOKU_DIFFICULTY)) {
+      for (let i = 0; i < 3; i++) {
+        const p = generateSudoku({ difficulty: d, seed: `s${i}`, size });
+        assert.equal(p.puzzle.length, size * size);
+        assert.ok(isValidComplete(p.solution), `${size}/${d}: solution invalid`);
+        assert.equal(countSolutions(p.puzzle, 2), 1, `${size}/${d}: not unique`);
+        assert.ok(p.givens <= givensFor(SUDOKU_DIFFICULTY[d], size), `${size}/${d}: ${p.givens} clues, band ${givensFor(SUDOKU_DIFFICULTY[d], size)}`);
+        assert.equal(p.givens % 2, 0, "even grids dig in pairs");
+      }
+    }
+  }
+  // Box check on a 6×6: the 2×3 boxes must each hold 1–6.
+  const six = generateSudoku({ difficulty: "easy", seed: "box", size: 6 }).solution;
+  for (let br = 0; br < 3; br++) for (let bc = 0; bc < 2; bc++) {
+    const vals = [];
+    for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) vals.push(six[(br * 2 + r) * 6 + bc * 3 + c]);
+    assert.deepEqual(vals.sort(), [1, 2, 3, 4, 5, 6]);
+  }
+  const before = generateSudoku({ difficulty: "hard", seed: "same" });
+  const after = generateSudoku({ difficulty: "hard", seed: "same", size: 9 });
+  assert.deepEqual(before.puzzle, after.puzzle);
+  const book = generateSudokuBook({ count: 4, difficulty: "graded", seed: "kb", size: 6 });
+  assert.equal(book.puzzles[0].title, "6 × 6 · Easy");
 });
