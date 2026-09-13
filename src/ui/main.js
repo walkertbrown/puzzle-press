@@ -3,6 +3,17 @@ import { generateBook } from "../generator/book.js";
 import { generateSudokuBook, generateSudokuBookAsync, SUDOKU_DIFFICULTY } from "../generator/sudoku.js";
 import { generateMazeBook, wallSegments, MAZE_DIFFICULTY } from "../generator/maze.js";
 import { generateCrissCrossBook, CRISSCROSS_DIFFICULTY } from "../generator/crisscross.js";
+import { generateCrosswordBook, CROSSWORD_DIFFICULTY, parseClueLine } from "../generator/crossword.js";
+
+// The built-in clue table is 1,400 lines; fetched the first time a crossword
+// is asked for, never for anyone who does not.
+let CLUES = null;
+let cluesLoading = null;
+function loadClues() {
+  if (CLUES) return Promise.resolve(CLUES);
+  cluesLoading ??= import("../generator/clues.js").then((m) => (CLUES = m.CLUES));
+  return cluesLoading;
+}
 import { TRIMS } from "../pdf/kdp.js";
 // pdf-lib and fontkit are about 90% of this bundle and are only needed once
 // somebody actually asks for a file, so they load on the first download
@@ -72,6 +83,7 @@ const DEFAULT_TITLES = {
   sudoku: ["Sudoku", "50 puzzles with solutions"],
   maze: ["Mazes", "50 mazes with solutions"],
   crisscross: ["Animal Fill-In Puzzles", "50 criss-cross puzzles with solutions"],
+  crossword: ["Animal Crosswords", "50 themed crosswords with solutions"],
 };
 let titleEdited = false;
 let subtitleEdited = false;
@@ -88,11 +100,14 @@ function refreshKind() {
   // Sudoku and mazes need no words at all. Criss-cross needs the themes but
   // not the word-search-only knobs (words per puzzle, grid size, large print).
   const wordless = kind === "sudoku" || kind === "maze";
+  const themed = kind === "crisscross" || kind === "crossword";
   for (const node of document.querySelectorAll(".ws-only")) {
-    node.classList.toggle("hidden", wordless || (kind === "crisscross" && !node.classList.contains("themed")));
+    node.classList.toggle("hidden", wordless || (themed && !node.classList.contains("themed")));
   }
+  // Crosswords need a clue per pasted word; say so where the words go in.
+  el.custom.placeholder = kind === "crossword" ? "harbor — Sheltered place for ships\nreef — Ridge of coral near the surface" : "apple\nbanana\ncherry";
   const opts =
-    kind === "crisscross"
+    kind === "crisscross" || kind === "crossword"
       ? { ...Object.fromEntries(Object.entries(CRISSCROSS_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.words} words`])), graded: GRADED_LABEL }
       : kind === "sudoku"
       ? { ...Object.fromEntries(Object.entries(SUDOKU_DIFFICULTY).map(([k, v]) => [k, `${v.label} — ${v.givens} clues`])), graded: GRADED_LABEL }
@@ -123,8 +138,16 @@ function randomSeed() {
 function settings() {
   const pools = [];
   for (const cb of el.themes.querySelectorAll("input:checked")) pools.push(THEMES[cb.value]);
-  const customWords = el.custom.value.split(/[\n,;]+/).map((w) => w.trim()).filter(Boolean);
-  if (customWords.length >= 2) pools.push({ title: el.customTitle.value.trim() || "My Words", words: customWords });
+  // One word per line, or comma-separated; for crosswords a line may carry
+  // its clue after a dash or colon, so lines are split before commas are.
+  const lines = el.custom.value.split(/\n+/).map((l) => l.trim()).filter(Boolean);
+  const parsed = lines.flatMap((l) => {
+    const p = parseClueLine(l);
+    return p.clue ? [p] : l.split(/[,;]+/).map((w) => ({ word: w.trim() })).filter((w) => w.word);
+  });
+  const customWords = parsed.map((p) => p.word);
+  const customClues = Object.fromEntries(parsed.filter((p) => p.clue).map((p) => [p.word.toLowerCase().replace(/[^a-z]/g, ""), p.clue]));
+  if (customWords.length >= 2) pools.push({ title: el.customTitle.value.trim() || "My Words", words: customWords, clues: customClues });
   const n = (v, lo, hi, d) => Math.min(hi, Math.max(lo, parseInt(v, 10) || d));
   return {
     title: el.title.value.trim() || "Word Search",
@@ -176,9 +199,16 @@ function regenerate() {
   }
   // Preview only needs the first few puzzles; the full book is made on download.
   const previewCount = Math.min(s.count, 3);
+  if (s.kind === "crossword" && !CLUES) {
+    el.page.innerHTML = "<p style='color:#5c6470'>Loading clues…</p>";
+    loadClues().then(regenerate);
+    return;
+  }
   book = s.kind === "crisscross"
     ? generateCrissCrossBook({ ...s, count: previewCount })
-    : generateBook({ ...s, count: previewCount });
+    : s.kind === "crossword"
+      ? generateCrosswordBook({ ...s, builtinClues: CLUES, count: previewCount })
+      : generateBook({ ...s, count: previewCount });
   shown = 0;
   showPuzzle();
   showMeta(s);
@@ -230,6 +260,7 @@ function showPuzzle() {
   if (p.kind === "sudoku") return showSudoku(p);
   if (p.kind === "maze") return showMaze(p);
   if (p.kind === "crisscross") return showCrissCross(p);
+  if (p.kind === "crossword") return showCrossword(p);
   const grid = document.createElement("div");
   grid.className = "grid";
   grid.style.gridTemplateColumns = `repeat(${p.size}, 1fr)`;
@@ -293,6 +324,42 @@ function showCrissCross(p) {
   const h = document.createElement("h3");
   h.append(`Puzzle ${p.index}`, Object.assign(document.createElement("span"), { textContent: `${p.title}${p.given.length ? " · " + p.given[0] + " given" : ""}` }));
   el.page.replaceChildren(h, grid, bank);
+  el.navLabel.textContent = `${shown + 1} / ${book.puzzles.length} (preview)`;
+  el.prev.disabled = shown === 0;
+  el.next.disabled = shown >= book.puzzles.length - 1;
+}
+
+function showCrossword(p) {
+  const grid = document.createElement("div");
+  grid.className = "crisscross";
+  grid.style.gridTemplateColumns = `repeat(${p.w}, 1fr)`;
+  grid.style.aspectRatio = `${p.w} / ${p.h}`;
+  for (let r = 0; r < p.h; r++) for (let c = 0; c < p.w; c++) {
+    const d = document.createElement("div");
+    if (p.cells[r][c]) {
+      d.className = "cell";
+      const n = p.numbers[`${r},${c}`];
+      if (n) { const s = document.createElement("i"); s.textContent = n; d.append(s); }
+    }
+    grid.append(d);
+  }
+  const clues = document.createElement("div");
+  clues.className = "clues";
+  for (const [heading, list] of [["Across", p.across], ["Down", p.down]]) {
+    const col = document.createElement("div");
+    const h4 = document.createElement("h4");
+    h4.textContent = heading;
+    col.append(h4);
+    for (const e of list) {
+      const d = document.createElement("div");
+      d.textContent = `${e.num}. ${e.clue} (${e.len})`;
+      col.append(d);
+    }
+    clues.append(col);
+  }
+  const h = document.createElement("h3");
+  h.append(`Puzzle ${p.index}`, Object.assign(document.createElement("span"), { textContent: p.title }));
+  el.page.replaceChildren(h, grid, clues);
   el.navLabel.textContent = `${shown + 1} / ${book.puzzles.length} (preview)`;
   el.prev.disabled = shown === 0;
   el.next.disabled = shown >= book.puzzles.length - 1;
@@ -403,7 +470,9 @@ async function download() {
         ? generateMazeBook({ ...s, count })
         : s.kind === "crisscross"
           ? generateCrissCrossBook({ ...s, count })
-          : generateBook({ ...s, count });
+          : s.kind === "crossword"
+            ? generateCrosswordBook({ ...s, builtinClues: await loadClues(), count })
+            : generateBook({ ...s, count });
     el.warnings.textContent = full.warnings.join("\n");
     el.status.textContent = "Laying out pages…";
     await tick();
@@ -442,7 +511,9 @@ async function downloadCover() {
         ? generateMazeBook({ ...s, count: 1 })
         : s.kind === "crisscross"
           ? generateCrissCrossBook({ ...s, count: 1 })
-          : generateBook({ ...s, count: 1 });
+          : s.kind === "crossword"
+            ? generateCrosswordBook({ ...s, builtinClues: await loadClues(), count: 1 })
+            : generateBook({ ...s, count: 1 });
     const [fonts, { renderCover }] = await Promise.all([loadFonts(), loadPdf()]);
     const bytes = await renderCover({
       title: s.title,

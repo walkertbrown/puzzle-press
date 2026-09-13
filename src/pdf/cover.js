@@ -325,6 +325,13 @@ function defaultBlurb(n, kind) {
       "Perfect for quiet evenings, waiting rooms and long journeys."
     );
   }
+  if (kind === "crossword") {
+    return (
+      `A collection of ${n ? n + " " : ""}themed crosswords with full solutions at the back. ` +
+      "Every answer is clued in plain language — no obscure trivia — and the grids are printed large enough to pencil in. " +
+      "Perfect for quiet evenings, waiting rooms and long journeys."
+    );
+  }
   if (kind === "crisscross") {
     return (
       `A collection of ${n ? n + " " : ""}criss-cross fill-in puzzles with full solutions at the back. ` +
@@ -353,7 +360,7 @@ function defaultWordBlurb(n) {
 function drawMiniGrid(page, puzzle, { x, top, side, font }) {
   if (puzzle.kind === "sudoku") return drawMiniSudoku(page, puzzle, { x, top, side, font });
   if (puzzle.kind === "maze") return drawMiniMaze(page, puzzle, { x, top, side });
-  if (puzzle.kind === "crisscross") return drawMiniCrissCross(page, puzzle, { x, top, side, font });
+  if (puzzle.kind === "crisscross" || puzzle.kind === "crossword") return drawMiniCrissCross(page, puzzle, { x, top, side, font });
   const n = puzzle.size;
   const cell = side / n;
   const size = cell * 0.66;

@@ -32,6 +32,7 @@
     "test:margin": "node test/margin.mjs",
     "test:links": "node test/links.mjs",
     "test:crisscross": "node test/crisscross-live.mjs",
+    "test:crossword": "node test/crossword-live.mjs",
     "video": "node scripts/video.mjs",
     "video:short": "node scripts/video.mjs --short"
   },
