@@ -63,12 +63,24 @@ for (let page = 0, after = null; page < 20; page++) {
   if (!body.has_more || data.length === 0) break;
   after = data[data.length - 1].id;
 }
-const paid = recent.filter((s) => s.payment_status === "paid");
+// test/livecheckout.mjs walks the live Buy link to the card form on every run,
+// and loading a payment link creates a session. Those are mine, not customers.
+// They are shown on their own line rather than dropped: if that number climbs
+// on its own, something is opening checkout with my tag and I want to see it.
+// Before this date nothing was tagged, and every session in the account was
+// one of my own runs — there has never been a real one. Say so, rather than
+// let a wider window (`npm run traffic 72`) show them as customers.
+const TAGGED_SINCE = Date.parse("2026-09-13T22:25:00Z") / 1000;
+const isSelfTest = (s) => s.created < TAGGED_SINCE || String(s.client_reference_id ?? "").startsWith("selftest-");
+const selftests = recent.filter(isSelfTest);
+const real = recent.filter((s) => !isSelfTest(s));
+const paid = real.filter((s) => s.payment_status === "paid");
 const money = paid.reduce((a, s) => a + (s.amount_total ?? 0), 0) / 100;
 
-console.log(`\n  Checkouts started           ${recent.length}`);
+console.log(`\n  Checkouts started           ${real.length}`);
 console.log(`  Checkouts paid              ${paid.length}`);
 console.log(`  Revenue                     $${money.toFixed(2)}`);
+if (selftests.length) console.log(`  (my own test runs ignored:  ${selftests.length})`);
 if (paid.length) {
   console.log("\n  Sales:");
   for (const s of paid) {
@@ -76,7 +88,7 @@ if (paid.length) {
     console.log(`    ${when}  $${((s.amount_total ?? 0) / 100).toFixed(2)}  ${(s.customer_details || {}).email ?? "?"}`);
   }
 }
-if (recent.length && !paid.length) {
+if (real.length && !paid.length) {
   console.log("\n  Someone opened checkout and did not pay. Worth knowing why.");
 }
 // Per-path funnel. The free plan keeps zone analytics for 24 hours, so this
