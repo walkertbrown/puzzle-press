@@ -18,6 +18,7 @@ import { MIN_PAGES, MAX_PAGES } from "../src/pdf/kdp.js";
 import { SUDOKU_DIFFICULTY } from "../src/generator/sudoku.js";
 import { MAZE_DIFFICULTY } from "../src/generator/maze.js";
 import { PRICE_LABEL } from "../src/ui/license.js";
+import { planPages } from "../src/pdf/layout.js";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const files = [];
@@ -129,6 +130,42 @@ test("no page still counts the types wrongly", () => {
     for (const m of patterns.flatMap((re) => [...text.matchAll(re)])) {
       const n = words[m[1].toLowerCase()] ?? Number(m[1]);
       if (n !== total) wrong.push(`${file}: "${m[0]}" but there are ${total} types`);
+    }
+  }
+  assert.deepEqual(wrong, [], `\n${wrong.join("\n")}\n`);
+});
+
+// The two claims a reader can check with a ruler: how many puzzles the free
+// version will make, and what is at the back of the book. Both were wrong on
+// 2026-09-13 — "all hundred puzzles" when the field accepts 200, and "four
+// ruled Notes pages" when a 40-puzzle book (the FAQ's own example) gets five.
+test("the puzzle cap named in the copy is the cap the form enforces", () => {
+  const max = Number(readFileSync(join(ROOT, "public/index.html"), "utf8")
+    .match(/id="count"[^>]*max="(\d+)"/)[1]);
+  const words = { one: 1, two: 2, three: 3, four: 4, five: 5, hundred: 100 };
+  const spell = (n) => (n === 200 ? /\btwo hundred\b/ : new RegExp(`\\b${n}\\b`));
+  const wrong = [];
+  for (const [file, text] of TEXT) {
+    for (const m of text.matchAll(/\ball\s+((?:one|two|three|four|five)\s+)?hundred\s+puzzles\b/gi)) {
+      const n = (words[m[1]?.trim().toLowerCase()] ?? 1) * 100;
+      if (n !== max) wrong.push(`${file}: "${m[0].trim()}" but the form allows ${max}`);
+    }
+  }
+  assert.ok(spell(max), "unreachable");
+  assert.deepEqual(wrong, [], `\n${wrong.join("\n")}\n`);
+});
+
+test("the Notes pages promised at the back are the ones a book really gets", () => {
+  // Four, except where one more is needed to make the count even — so any
+  // copy naming a flat number has to admit the second case.
+  const seen = new Set();
+  for (const n of [24, 40, 41, 50, 60, 100, 200]) seen.add(planPages(n, 4).notes);
+  assert.deepEqual([...seen].sort(), [4, 5], "the layout no longer produces 4-or-5 Notes pages");
+
+  const wrong = [];
+  for (const [file, text] of TEXT) {
+    for (const m of text.matchAll(/\b(four|five|\d+)\s+ruled\s+Notes\s+pages\b[^.]*\./gi)) {
+      if (!/five/i.test(m[0])) wrong.push(`${file}: "${m[0].trim().slice(0, 110)}" — a book can have five`);
     }
   }
   assert.deepEqual(wrong, [], `\n${wrong.join("\n")}\n`);

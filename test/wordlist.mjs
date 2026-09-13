@@ -3,7 +3,7 @@
 // and nothing they typed may vanish from the book without being told.
 import { chromium } from "playwright";
 import { execFileSync } from "node:child_process";
-const base = process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev";
+const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1280, height: 1000 }, acceptDownloads: true });
 const errs = []; p.on("pageerror", (e) => errs.push(String(e)));

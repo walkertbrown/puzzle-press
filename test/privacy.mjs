@@ -3,7 +3,7 @@
 // the unlock check, which carries an email and nothing else.
 import { chromium } from "playwright";
 
-const base = process.argv[2] || "http://127.0.0.1:8792";
+const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
 const SECRET = "ZZQXVWKJPL"; // a word that appears nowhere except what we type
 
 const b = await chromium.launch();

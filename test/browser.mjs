@@ -5,7 +5,7 @@ import { chromium } from "playwright";
 import { PDFDocument } from "pdf-lib";
 import { mkdirSync, writeFileSync } from "node:fs";
 
-const base = process.argv[2] || "http://127.0.0.1:8787";
+const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
 const out = new URL("../samples/browser/", import.meta.url);
 mkdirSync(out, { recursive: true });
 

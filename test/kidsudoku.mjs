@@ -8,7 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { SUDOKU_DIFFICULTY, givensFor } from "../src/generator/sudoku.js";
 
-const base = (process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev").replace(/\/$/, "");
+const base = (process.argv[2] || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
 const tmp = mkdtempSync(join(tmpdir(), "pp-kid-"));
 let failed = 0;
 const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } };

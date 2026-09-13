@@ -4,7 +4,7 @@
 import { chromium } from "playwright";
 import { readFileSync } from "node:fs";
 
-const base = process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev";
+const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
 const creds = readFileSync(new URL("../../.git-credentials", import.meta.url), "utf8");
 const STRIPE = (creds.match(/^STRIPE_KEY=(.*)$/m) || [])[1]?.trim();
 

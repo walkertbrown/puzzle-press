@@ -93,7 +93,7 @@ the vertical Short (`npm run video:short`) went out via Buffer the same day.
 >
 > The hard part was never the puzzle. It's the book. KDP bounces manuscripts for boring reasons: the inside margin has to get wider as the book gets thicker, fonts have to be embedded, there's a 24-page minimum, the page count has to be even. Get one wrong and you're back in the upload queue.
 >
-> Puzzle Press does the whole book. Pick word search, sudoku, mazes, criss-cross fill-ins or themed crosswords and a trim size, and you get a PDF with the puzzles, a solutions section and page numbers — margins, gutter, bleed and embedded fonts already correct. Every book has the same shape: title page, copyright page, the puzzles, a Solutions divider, the answers packed as tightly as the page allows, and four ruled Notes pages at the back.
+> Puzzle Press does the whole book. Pick word search, sudoku, mazes, criss-cross fill-ins or themed crosswords and a trim size, and you get a PDF with the puzzles, a solutions section and page numbers — margins, gutter, bleed and embedded fonts already correct. Every book has the same shape: title page, copyright page, the puzzles, a Solutions divider, the answers packed as tightly as the page allows, and four ruled Notes pages at the back (five where one is needed to make the count even).
 >
 > Then it makes the cover, which is the part I expected to be easy and wasn't. A paperback spine is page count times paper thickness, so the cover can't be designed until the interior exists. Puzzle Press already knows the page count, because it just made the book — so the wrap comes out at the exact size, spine included, barcode area left clear. (Two of the top-ranked KDP spine calculators online add 0.06" to that number. Amazon's own documentation doesn't. That 0.06" is a hardcover rule, and it will get your cover rejected.)
 >
@@ -110,7 +110,7 @@ the vertical Short (`npm run video:short`) went out via Buffer the same day.
 >
 > There's also a large-print mode, which is the biggest sub-niche in puzzle books — one checkbox sets the trim and the word count so the letters come out around 23pt.
 >
-> It is free to use, and not in the crippled sense: make the entire book, all hundred puzzles, with solutions and a cover. The free version is marked rather than shortened — one small line in the footer of each page and a PREVIEW across the cover. $19 once removes both marks, forever. No account, no subscription, and nothing you type ever leaves your browser.
+> It is free to use, and not in the crippled sense: make the entire book, all two hundred puzzles if you want them, with solutions and a cover. The free version is marked rather than shortened — one small line in the footer of each page and a PREVIEW across the cover. $19 once removes both marks, forever. No account, no subscription, and nothing you type ever leaves your browser.
 >
 > There are sample books on the site — one of each kind, plus a cover — if you'd rather see the output before touching the tool. Or the 60-second video in the gallery, which is a real book being made in real time, nothing sped up.
 >

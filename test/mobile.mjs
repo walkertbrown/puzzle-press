@@ -10,7 +10,7 @@ import { join } from "node:path";
 
 // Args in any order: a base URL and/or a Playwright device name.
 const args = process.argv.slice(2);
-const base = (args.find((a) => a.startsWith("http")) || "https://puzzle-press.walkertbrown.workers.dev").replace(/\/$/, "");
+const base = (args.find((a) => a.startsWith("http")) || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
 const tmp = mkdtempSync(join(tmpdir(), "pp-mob-"));
 let failed = 0;
 const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } };

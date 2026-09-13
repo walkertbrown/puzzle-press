@@ -7,7 +7,7 @@ import { chromium } from "playwright";
 import { THEMES } from "../src/generator/wordlists.js";
 import { findOccurrences } from "../src/generator/wordsearch.js";
 
-const base = (process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev").replace(/\/$/, "");
+const base = (process.argv[2] || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
 let failed = 0;
 const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } };
 

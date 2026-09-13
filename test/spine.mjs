@@ -1,7 +1,7 @@
 // The calculator must agree with the PDF the generator actually produces,
 // or it is worse than not existing.
 import { chromium } from "playwright";
-const base = process.argv[2];
+const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1280, height: 1000 } });
 const errs = [];

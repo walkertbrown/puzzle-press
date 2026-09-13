@@ -1,7 +1,7 @@
 // The royalty page, and the royalty line inside the tool, must agree with
 // each other and with KDP's published rates.
 import { chromium } from "playwright";
-const base = process.argv[2] || "https://puzzle-press.walkertbrown.workers.dev";
+const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1280, height: 1000 } });
 const errs = [];
