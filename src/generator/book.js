@@ -73,16 +73,32 @@ export function generateBook({
       }
     }
 
-    // Draw a subset with no nested pairs, not used before in this book.
+    // Draw a subset with no nested pairs, not used before in this book. After
+    // 25 collisions we take the repeat rather than loop for ever — but we say
+    // so, because "every puzzle has its own word set" is a promise on the
+    // page. The up-front C(n,k) warning catches most of this; it counts the
+    // raw pool, while nesting makes the real number of usable subsets smaller,
+    // so a book can still get here without having been warned.
     let chosen = null;
+    let forcedRepeat = false;
     for (let attempt = 0; attempt < 25; attempt++) {
       const candidate = drawSubset(rng.shuffle(pool.words), take).sort();
       const key = candidate.join(",");
-      if (!seenSets.has(key) || attempt === 24) {
+      if (!seenSets.has(key)) {
         seenSets.add(key);
         chosen = candidate;
         break;
       }
+      if (attempt === 24) {
+        chosen = candidate;
+        forcedRepeat = true;
+      }
+    }
+    if (forcedRepeat && !warnings.some((w) => w.startsWith(REPEAT_WARNING))) {
+      warnings.push(
+        `${REPEAT_WARNING} — "${pool.title}" ran out of different word lists, so some puzzles repeat one. ` +
+          "Add more words, lower words per puzzle, or make a shorter book.",
+      );
     }
 
     const level = gradeFor(i, count, difficulty);
@@ -101,6 +117,8 @@ export function generateBook({
 
   return { puzzles, warnings };
 }
+
+export const REPEAT_WARNING = "Some puzzles share a word list";
 
 // How many different word lists a pool can produce, i.e. C(n, k), stopped
 // early once it exceeds `cap` so a big pool never overflows.

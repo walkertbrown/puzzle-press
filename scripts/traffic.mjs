@@ -45,13 +45,24 @@ console.log(`\nPuzzle Press — last ${hours}h (since ${since})\n`);
 console.log(`  Worker invocations          ${w.requests}   (config.js, /api, and 404s on both hosts — not page views)`);
 console.log(`  Errors                      ${w.errors}${w.errors ? "   <-- look at these" : ""}`);
 
-// Money. The only source of truth for a sale.
-const res = await fetch("https://api.stripe.com/v1/checkout/sessions?limit=100", {
-  headers: { authorization: `Bearer ${STRIPE}` },
-});
-const sessions = (await res.json()).data ?? [];
-const cutoff = Date.now() / 1000 - hours * 3600;
-const recent = sessions.filter((s) => s.created >= cutoff);
+// Money. The only source of truth for a sale. Ask Stripe for the window
+// itself rather than the newest hundred and filtering — on a good day a
+// hundred sessions is less than a day, and the dashboard would quietly
+// under-report exactly when it mattered most.
+const cutoff = Math.floor(Date.now() / 1000 - hours * 3600);
+const recent = [];
+for (let page = 0, after = null; page < 20; page++) {
+  const q = new URLSearchParams({ limit: "100", "created[gte]": String(cutoff) });
+  if (after) q.set("starting_after", after);
+  const res = await fetch(`https://api.stripe.com/v1/checkout/sessions?${q}`, {
+    headers: { authorization: `Bearer ${STRIPE}` },
+  });
+  const body = await res.json();
+  const data = body.data ?? [];
+  recent.push(...data);
+  if (!body.has_more || data.length === 0) break;
+  after = data[data.length - 1].id;
+}
 const paid = recent.filter((s) => s.payment_status === "paid");
 const money = paid.reduce((a, s) => a + (s.amount_total ?? 0), 0) / 100;
 
