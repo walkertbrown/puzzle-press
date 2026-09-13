@@ -52,6 +52,12 @@
        c…"), so rows stack below 420px where the squeeze actually happens. */
     .row { grid-template-columns: 1fr; }
     header .wide-only { display: none; }
+    /* On a phone the first screen is about 630px tall and the header was
+       spending a fifth of it repeating the hero's first sentence. The strap
+       stays in the HTML — it is the page's plain-English summary for a crawler
+       and for a wide screen — but a person holding a phone gets the headline
+       and the button instead. */
+    header p { display: none; }
     header { padding: 14px 16px; }
     .hero { padding: 24px 16px 20px; }
     main { padding: 16px; gap: 16px; }
@@ -112,8 +118,20 @@
 
   /* Hero */
   .hero { background: var(--card); border-bottom: 1px solid var(--line); padding: 40px 24px 32px; }
+  /* Three children — copy, shot, ticks — rather than the ticks living inside
+     the copy. On a wide screen that changes nothing visible (the ticks were
+     already a row under the copy; now they run the full width). On a phone,
+     where the grid collapses to one column, it puts the picture of a real
+     printed page directly under the buttons instead of below eight lines of
+     feature ticks — one flick from the top rather than a screen and a half. */
   .hero-inner { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 1.15fr 1fr; gap: 40px; align-items: center; }
-  @media (max-width: 860px) { .hero-inner { grid-template-columns: 1fr; gap: 24px; } }
+  .hero-copy { grid-column: 1; }
+  .hero-shot { grid-column: 2; }
+  .hero-inner .trust { grid-column: 1 / -1; margin: 0; }
+  @media (max-width: 860px) {
+    .hero-inner { grid-template-columns: 1fr; gap: 24px; }
+    .hero-copy, .hero-shot, .hero-inner .trust { grid-column: 1; }
+  }
   .hero h2 { margin: 0 0 12px; font-size: clamp(26px, 3.6vw, 40px); line-height: 1.15; letter-spacing: -0.02em; }
   .hero .lede { margin: 0 0 18px; font-size: 17px; color: var(--muted); max-width: 60ch; }
   .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
@@ -167,30 +185,32 @@
 
 <section class="hero">
   <div class="hero-inner">
-    <div>
+    <div class="hero-copy">
       <h2>A finished KDP puzzle book, in about a minute.</h2>
-      <p class="lede">Pick word search, sudoku, mazes, criss-cross fill-ins or themed crosswords, choose a trim size, and Puzzle Press lays out the whole paperback interior — puzzles, solutions, page numbers — as one PDF that meets Amazon KDP's manuscript rules. Then it makes the matching cover, with the spine measured from the page count of the book it just built. No sign-up, nothing to install.</p>
+      <p class="lede">Pick word search, sudoku, mazes, criss-cross fill-ins or crosswords, and a trim size. Out comes the whole paperback — puzzles, solutions, page numbers and a matching cover — as PDFs that meet Amazon KDP's manuscript rules. No sign-up, nothing to install.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="#tool">Make a book free</a>
         <a class="btn btn-ghost" href="samples/sample-6x9.pdf" target="_blank" rel="noopener">See a finished book (PDF)</a>
-        <a class="btn btn-ghost" href="samples/sample-cover-6x9.pdf" target="_blank" rel="noopener">…and its cover</a>
-        <span class="note">Also: <a href="samples/sample-sudoku-6x9.pdf" target="_blank" rel="noopener">sudoku sample</a> · <a href="samples/sample-maze-6x9.pdf" target="_blank" rel="noopener">maze sample</a> · <a href="samples/sample-crisscross-6x9.pdf" target="_blank" rel="noopener">fill-in sample</a> · <a href="samples/sample-crossword-6x9.pdf" target="_blank" rel="noopener">crossword sample</a></span>
+        <span class="note">More samples: <a href="samples/sample-cover-6x9.pdf" target="_blank" rel="noopener">its cover</a> · <a href="samples/sample-sudoku-6x9.pdf" target="_blank" rel="noopener">sudoku</a> · <a href="samples/sample-maze-6x9.pdf" target="_blank" rel="noopener">maze</a> · <a href="samples/sample-crisscross-6x9.pdf" target="_blank" rel="noopener">fill-in</a> · <a href="samples/sample-crossword-6x9.pdf" target="_blank" rel="noopener">crossword</a></span>
         <span class="note">Free: a full-length book, watermarked. $19 once removes the mark.</span>
       </div>
-      <ul class="trust">
+    </div>
+    <div class="hero-shot">
+      <picture>
+        <source srcset="hero-book.webp" type="image/webp">
+        <img src="hero-book.jpg" width="1200" height="840" alt="A page from a generated word search book beside its solutions page" loading="eager" fetchpriority="high" decoding="async">
+      </picture>
+    </div>
+    <ul class="trust">
         <li>Word search, sudoku, mazes, fill-ins &amp; crosswords</li>
         <li>32 word-search themes, or your own list</li>
-        <li>Interior <em>and</em> cover</li>
+        <li>Matching cover, spine sized to your page count</li>
         <li>Large print option</li>
         <li>KDP trim sizes &amp; gutter margins</li>
         <li>Fonts embedded</li>
         <li>Solutions included</li>
         <li>Your words stay in your browser</li>
       </ul>
-    </div>
-    <div class="hero-shot">
-      <img src="hero-book.jpg" width="1000" height="700" alt="A page from a generated word search book beside its solutions page" loading="eager">
-    </div>
   </div>
 </section>
 
