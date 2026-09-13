@@ -49,33 +49,61 @@ async function verify(request, env) {
   }
 
   const headers = { authorization: `Bearer ${env.STRIPE_KEY}` };
-  const sessions = async (params) => {
+  const sessions = async (params, startingAfter = null) => {
     const q = new URLSearchParams({ status: "complete", limit: "100", ...params });
+    if (startingAfter) q.set("starting_after", startingAfter);
     const res = await fetch(`https://api.stripe.com/v1/checkout/sessions?${q}`, { headers });
     if (!res.ok) throw new Error("stripe");
-    return (await res.json()).data || [];
+    const body = await res.json();
+    return { data: body.data || [], hasMore: Boolean(body.has_more) };
   };
   const isPaidFor = (s) =>
     s.payment_status === "paid" && ((s.customer_details || {}).email || "").toLowerCase() === email;
 
   let paid = null;
+  let ranOut = false;
   try {
-    // Exact filter first, as typed and lowercased — cheap and usually enough.
+    // Exact filter first, as typed and lowercased — one call, and enough for
+    // anyone who types their email the way they typed it at checkout.
     for (const candidate of [...new Set([typed, email])]) {
-      const found = await sessions({ "customer_details[email]": candidate });
-      paid = found.find(isPaidFor);
+      const { data } = await sessions({ "customer_details[email]": candidate });
+      paid = data.find(isPaidFor);
       if (paid) break;
     }
-    // Stripe's filter is exact, so John@Gmail.com at checkout and john@gmail.com
-    // here would otherwise be "no payment found". Scan recent completed
-    // sessions and compare case-insensitively before saying no.
-    if (!paid) paid = (await sessions({})).find(isPaidFor);
+    // Stripe's filter is exact, so John@Gmail.com at checkout and
+    // john@gmail.com here would otherwise be "no payment found". Fall back to
+    // a case-insensitive scan of completed sessions, newest first, PAGED —
+    // one page of 100 would quietly stop finding older buyers as soon as
+    // there are more than a hundred sales. MAX_SCAN_PAGES keeps this inside
+    // a Worker's subrequest budget (50 per request on the free plan); at 100
+    // sessions a page that reaches 2,000 payments back.
+    const MAX_SCAN_PAGES = 20;
+    if (!paid) {
+      let after = null;
+      for (let page = 0; page < MAX_SCAN_PAGES; page++) {
+        const { data, hasMore } = await sessions({}, after);
+        paid = data.find(isPaidFor);
+        if (paid || !hasMore || data.length === 0) break;
+        after = data[data.length - 1].id;
+        // Every page but the last was full and had no match; if we hit the cap
+        // with more still to come, say so rather than implying they never paid.
+        if (page === MAX_SCAN_PAGES - 1) ranOut = true;
+      }
+    }
   } catch {
     return json({ ok: false, error: "Could not reach the payment provider. Try again in a minute." }, 502);
   }
 
   if (!paid) {
-    return json({ ok: false, error: "No completed payment found for that email. Use the exact email from your Stripe receipt." }, 404);
+    return json(
+      {
+        ok: false,
+        error: ranOut
+          ? "We could not find that payment automatically. Email support@bananafest-destiny.com with the email on your Stripe receipt and we will unlock it by hand."
+          : "No completed payment found for that email. Use the exact email from your Stripe receipt.",
+      },
+      404,
+    );
   }
   return json({ ok: true, email, token: `stripe:${paid.id}` });
 }
