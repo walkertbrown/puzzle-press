@@ -44,7 +44,7 @@ Delete the last paragraph. But HN in particular will ask, and finding out later 
 ## Replies you will need (paste and adapt)
 
 **"Why not just use Book Bolt / Canva / a free generator?"** — expect this to be the top comment. Answer it early and concede the true part first.
-> Fair question, and for a lot of people the free ones are the right answer. PuzzleForge, for instance, is genuinely free, no account, no watermark, six puzzle types, and bulk-generates up to 50 puzzles with answer keys. If you don't need a cover and don't mind assembling the interior, use it.
+> Fair question, and for a lot of people the free ones are the right answer. PuzzleForge, for instance, is genuinely free, no account, no watermark, covers six types to our five (they have scrambles and hangman; we have criss-cross fill-ins and clued crosswords), and bulk-generates up to 50 puzzles with answer keys. If you don't need a cover and don't mind assembling the interior, use it.
 >
 > What it doesn't do — by its own FAQ — is make a book. "Save PDF" opens a print window and tells you to pick "Save as PDF" as the printer, so you get puzzle pages: no title page, no copyright page, no page numbers, no inside margin scaled to page count and swapping sides by parity, no even page count, and no cover at all. That last one is the wall people hit: the spine width depends on the page count of the book you just made, so the cover can't exist until the interior is final.
 >
