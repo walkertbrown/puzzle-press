@@ -189,6 +189,7 @@ Me (Monday, before the 6:30pm reminder):
   - *What about large print?* There's a Large print checkbox — 8.5×11, fewer words per grid, ~23pt letters. Note it moves you to large trim, which costs more per page to print; the royalty line in the tool shows that as it happens.
   - *What if I pay and it is not what I expected?* 30-day refund, no questions, email support@bananafest-destiny.com. The free version makes the whole book first, so you can check the output before paying.
   - *Why is it free? What's the catch?* No catch: the free book is complete but watermarked — a footer line on each page and PREVIEW across the cover — so it can't be published. $19 removes both.
+  - *Is there an account? What happens when I get a new laptop?* No account and no password — the licence is the email you paid with. On any machine, choose "Already paid? Unlock" next to the price and type that email. You never pay twice.
   - *How much will I earn?* The tool shows printing cost and royalty live, and there's a full royalty calculator on the site.
   - *Is my word list uploaded?* No. Generation and PDF rendering are entirely client-side.
 - Pinterest: five pins are drafted in Buffer but Pinterest is blocking links to
