@@ -10,6 +10,24 @@
     "run_worker_first": ["/config.js", "/api/*"]
   },
   "observability": { "enabled": true },
+  // /api/verify is an unauthenticated POST that spends Stripe read calls —
+  // two today, up to twenty-one once the account holds a couple of thousand
+  // payments. Before this there was no limit of any kind: five rapid curls
+  // from one machine on 2026-09-14 were all served. A loop from one laptop
+  // could burn the free plan's daily Worker budget and push the account into
+  // Stripe's read rate limit, which would break unlock for real buyers on the
+  // one day it matters. Ten tries a minute per IP is far more than a person
+  // fixing a typo needs and far less than a script wants.
+  "unsafe": {
+    "bindings": [
+      {
+        "name": "VERIFY_LIMIT",
+        "type": "ratelimit",
+        "namespace_id": "1001",
+        "simple": { "limit": 10, "period": 60 }
+      }
+    ]
+  },
   // Studio domain. Bananafest Destiny is the studio; products live on subdomains.
   "routes": [{ "pattern": "puzzlepress.bananafest-destiny.com", "custom_domain": true }],
   "workers_dev": true,

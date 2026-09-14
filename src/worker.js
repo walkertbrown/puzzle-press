@@ -36,6 +36,33 @@ function json(obj, status = 200) {
 async function verify(request, env) {
   if (!env.STRIPE_KEY) return json({ ok: false, error: "Checkout is not set up yet." }, 503);
 
+  // Ten tries a minute per address. A buyer fixing a typo needs three; a script
+  // wants thousands, and every one of them spends Stripe read calls on an
+  // endpoint that needs no credentials to reach. The message has to be its own
+  // thing: telling somebody who has genuinely paid "no payment found" because
+  // they pressed the button too often is the worst answer available.
+  //
+  // It is deliberately loose, and it measures looser still. Against production
+  // on 2026-09-14, fourteen sequential curls were all served and thirty in
+  // parallel came back 23 served / 7 throttled — Cloudflare counts per colo and
+  // documents this as best-effort. So it is a brake on a runaway script, not a
+  // gate, and that is the right trade here: the failure I care about is the
+  // Stripe key hitting its own rate limit on launch day, and the failure I
+  // refuse to cause is a real buyer being turned away on their fourth try.
+  const ip = request.headers.get("cf-connecting-ip") || "unknown";
+  if (env.VERIFY_LIMIT) {
+    const { success } = await env.VERIFY_LIMIT.limit({ key: ip });
+    if (!success) {
+      return json(
+        {
+          ok: false,
+          error: "Too many tries in a row. Wait a minute and press Unlock again — nothing is wrong with your payment.",
+        },
+        429,
+      );
+    }
+  }
+
   let typed = "";
   try {
     const body = await request.json();
@@ -115,13 +142,13 @@ async function verify(request, env) {
       {
         ok: false,
         error: ranOut
-          ? "We could not find that payment automatically. Email support@bananafest-destiny.com with the email on your Stripe receipt and we will unlock it by hand."
+          ? "We could not find that payment automatically. Email support@bananafest-destiny.com with the email on your Stripe receipt and we will find it and sort it out by hand."
           // The ordinary way this fails is a buyer typing a different address
           // from the one Stripe has — a work address, a typo, the account
           // their card is under. Without a way out, somebody who has already
           // paid $19 is left at a dead end that says no, so this message ends
           // where the other one does.
-          : "No completed payment found for that email. Use the exact email on your Stripe receipt — if that still does not work, email support@bananafest-destiny.com and we will unlock it by hand.",
+          : "No completed payment found for that email. Use the exact email on your Stripe receipt — if that still does not work, email support@bananafest-destiny.com and we will find it and sort it out by hand.",
       },
       404,
     );
