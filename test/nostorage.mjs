@@ -1,17 +1,22 @@
 // A buyer whose browser refuses site storage — a private window, or cookies
 // turned off. They must still get what they paid for in this tab, and must be
 // told it will not survive a reload, rather than silently losing it.
-import { chromium } from "playwright";
+// Safari is where this actually bites: iOS private browsing is the common way
+// a real person's browser refuses storage, so this walk is worth running on
+// WebKit and not only on Chromium pretending.
+import * as playwright from "playwright";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const base = (process.argv[2] || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
+const args = process.argv.slice(2);
+const base = (args.find((a) => /^https?:\/\//.test(a)) || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
+const ENGINE = args.find((a) => ["chromium", "firefox", "webkit"].includes(a)) || "chromium";
 const tmp = mkdtempSync(join(tmpdir(), "pp-nostore-"));
 let failed = 0;
 const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } };
-const browser = await chromium.launch();
+const browser = await playwright[ENGINE].launch();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
 // Make every localStorage call throw, the way a locked-down browser does.
 await ctx.addInitScript(() => {

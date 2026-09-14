@@ -543,8 +543,23 @@ function openUnlock({ justPaid = false } = {}) {
   }
   el.justPaid = justPaid;
   unlockTried = false;
-  el.dialog.showModal();
+  // <dialog> arrived in Safari 15.4, and an iPad left on an older iOS still
+  // browses. Without showModal the click does nothing whatsoever — no dialog,
+  // no error, no clue — and it is the click where the money is. `open` is the
+  // plain attribute every engine has understood for years: it shows the same
+  // element non-modally, which is worse than a modal and infinitely better
+  // than a button that silently does nothing.
+  if (typeof el.dialog.showModal === "function") el.dialog.showModal();
+  else el.dialog.setAttribute("open", "");
   el.email.focus();
+}
+
+// close() came with showModal(), so an engine missing one is missing both —
+// and a dialog that cannot be shut is a trap on a phone, where there is no
+// Escape key. Same fallback, in reverse.
+function closeUnlock() {
+  if (typeof el.dialog.close === "function") el.dialog.close();
+  else el.dialog.removeAttribute("open");
 }
 
 // ---------- download ----------
@@ -747,7 +762,7 @@ el.prev.addEventListener("click", () => { shown = Math.max(0, shown - 1); showPu
 el.next.addEventListener("click", () => { shown = Math.min(book.puzzles.length - 1, shown + 1); showPuzzle(); });
 el.download.addEventListener("click", download);
 el.downloadCover.addEventListener("click", downloadCover);
-el.closeDialog.addEventListener("click", () => el.dialog.close());
+el.closeDialog.addEventListener("click", closeUnlock);
 
 // The support address is the way out of every refusal here, and on a phone a
 // plain string is not a way out — it is something to memorise and retype.
@@ -779,7 +794,7 @@ el.verify.addEventListener("click", async () => {
     const rec = await verifyEmail(email);
     sessionLicense = rec; // so this tab stays unlocked even if storage is refused
     const stored = setLicense(rec);
-    el.dialog.close();
+    closeUnlock();
     refreshTier(stored ? "" : "storage");
     regenerate();
   } catch (err) {

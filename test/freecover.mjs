@@ -1,8 +1,12 @@
-import { chromium } from "playwright";
+import * as playwright from "playwright";
 import { PDFDocument } from "pdf-lib";
 import { readFile } from "node:fs/promises";
-const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
-const b = await chromium.launch();
+// Args in any order: a base URL and/or an engine. The cover is drawn to a
+// canvas and embedded, which is the most engine-dependent thing the app does.
+const args = process.argv.slice(2);
+const base = args.find((a) => /^https?:\/\//.test(a)) || "https://puzzlepress.bananafest-destiny.com";
+const ENGINE = args.find((a) => ["chromium", "firefox", "webkit"].includes(a)) || "chromium";
+const b = await playwright[ENGINE].launch();
 const p = await b.newPage({ viewport: { width: 1280, height: 1000 }, acceptDownloads: true });
 const errs = [];
 p.on("pageerror", (e) => errs.push(String(e)));
@@ -49,4 +53,4 @@ if (bytes.length <= paid.length) throw new Error("preview cover does not appear 
 if (await p.isVisible("#unlockDialog")) throw new Error("paid users should not get the unlock dialog");
 console.log("page errors:", errs.length ? errs : "none");
 await b.close();
-console.log("FREE COVER OK");
+console.log(`FREE COVER OK — ${ENGINE}`);

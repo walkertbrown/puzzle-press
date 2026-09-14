@@ -2,22 +2,35 @@
 // Land, pick a type, make a real book, open the unlock dialog, make a cover —
 // checking at every step that nothing overflows sideways and every control is
 // big enough to hit with a thumb.
-import { chromium, devices } from "playwright";
+//
+// A device profile is a viewport and a user-agent string, not an engine. Run
+// this on Chromium and "iPhone 13" means a desktop engine in an iPhone's
+// clothes; the puzzle generation, the PDF layout, the font embedding and the
+// download are all still Chromium's. A real iPhone is WebKit. Pass the engine
+// to find out what one actually does.
+import * as playwright from "playwright";
+import { devices } from "playwright";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-// Args in any order: a base URL and/or a Playwright device name.
+// Args in any order: a base URL, a Playwright device name, and/or an engine.
 const args = process.argv.slice(2);
 const base = (args.find((a) => a.startsWith("http")) || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
+const ENGINE = args.find((a) => ["chromium", "firefox", "webkit"].includes(a)) || "chromium";
 const tmp = mkdtempSync(join(tmpdir(), "pp-mob-"));
 let failed = 0;
 const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } };
-const browser = await chromium.launch();
+const browser = await playwright[ENGINE].launch();
 // The narrowest phone still in use, a common modern one, and an Android.
 const DEVICE = args.find((a) => devices[a]) || "iPhone 13";
-const ctx = await browser.newContext({ ...devices[DEVICE], acceptDownloads: true });
+// Firefox refuses isMobile and hasTouch outright, so on that engine the device
+// profile degrades to a viewport and a user-agent. Say so rather than let the
+// run look like it proved something about touch that it did not.
+const profile = { ...devices[DEVICE], acceptDownloads: true };
+if (ENGINE === "firefox") { delete profile.isMobile; delete profile.hasTouch; }
+const ctx = await browser.newContext(profile);
 const page = await ctx.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
@@ -102,4 +115,4 @@ check(errors.length === 0, `no console errors: ${errors.join("; ")}`);
 await browser.close();
 rmSync(tmp, { recursive: true, force: true });
 if (failed) { console.log(`${failed} check(s) failed`); process.exit(1); }
-console.log(`MOBILE OK — ${DEVICE} (${devices[DEVICE].viewport.width}px): a real crossword book and cover made on the phone, nothing overflows or truncates, controls are thumb-sized`);
+console.log(`MOBILE OK — ${ENGINE}, ${DEVICE} (${devices[DEVICE].viewport.width}px): a real crossword book and cover made on the phone, nothing overflows or truncates, controls are thumb-sized`);
