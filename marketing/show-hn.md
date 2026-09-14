@@ -70,5 +70,21 @@ Delete the last paragraph. But HN in particular will ask, and finding out later 
 **"Does it upload my word lists?"**
 > No — generation and PDF rendering happen in the browser. There's a test in the repo that watches the network during a download and fails if anything but the unlock email leaves the page.
 
+**"Is it open source? Where's the repo?"** — four of the replies above say "in
+the repo" without ever linking it. The repo is public (checked unauthenticated
+on 2026-09-14, 200 without a token): https://github.com/walkertbrown/puzzle-press
+It has **no LICENSE file and no `license` field**, which means all rights
+reserved by default. Do not call it open source. Say source-available:
+> The source is public — https://github.com/walkertbrown/puzzle-press — including the generators and the tests I keep pointing at. It isn't open source in the licence sense: there's no LICENSE file on it yet, so legally that's all-rights-reserved. It's there to be read and checked, which is the part that matters for "does it really run in my browser."
+
+**"What stops me editing localStorage and unlocking it for free?"** — somebody
+will open devtools inside two minutes, and getting caught pretending otherwise
+is far worse than answering it first. The honest answer is a good one:
+> Nothing. The licence is an email and a token in localStorage and the token isn't validated — if you know what localStorage is, you can unlock it in about fifteen seconds.
+>
+> That's deliberate, or at least accepted. The alternative is server-side rendering of the PDF, which would mean uploading your word lists, which is the one thing I've promised not to do. Everything happens in your browser, so anything the browser can check, the browser can be told to skip. Locking that down properly costs the privacy claim, and for a $19 one-time tool the people who'd bypass it were never going to pay $19.
+>
+> The one thing it isn't is a flag: the watermark is drawn in the PDF render path, not toggled at the end, so a paid file and a free file are different documents rather than the same document with a property flipped.
+
 **"Price?"**
 > Free with a footer line and a PREVIEW cover; $19 once removes both. No subscription, no account — the unlock is tied to the Stripe email. 30-day refund, no questions, though you can make the entire book free first so you should not need one.

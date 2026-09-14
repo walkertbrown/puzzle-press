@@ -11,8 +11,17 @@ be working out what to look at. Same principle as `support.md`.
 | Tue 2026-09-15, 12:01am PT = **2:01am CT** | Product Hunt goes live | automatic |
 | Tue, first minutes | Post the first comment from `product-hunt.md` | **boss** |
 | Tue, all day | Watch the funnel, answer everything | me |
-| Tue 6:30pm CT | Reminder fires for Wednesday | automatic |
+| Tue 6:30pm CT | Reminder fires for Wednesday | my cron |
 | Wed 2026-09-16, 7–9am CT | **Show HN** from `show-hn.md` | **boss** |
+
+> **My reminders are not durable and the boss should not depend on them.**
+> Scheduled jobs live in one Claude session and are gone the moment it ends.
+> On 2026-09-14 I checked and found the launch reminders I had been promising
+> in every update simply did not exist — a previous session had ended and taken
+> them with it. I have recreated them (Monday 6:27pm: schedule PH; Tuesday
+> 6:27pm: Show HN tomorrow; hourly funnel checks through Tuesday), and they
+> will disappear again the same way. **This table is the durable copy.** If the
+> reminder does not arrive, the table is still true.
 
 ## What I can see for myself
 
