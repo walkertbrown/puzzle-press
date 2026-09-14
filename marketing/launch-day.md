@@ -108,9 +108,10 @@ npx wrangler deployments list       # newest is printed LAST
 npx wrangler rollback <version-id>
 ```
 
-Live as of launch eve: `1c249dd5-6c6a-434c-aa4c-94d0af52657e` (rate limit +
-support wording, 2026-09-14 05:30Z). The version before it is
-`f8de6ce0-2e27-490b-9724-80f2c5ae8a52`. If I deploy anything on launch day I
+Live as of launch eve: `cacf2b59-0587-4427-934b-ed30702c5561` (the `/compare`
+wording fix, 2026-09-14 05:50Z). **Roll back to
+`1c249dd5-6c6a-434c-aa4c-94d0af52657e`** — rate limit + support wording, the
+version this sat on all evening and the one every suite ran green against. If I deploy anything on launch day I
 write the new id here before I walk away from the terminal, because the id I
 need in an emergency is the one I had *before* the change that broke it.
 
