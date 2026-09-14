@@ -100,7 +100,12 @@ async function verify(request, env) {
         ok: false,
         error: ranOut
           ? "We could not find that payment automatically. Email support@bananafest-destiny.com with the email on your Stripe receipt and we will unlock it by hand."
-          : "No completed payment found for that email. Use the exact email from your Stripe receipt.",
+          // The ordinary way this fails is a buyer typing a different address
+          // from the one Stripe has — a work address, a typo, the account
+          // their card is under. Without a way out, somebody who has already
+          // paid $19 is left at a dead end that says no, so this message ends
+          // where the other one does.
+          : "No completed payment found for that email. Use the exact email on your Stripe receipt — if that still does not work, email support@bananafest-destiny.com and we will unlock it by hand.",
       },
       404,
     );

@@ -101,13 +101,19 @@ const WS_DIFFICULTY = {
 const GRADED_LABEL = "Graded — easy to expert";
 
 // Sensible defaults per puzzle type, used until the person types their own.
+// The subtitle counts the puzzles, so it is a template rather than a string:
+// the default used to say "50" whatever the count was, and the count is the
+// most obvious knob on the page. Anyone who moved it off 50 got a title page
+// claiming a number the book did not contain — printed, on Amazon, page one.
 const DEFAULT_TITLES = {
-  wordsearch: ["Animal Word Search", "50 relaxing puzzles with solutions"],
-  sudoku: ["Sudoku", "50 puzzles with solutions"],
-  maze: ["Mazes", "50 mazes with solutions"],
-  crisscross: ["Animal Fill-In Puzzles", "50 criss-cross puzzles with solutions"],
-  crossword: ["Animal Crosswords", "50 themed crosswords with solutions"],
+  wordsearch: ["Animal Word Search", ["relaxing puzzle", "relaxing puzzles"]],
+  sudoku: ["Sudoku", ["puzzle", "puzzles"]],
+  maze: ["Mazes", ["maze", "mazes"]],
+  crisscross: ["Animal Fill-In Puzzles", ["criss-cross puzzle", "criss-cross puzzles"]],
+  crossword: ["Animal Crosswords", ["themed crossword", "themed crosswords"]],
 };
+const defaultSubtitle = ([one, many], count) => `${count} ${count === 1 ? one : many} with solutions`;
+const clampInt = (v, lo, hi, d) => Math.min(hi, Math.max(lo, parseInt(v, 10) || d));
 let titleEdited = false;
 let subtitleEdited = false;
 el.title.addEventListener("input", () => { titleEdited = true; });
@@ -117,9 +123,9 @@ function refreshKind() {
   const kind = el.kind.value;
   // A sudoku book called "Animal Word Search" is what you get if the title
   // does not follow the type. Only touch what the person has not typed.
-  const [t, sub] = DEFAULT_TITLES[kind] ?? DEFAULT_TITLES.wordsearch;
+  const [t, nouns] = DEFAULT_TITLES[kind] ?? DEFAULT_TITLES.wordsearch;
   if (!titleEdited) el.title.value = t;
-  if (!subtitleEdited) el.subtitle.value = sub;
+  if (!subtitleEdited) el.subtitle.value = defaultSubtitle(nouns, clampInt(el.count.value, 1, 200, 50));
   // Sudoku and mazes need no words at all. Criss-cross needs the themes but
   // not the word-search-only knobs (words per puzzle, grid size, large print).
   const wordless = kind === "sudoku" || kind === "maze";
@@ -172,7 +178,7 @@ function settings() {
   const customWords = parsed.map((p) => p.word);
   const customClues = Object.fromEntries(parsed.filter((p) => p.clue).map((p) => [p.word.toLowerCase().replace(/[^a-z]/g, ""), p.clue]));
   if (customWords.length >= 2) pools.push({ title: el.customTitle.value.trim() || "My Words", words: customWords, clues: customClues });
-  const n = (v, lo, hi, d) => Math.min(hi, Math.max(lo, parseInt(v, 10) || d));
+  const n = clampInt;
   return {
     title: el.title.value.trim() || "Word Search",
     subtitle: el.subtitle.value.trim(),
@@ -502,15 +508,24 @@ function refreshTier(note = "") {
         : "");
   } else {
     el.tier.className = "tier";
+    // Two links into the same dialog, because two different people read this
+    // line. Somebody who has already paid — a new laptop, cleared storage, a
+    // month later — saw only "Remove both — $19 one-time", which reads as
+    // being asked to pay a second time. The licence has always been the email
+    // and nothing else, but nothing on the page said where to type it.
     el.tier.innerHTML = `<b>Free:</b> full-length books, with one small line in the footer of every page and a cover marked PREVIEW. ` +
-      `<a href="#" id="unlockLink">Remove both — ${PRICE_LABEL}</a>`;
-    el.tier.querySelector("#unlockLink").addEventListener("click", (e) => {
-      e.preventDefault();
-      openUnlock();
-    });
+      `<a href="#" id="unlockLink">Remove both — ${PRICE_LABEL}</a> · ` +
+      `<a href="#" id="alreadyPaid">Already paid? Unlock</a>`;
+    for (const id of ["unlockLink", "alreadyPaid"]) {
+      el.tier.querySelector(`#${id}`).addEventListener("click", (e) => {
+        e.preventDefault();
+        openUnlock();
+      });
+    }
   }
 }
 
+let unlockTried = false;
 function openUnlock({ justPaid = false } = {}) {
   el.unlockErr.textContent = "";
   el.dialogTitle.textContent = justPaid ? "Thanks — one last step" : "Unlock full books";
@@ -527,6 +542,7 @@ function openUnlock({ justPaid = false } = {}) {
     el.buyLine.textContent = "Checkout is not available yet.";
   }
   el.justPaid = justPaid;
+  unlockTried = false;
   el.dialog.showModal();
   el.email.focus();
 }
@@ -720,6 +736,8 @@ for (const id of ["title", "subtitle", "author", "trim", "paper", "list", "ink",
   el[id].addEventListener("input", debounced);
   el[id].addEventListener("change", debounced);
 }
+// The untouched subtitle counts the puzzles, so it has to follow the count.
+el.count.addEventListener("input", refreshKind);
 el.themes.addEventListener("change", debounced);
 el.reshuffle.addEventListener("click", () => {
   el.seed.value = randomSeed();
@@ -730,10 +748,29 @@ el.next.addEventListener("click", () => { shown = Math.min(book.puzzles.length -
 el.download.addEventListener("click", download);
 el.downloadCover.addEventListener("click", downloadCover);
 el.closeDialog.addEventListener("click", () => el.dialog.close());
+
+// The support address is the way out of every refusal here, and on a phone a
+// plain string is not a way out — it is something to memorise and retype.
+// Built from text nodes rather than innerHTML: the message comes from the
+// server, and it is never worth parsing server text as markup to save a line.
+const SUPPORT = "support@bananafest-destiny.com";
+function showUnlockError(message) {
+  el.unlockErr.textContent = "";
+  const at = message.indexOf(SUPPORT);
+  if (at === -1) {
+    el.unlockErr.textContent = message;
+    return;
+  }
+  const link = document.createElement("a");
+  link.href = `mailto:${SUPPORT}`;
+  link.textContent = SUPPORT;
+  el.unlockErr.append(message.slice(0, at), link, message.slice(at + SUPPORT.length));
+}
+
 el.verify.addEventListener("click", async () => {
   const email = el.email.value.trim();
   if (!email.includes("@")) {
-    el.unlockErr.textContent = "Enter the email you used at checkout.";
+    showUnlockError("Enter the email you used at checkout.");
     return;
   }
   el.verify.disabled = true;
@@ -746,10 +783,19 @@ el.verify.addEventListener("click", async () => {
     refreshTier(stored ? "" : "storage");
     regenerate();
   } catch (err) {
-    el.unlockErr.textContent =
-      el.justPaid && /No completed payment/i.test(err.message)
-        ? "Stripe has not finished recording that payment yet. Give it a few seconds and press Unlock again — your money is fine."
-        : err.message;
+    // Somebody back from Stripe seconds ago can genuinely arrive before the
+    // session is recorded, and telling them their payment does not exist is
+    // the wrong answer. But it is only the right answer once: the other way
+    // to reach this is a buyer typing a different address from the one on
+    // the receipt, and for them "wait a few seconds and press Unlock again"
+    // is true forever, hides the fact that the address is wrong, and never
+    // mentions support. So the reassurance gets one turn, then the real
+    // message — which names both the receipt and a person to email.
+    const race = el.justPaid && !unlockTried && /No completed payment/i.test(err.message);
+    unlockTried = true;
+    showUnlockError(race
+      ? "Stripe has not finished recording that payment yet. Give it a few seconds and press Unlock again — your money is fine."
+      : err.message);
   } finally {
     el.verify.disabled = false;
   }

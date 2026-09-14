@@ -64,6 +64,16 @@ test("an unpaid session for that email is not an unlock", async () => {
   assert.equal((await res.json()).ok, false);
 });
 
+// Somebody who paid with a different address — a work address, a typo, the
+// account their card sits under — meets this message, and it used to end at
+// "no". Every refusal a buyer can reach has to name a way out.
+test("every refusal a buyer can reach names a way out", async () => {
+  stubStripe([[]]);
+  const res = await ask("buyer@example.com");
+  assert.equal(res.status, 404);
+  assert.match((await res.json()).error, /support@bananafest-destiny\.com/);
+});
+
 test("when the scan hits its page cap, the message sends them to support", async () => {
   const pages = Array.from({ length: 25 }, (_, p) => Array.from({ length: 100 }, (_, i) => session(`p${p}_${i}`, `nobody${p}${i}@example.com`)));
   stubStripe(pages);
