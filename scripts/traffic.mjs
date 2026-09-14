@@ -8,6 +8,7 @@
 //
 // Usage: node scripts/traffic.mjs [hoursBack]
 import { readFileSync } from "node:fs";
+import { execFile } from "node:child_process";
 
 const hours = Number(process.argv[2] || 24);
 const creds = readFileSync(new URL("../../.git-credentials", import.meta.url), "utf8");
@@ -102,10 +103,21 @@ const daySince = new Date(Date.now() - 23.5 * 3600e3).toISOString().replace(/\.\
 // machine. Cloudflare tells us which IP it sees us as, so no guessing.
 // Two queries rather than grouping by IP, because grouping truncates once a
 // launch brings thousands of addresses and this has to survive that day.
-const myIp = await fetch("https://puzzlepress.bananafest-destiny.com/cdn-cgi/trace")
-  .then((r) => r.text())
-  .then((t) => (t.match(/^ip=(.*)$/m) || [])[1]?.trim())
-  .catch(() => null);
+//
+// Both address families, and this is not a detail. Node reached the trace
+// endpoint over IPv6 and that is the only address this ever excluded — but
+// Playwright's browsers went out over IPv4, so every book and cover the test
+// suite made was being counted as a stranger doing it. The pre-launch baseline
+// on 2026-09-13 read "4 real browsers, 2 made a book, 3 made a cover"; three of
+// those browsers were WebKit and two iPhone profiles on this machine, and the
+// real number was one person who landed and left. curl picks the family, which
+// fetch() will not.
+const traceIp = (flag) =>
+  new Promise((res) =>
+    execFile("curl", ["-s", flag, "--max-time", "10", "https://puzzlepress.bananafest-destiny.com/cdn-cgi/trace"],
+      (err, out) => res(err ? null : (String(out).match(/^ip=(.*)$/m) || [])[1]?.trim() || null)));
+const myIps = [...new Set((await Promise.all([traceIp("-4"), traceIp("-6")])).filter(Boolean))];
+const myIp = myIps.join(" and ") || null;
 
 const pathCounts = async (extra = "") => {
   const zone = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
@@ -119,7 +131,7 @@ const pathCounts = async (extra = "") => {
 
 try {
   const everyone = await pathCounts();
-  const mine = myIp ? await pathCounts(`, clientIP: "${myIp}"`) : new Map();
+  const mine = myIps.length ? await pathCounts(`, clientIP_in: [${myIps.map((ip) => JSON.stringify(ip)).join(", ")}]`) : new Map();
   const all = [...everyone].map(([path, count]) => ({
     count: count - (mine.get(path) ?? 0),
     dimensions: { clientRequestPath: path },
