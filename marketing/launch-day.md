@@ -108,12 +108,18 @@ npx wrangler deployments list       # newest is printed LAST
 npx wrangler rollback <version-id>
 ```
 
-Live as of launch eve: `cacf2b59-0587-4427-934b-ed30702c5561` (the `/compare`
-wording fix, 2026-09-14 05:50Z). **Roll back to
-`1c249dd5-6c6a-434c-aa4c-94d0af52657e`** — rate limit + support wording, the
-version this sat on all evening and the one every suite ran green against. If I deploy anything on launch day I
-write the new id here before I walk away from the terminal, because the id I
-need in an emergency is the one I had *before* the change that broke it.
+Live as of launch eve: `ff0a350d-882d-4ef5-9d76-60209ed0f9fe` (tap targets for
+the header and hero sample links, 2026-09-14, the last change before the
+freeze). **Roll back to `cacf2b59-0587-4427-934b-ed30702c5561`** — the
+`/compare` wording fix, the version that stood all evening and that every suite
+in the repo ran green against. If that is somehow also bad, the one before it
+is `1c249dd5-6c6a-434c-aa4c-94d0af52657e` (rate limit + support wording).
+
+The tap-target change is CSS inside a `@media (pointer: coarse)` block, so it
+cannot affect a desktop visitor at all — if something looks wrong on a laptop
+tomorrow, it is not this. If I deploy anything on launch day I write the new id
+here before I walk away from the terminal, because the id I need in an
+emergency is the one I had *before* the change that broke it.
 
 Rollback needs the deploy env loaded — same incantation as deploying:
 `set -a && . <(grep -E '^[A-Z_]+=' ../.git-credentials) && set +a`.

@@ -32,6 +32,14 @@
   header h1 { margin: 0; font-size: 20px; letter-spacing: -0.01em; }
   header p { margin: 0; color: var(--muted); }
   header .spacer { flex: 1; }
+  /* Same thumb problem as the hero sample links: on a phone every nav link but
+     "Pricing" is hidden, and "Pricing" is a 22px target in the top-right corner
+     — the hardest place on a phone to hit accurately. The padding is absorbed
+     by a matching negative margin so the header's height and baseline
+     alignment do not move on any screen. */
+  @media (pointer: coarse) {
+    header a { display: inline-block; padding-block: 11px; margin-block: -11px; }
+  }
   main { display: grid; grid-template-columns: minmax(300px, 480px) 1fr; gap: 24px; padding: 24px; max-width: 1280px; margin: 0 auto; }
   @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
@@ -139,6 +147,16 @@
   .hero .lede { margin: 0 0 18px; font-size: 17px; color: var(--muted); max-width: 60ch; }
   .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
   .hero-cta .note { font-size: 13px; color: var(--muted); }
+  /* The sample links sit in a 13px note, so on a phone they are 18px tall —
+     well under the 44px a thumb needs, and close enough together that a miss
+     lands on the neighbour. They matter more than their size suggests: a
+     visitor who has never heard of this opens a sample before trying anything.
+     Grow the tap target without moving the text, and only where there is a
+     thumb, so the desktop layout is untouched. Measured cold from a Product
+     Hunt link on 2026-09-14: 18px before, 44px after. */
+  @media (pointer: coarse) {
+    .hero-cta .note a { display: inline-block; padding-block: 13px; margin-block: -13px; }
+  }
   .btn { display: inline-block; text-decoration: none; font: inherit; font-weight: 600; padding: 12px 20px; border-radius: 8px; border: 1px solid var(--accent); }
   .btn-primary { background: var(--accent); color: var(--accent-ink); }
   .btn-ghost { background: transparent; color: var(--accent); }
