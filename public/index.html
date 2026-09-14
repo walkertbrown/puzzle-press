@@ -169,6 +169,9 @@
   dialog h2 { margin: 0 0 8px; font-size: 18px; }
   dialog p { margin: 6px 0; color: var(--muted); font-size: 14px; }
   .err { color: #b00020; font-size: 13px; min-height: 18px; }
+  /* The support address inside an error is the way out — same red, underlined
+     so it is visibly tappable rather than a string to memorise and retype. */
+  .err a { color: inherit; text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -504,6 +507,7 @@ cherry"></textarea>
       <div>
         <h3>What $19 buys</h3>
         <p>One payment, no subscription: every book you make, with no footer line and the cover without its PREVIEW mark. It is tied to the email you pay with. There is no account to lose and nothing expires.</p>
+        <p>On a new computer, or after clearing your browser? Open the tool and choose <b>Already paid? Unlock</b>, then enter the same email. It works on every device you use, for as long as the payment exists — you never pay twice.</p>
       </div>
       <div>
         <h3>What we store</h3>
