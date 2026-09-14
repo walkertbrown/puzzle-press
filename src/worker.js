@@ -49,10 +49,19 @@ async function verify(request, env) {
   }
 
   const headers = { authorization: `Bearer ${env.STRIPE_KEY}` };
+  // Stripe's address, overridable, and the override is the whole reason the
+  // success path can be tested at all. Until this existed, the only way to make
+  // this function return `ok: true` was for somebody to actually pay $19, so it
+  // never had: a hundred test calls, every one of them an address with no
+  // payment behind it, every one taking the 404 branch. The branch that hands
+  // out licences had never run. STRIPE_API is not set in production and there
+  // is no code path that sets it from a request — it is a binding, so only
+  // somebody who can deploy the Worker can point it anywhere.
+  const api = env.STRIPE_API || "https://api.stripe.com";
   const sessions = async (params, startingAfter = null) => {
     const q = new URLSearchParams({ status: "complete", limit: "100", ...params });
     if (startingAfter) q.set("starting_after", startingAfter);
-    const res = await fetch(`https://api.stripe.com/v1/checkout/sessions?${q}`, { headers });
+    const res = await fetch(`${api}/v1/checkout/sessions?${q}`, { headers });
     if (!res.ok) throw new Error("stripe");
     const body = await res.json();
     return { data: body.data || [], hasMore: Boolean(body.has_more) };

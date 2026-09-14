@@ -1,6 +1,7 @@
 import * as playwright from "playwright";
 import { PDFDocument } from "pdf-lib";
 import { readFile } from "node:fs/promises";
+import { pdfText, COVER_MARK } from "./pdftext.mjs";
 // Args in any order: a base URL and/or an engine. The cover is drawn to a
 // canvas and embedded, which is the most engine-dependent thing the app does.
 const args = process.argv.slice(2);
@@ -29,12 +30,15 @@ await p.waitForSelector("#unlockDialog[open]", { timeout: 10000 });
 console.log("unlock dialog opened after preview: yes");
 await p.click("#closeDialog");
 
-// The mark must actually be in the file.
-const raw = bytes.toString("latin1");
-if (!/PREVIEW/.test(raw) && !/unlock to remove/.test(raw)) {
-  // Text is subset-encoded, so check via the content stream count instead.
-  console.log("note: watermark text not greppable (font subsetting) — checked visually instead");
+// The mark must actually be in the file. This used to grep the bytes, find
+// nothing — the font is subset, so the word is glyph ids in a compressed
+// stream — and print "checked visually instead", which meant it was not
+// checked by anything. Ask an extractor.
+const freeText = await pdfText(f);
+if (!freeText.includes(COVER_MARK)) {
+  throw new Error(`the free cover carries no PREVIEW mark — it is a sellable cover being given away. Extracted: ${JSON.stringify(freeText.slice(0, 200))}`);
 }
+console.log("free cover is marked:", JSON.stringify(freeText.replace(/\s+/g, " ").trim().slice(0, 80)));
 
 // Licensed: no mark.
 await p.evaluate(() => localStorage.setItem("puzzlepress.license", JSON.stringify({ email: "t@e.com", token: "d", verifiedAt: Date.now() })));
@@ -48,8 +52,12 @@ const f2 = new URL("../samples/browser/paid-cover.pdf", import.meta.url).pathnam
 await dl2.saveAs(f2);
 const paid = await readFile(f2);
 console.log("paid cover:", dl2.suggestedFilename(), "| status:", await p.textContent("#status"));
-console.log("preview is larger than paid (extra ink):", bytes.length > paid.length, bytes.length, "vs", paid.length);
-if (bytes.length <= paid.length) throw new Error("preview cover does not appear to carry the extra mark");
+// The mark is gone. File size was standing in for this and is a bad proxy —
+// it would also have passed if the two covers differed by a stray whitespace.
+const paidText = await pdfText(f2);
+if (paidText.includes(COVER_MARK)) throw new Error("the paid cover still carries the PREVIEW mark");
+if (!/Halloween/i.test(paidText)) throw new Error("the extractor read nothing from the paid cover, so 'no mark' proves nothing");
+console.log("paid cover is clean; sizes", bytes.length, "free vs", paid.length, "paid");
 if (await p.isVisible("#unlockDialog")) throw new Error("paid users should not get the unlock dialog");
 console.log("page errors:", errs.length ? errs : "none");
 await b.close();

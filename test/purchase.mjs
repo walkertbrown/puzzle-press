@@ -8,6 +8,7 @@ import { chromium } from "playwright";
 import { PDFDocument } from "pdf-lib";
 import { mkdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
+import { pdfText, WATERMARK } from "./pdftext.mjs";
 
 const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
 const email = `pp-test-${Date.now()}@bananafest-destiny.com`;
@@ -116,9 +117,13 @@ const pdf = await PDFDocument.load(await readFile(path));
 console.log("purchased book:", dl.suggestedFilename(), "pages", pdf.getPageCount(), "|", await site.textContent("#status"));
 if (pdf.getPageCount() < 30) throw new Error("licensed book is too short — cap still applied");
 
-// The watermark is drawn as text; a licensed book must not contain it.
-const raw = (await readFile(path)).toString("latin1");
-if (raw.includes("free preview")) throw new Error("watermark present in a paid book");
+// A licensed book must not carry the watermark. This used to grep the file's
+// bytes for "free preview" and therefore passed on every book ever made,
+// watermarked or not — pdf-lib subsets the font, so the words are glyph ids in
+// a compressed stream and that string is never in the file. Extract the text.
+const text = await pdfText(path);
+if (text.includes(WATERMARK)) throw new Error("watermark present in a paid book");
+if (!/puzzle/i.test(text)) throw new Error("the extractor read nothing, so 'no watermark' means nothing");
 
 // Survives a cold reload (licence persisted, not just in memory).
 await site.reload({ waitUntil: "networkidle" });
