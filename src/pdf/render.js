@@ -5,8 +5,15 @@
 //
 // Page order: title, copyright, puzzles (one per page, starting on a
 // right-hand page), "Solutions" divider on a right-hand page, solutions
-// 4-up, then blank "Notes" pages to reach KDP's 24-page minimum and an even
-// count. Page numbers sit on the outside bottom corner.
+// 4-up, then four ruled "Notes" pages, plus one more if the count would
+// otherwise be odd. Page numbers sit on the outside bottom corner.
+//
+// The Notes pages are NOT padding to KDP's 24-page minimum — this comment said
+// they were, and they stopped being that when layout.js changed to a fixed
+// NOTES_PAGES. A one-puzzle book comes out at 10 pages and stays there. What
+// reaches the minimum is the warning in the UI, which refuses to be quiet
+// below 24 pages and names how many puzzles would fix it. Support answers the
+// "KDP says fewer than 24 pages" email on that basis, so the two have to agree.
 
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";

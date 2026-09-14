@@ -118,11 +118,18 @@ if (!(await ready())) {
 }
 console.log(`worker up on ${BASE}, fake stripe on 127.0.0.1:${PORT_STRIPE}\n`);
 
-const verify = async (email) => {
+// Each call gets its own cf-connecting-ip unless one is named. The Worker keys
+// its rate limit on that header, so without this every case in this file would
+// share one bucket and the later ones would be throttled by the earlier ones —
+// which is exactly what happened the first time. Sending the header is also the
+// more faithful test: a real request always carries it, and Cloudflare sets it
+// at the edge, so a client cannot forge it in production.
+let ipSeq = 0;
+const verify = async (email, ip = `10.0.0.${++ipSeq}`) => {
   calls = [];
   const res = await fetch(`${BASE}/api/verify`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", "cf-connecting-ip": ip },
     body: JSON.stringify({ email }),
   });
   return { status: res.status, body: await res.json(), calls: calls.length };
@@ -254,6 +261,29 @@ await page.reload({ waitUntil: "networkidle" });
 await page.waitForSelector(".grid div");
 check(/Unlocked/.test(await page.textContent("#tier")), "the unlock survives a reload");
 check(errs.length === 0, `no page errors (${errs.slice(0, 2).join(" | ") || "none"})`);
+
+// 8. The rate limit. /api/verify needs no credentials and spends Stripe read
+//     calls, and until 2026-09-14 it had no limit of any kind — five rapid
+//     curls against production were all served. The danger is not the limit
+//     firing, it is what it says when it does: a buyer who has genuinely paid
+//     and pressed the button too many times must not be told there is no
+//     payment. Ten a minute, so eleven in a row is the test.
+console.log("\n8. hammering the endpoint");
+SESSIONS = [session(6, "buyer@example.com")];
+const burst = [];
+for (let i = 0; i < 14; i++) burst.push(await verify(`burst${i}@example.com`, "203.0.113.9"));
+const limited = burst.filter((x) => x.status === 429);
+if (!limited.length) {
+  console.log("  --  no 429s: the ratelimit binding is not active in this runtime, skipping");
+} else {
+  check(burst.slice(0, 10).every((x) => x.status !== 429), "the first ten tries are served");
+  check(limited.length > 0, `the burst is cut off (${limited.length} of 14 got 429)`);
+  check(limited.every((x) => !/No completed payment/.test(x.body.error || "")),
+    "and a throttled buyer is never told their payment does not exist");
+  check(limited.every((x) => /nothing is wrong with your payment/i.test(x.body.error || "")),
+    `they are told to wait (${JSON.stringify(limited[0].body.error).slice(0, 80)})`);
+  check(limited.every((x) => x.calls === 0), "and a throttled request costs no Stripe calls at all");
+}
 
 await browser.close();
 stop();
