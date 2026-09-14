@@ -67,8 +67,12 @@ await page.waitForSelector(".grid div", { timeout: 30000 });
 await noOverflow("landing");
 await noTruncation("landing");
 
-// Every control the flow needs must be a comfortable thumb target (44px is
-// Apple's number and the one the CSS aims at).
+// Every control the *flow* needs must be a comfortable thumb target. The bar
+// here is 36px, not the 44px Apple asks for, and it only looks inside `#tool`
+// — so a green line from this file says nothing about the header or the hero.
+// It said nothing about them on 2026-09-14, when the five hero sample links
+// were 18px tall and this suite passed. `test/coldvisitor.mjs` is the one that
+// holds the whole first screen to 44px.
 const small = await page.$$eval(
   "#tool button, #tool select, #tool input[type=number], #tool input[type=text], .themes label",
   (els) => els.filter((e) => e.getBoundingClientRect().height < 36 && e.offsetParent !== null)
@@ -115,4 +119,4 @@ check(errors.length === 0, `no console errors: ${errors.join("; ")}`);
 await browser.close();
 rmSync(tmp, { recursive: true, force: true });
 if (failed) { console.log(`${failed} check(s) failed`); process.exit(1); }
-console.log(`MOBILE OK — ${ENGINE}, ${DEVICE} (${devices[DEVICE].viewport.width}px): a real crossword book and cover made on the phone, nothing overflows or truncates, controls are thumb-sized`);
+console.log(`MOBILE OK — ${ENGINE}, ${DEVICE} (${devices[DEVICE].viewport.width}px): a real crossword book and cover made on the phone, nothing overflows or truncates, the tool's own controls are thumb-sized (the header and hero links are test/coldvisitor.mjs)`);
