@@ -43,8 +43,14 @@ Delete the last paragraph. But HN in particular will ask, and finding out later 
 
 ## Replies you will need (paste and adapt)
 
-**"Why not just use Book Bolt / Canva / a free generator?"**
-> Fair question; there's a comparison on the site that says when those are the better choice: https://puzzlepress.bananafest-destiny.com/compare. Short version: suites bill monthly and hand you puzzle pages to assemble; free generators make one puzzle. This makes the whole file, checks the puzzles, and is $19 once.
+**"Why not just use Book Bolt / Canva / a free generator?"** — expect this to be the top comment. Answer it early and concede the true part first.
+> Fair question, and for a lot of people the free ones are the right answer. PuzzleForge, for instance, is genuinely free, no account, no watermark, and bulk-generates 50 puzzles with answer keys. If you don't need a cover and don't mind assembling the interior, use it.
+>
+> What it doesn't do — by its own FAQ — is make a book. "Save PDF" opens your browser's print dialog and tells you to pick "Save as PDF" as the printer, so you get puzzle pages: no title page, no copyright page, no page numbers, no padding to KDP's 24-page minimum or an even page count, no inside margin scaled to page count, and no cover at all. That last one is the wall people hit: the spine width depends on the page count of the book you just made.
+>
+> This makes the uploadable file — interior and full-wrap cover, fonts embedded, 6 trims, up to 200 puzzles — and it's free to use with a watermark, $19 once to remove it. Comparison with the free tools named: https://puzzlepress.bananafest-destiny.com/compare
+
+**Do not say** "free generators only make one puzzle." That was true when the compare page was written and is no longer true. Getting a competitor's capabilities wrong on HN costs more than the point is worth, and somebody will check.
 
 **"How do you guarantee one solution / one route / no duplicate words?"**
 > Sudoku: dig clues out in symmetric pairs; before each removal, run a solver that counts solutions with a cap of 2; if it finds 2, keep the pair. Mazes: iterative DFS carve = spanning tree, so the path between any two cells is unique by construction. Word search: after placing words and filling, scan all 8 directions for every word and require exactly one occurrence (two for palindromes); nested words are removed from the list before placement. The generators and tests are in the repo.
