@@ -41,15 +41,46 @@ Most common, and almost always one of three things.
 >
 > The unlock is tied to the email on your Stripe receipt, so:
 >
-> 1. Go to puzzlepress.bananafest-destiny.com and click "Remove both — $19 one-time" (or the Buy button), which opens the unlock box.
-> 2. Enter the email exactly as it appears on your receipt.
+> 1. Go to puzzlepress.bananafest-destiny.com and click "Already paid? Unlock" under the price.
+> 2. Enter the email on your Stripe receipt. Capitals do not matter.
 > 3. Press Unlock.
 >
-> If it says no payment was found, tell me the email on the receipt and I will check it against our records and unlock it by hand. Your payment is safe either way.
+> If it still says no payment was found, forward me the Stripe receipt and I will find the payment and tell you exactly which address it is under. Your payment is safe either way.
+
+Send them to **"Already paid? Unlock"**, not to "Remove both — $19 one-time".
+Both open the same box, but one of them reads as being asked to pay twice, and
+this person has already paid once.
 
 Behind it: `/api/verify` matches case-insensitively and pages back through
-thousands of payments, so a genuine mismatch is rare. If they are in a
-private window the bar will say "This tab only" — see the next one.
+2,000 payments, so a genuine mismatch is rare. If they are in a private window
+the bar will say "This tab only" — see the next one.
+
+**When they are stuck, run the lookup — do not improvise.**
+
+```
+npm run unlock -- jane@example.com      # an email, or part of one
+npm run unlock -- "Jane Smith"          # the name on the card
+npm run unlock -- 4242                  # the card's last four
+npm run unlock -- cs_live_a1b2c3        # session id, straight off the receipt
+npm run unlock -- --recent              # everything from the last 7 days
+```
+
+It is read-only — GETs to Stripe, nothing else — and it prints the reply to
+send. What it is actually doing matters, because it shapes every answer here:
+
+**There is no "unlock it by hand".** A licence is a record in the buyer's own
+browser holding an email and a token, and nothing validates the token. There is
+no licence to issue, no account to flip, no database to write to. So the fix is
+never "I have unlocked it for you" — it is always **"here is the exact address
+Stripe has; type that one."** This file used to promise the other thing, and
+the Worker's error message still says "we will unlock it by hand", which is
+near enough true from the customer's side (a person does sort it out) but is
+not a thing anyone can literally do.
+
+The one case that cannot be fixed: paid, but Stripe holds no email on the
+session. `/api/verify` can never match it. The lookup says so in as many words
+and gives the only honest options — refund and re-buy, or tell them plainly.
+Do not invent an address; the next lookup would not find it either.
 
 ### "It worked, then I reloaded and it was locked again"
 
@@ -71,7 +102,7 @@ Common ones and the true answer:
 |---|---|
 | Page size does not match trim | Bleed was on in the tool but off in KDP's setup, or the other way round. They must match. |
 | Content outside the printable area | Almost never our files — usually the cover was edited afterwards in another tool. |
-| Fewer than 24 pages | The book is too short. The tool warns about this before download; more puzzles fixes it. |
+| Fewer than 24 pages | The book is too short. The tool does warn before download — checked live 2026-09-14: at 1 puzzle it says "10 pages — under KDP's 24-page minimum… About 13 puzzles makes a publishable book." They downloaded past a red warning. More puzzles fixes it; nothing is wrong with the file. |
 | Fonts not embedded | Not our interior — ours embeds and subsets Liberation Sans. If they rebuilt the PDF elsewhere, that is where it happened. |
 | Cover size is wrong | Spine width. Check it against /spine-calculator. Many calculators add 0.06" that Amazon's documentation does not. |
 
@@ -80,9 +111,13 @@ and tell me — a rejection is a bug, not a support ticket.
 
 ### "Can I get an invoice / receipt?"
 
-> Stripe emails a receipt automatically when you pay — check spam for one from Stripe. If you need a proper invoice with a business name and address on it, reply with those details and I will send one.
+> Stripe emails a receipt automatically when you pay — check spam for one from Stripe. If you need it with a business name and address on it, reply with those details and I will send one.
 
-Stripe Dashboard → the payment → "Create invoice" or resend the receipt.
+Receipt emails are switched on for the live account (confirmed 2026-09-13), so
+they have one unless it went to spam. Resending it is Stripe Dashboard → the
+payment → resend receipt. Do not promise a formal tax invoice sight-unseen —
+say the details will be on it and check what the dashboard actually offers
+before committing to a format.
 
 ### "Can I use these books commercially / do I owe you royalties?"
 

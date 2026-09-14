@@ -27,6 +27,8 @@
     "test:livecheckout": "node test/livecheckout.mjs",
     "test:funnel": "node test/funnel.mjs",
     "test:unlock": "node test/unlock.mjs",
+    "test:support": "node test/supportlookup.mjs",
+    "unlock": "node scripts/unlock.mjs",
     "test:pdfcheck": "bash test/pdfcheck.sh",
     "pins": "node scripts/pins.mjs",
     "type-pages": "node scripts/type-pages.mjs",
