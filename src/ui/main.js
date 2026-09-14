@@ -580,6 +580,24 @@ async function download() {
   const lic = getLicense();
   const count = s.count;
   el.download.disabled = true;
+  // Start the downloads now, and do not wait for them. Generating the puzzles
+  // is the browser working; fetching the fonts and the renderer is the network
+  // working; there is no reason they should take turns. These used to be first
+  // touched further down, after every puzzle had been built.
+  //
+  // Measured, this bought nothing for the ordinary case: 24 word searches on a
+  // throttled phone over slow 4G came out at 20.1 seconds either way. Most of
+  // that "browser work" is laying out the pages, which needs the fonts and so
+  // cannot start any earlier. What it does help is the case the fonts are not
+  // blocking — 200 expert sudoku is minutes of generation, and there is no
+  // reason a person should then wait for two megabytes that could have arrived
+  // while they waited. Kept because it is right, not because it is fast.
+  const fontsSoon = loadFonts();
+  const renderSoon = loadRender();
+  // Nothing is awaiting them yet, and an unhandled rejection would be reported
+  // as a page error even though the await below handles it properly.
+  fontsSoon.catch(() => {});
+  renderSoon.catch(() => {});
   try {
     el.status.textContent = `Generating ${count} puzzles…`;
     const started = Date.now();
@@ -612,7 +630,7 @@ async function download() {
         ? `Laying out ${full.puzzles.length} puzzles (${count - full.puzzles.length} could not be built)…`
         : "Laying out pages…";
     await tick();
-    const [fonts, { renderBook }] = await Promise.all([loadFonts(), loadRender()]);
+    const [fonts, { renderBook }] = await Promise.all([fontsSoon, renderSoon]);
     const bytes = await renderBook(full, {
       ...s,
       licensed: Boolean(lic),
@@ -650,6 +668,11 @@ async function downloadCover() {
   const s = settings();
   if (s.pools.length === 0) return;
   el.downloadCover.disabled = true;
+  // Same as download(): fetch while the browser builds, not after.
+  const fontsSoon = loadFonts();
+  const coverSoon = loadCover();
+  fontsSoon.catch(() => {});
+  coverSoon.catch(() => {});
   try {
     el.status.textContent = "Building the cover…";
     await tick();
@@ -666,7 +689,7 @@ async function downloadCover() {
           : s.kind === "crossword"
             ? generateCrosswordBook({ ...s, builtinClues: await loadClues(), count: 1 })
             : generateBook({ ...s, count: 1 });
-    const [fonts, { renderCover }] = await Promise.all([loadFonts(), loadCover()]);
+    const [fonts, { renderCover }] = await Promise.all([fontsSoon, coverSoon]);
     const bytes = await renderCover({
       title: s.title,
       subtitle: s.subtitle,
@@ -850,4 +873,43 @@ regenerate();
 if (new URLSearchParams(location.search).get("paid") && !getLicense()) {
   history.replaceState(null, "", location.pathname);
   openUnlock({ justPaid: true });
+}
+
+// Warm the heavy chunk while nobody is waiting.
+//
+// Measured against production on a phone at slow-4G speeds: the landing is
+// cheap — 124 KiB and a usable preview grid in about a second. The expensive
+// moment is the first press of Make my book, which pulls 2.1 MB it has not
+// touched yet: pdf-lib and fontkit in one 1.3 MB chunk, plus two 400 KB
+// TrueType files. At cell-network speeds that is roughly ten seconds of
+// downloading before a single puzzle is laid out, and it arrives at the exact
+// moment somebody has decided they want the thing.
+//
+// So pull the chunk during the idle time after the first render, while the
+// visitor is reading and the connection is doing nothing. See pdf/heavy.js for
+// why the warm-up goes through its own module instead of render.js: the launch
+// dashboard reads the funnel out of request paths, and warming render.js would
+// have made every visitor look like somebody who made a book. The fonts are
+// deliberately not warmed here — they are fetched at the click instead, in
+// parallel with puzzle generation, so they cost nothing speculatively and
+// nothing on the clock either.
+//
+// Not on a metered connection. Save-Data is a person explicitly saying do not
+// spend my bytes on things I did not ask for, and 2G is a connection where
+// speculatively spending a megabyte could cost them the page they are on.
+// Those two pay the wait at the click, which is what they asked for.
+{
+  const net = navigator.connection || {};
+  const stingy = net.saveData === true || /^(slow-)?2g$/.test(net.effectiveType || "");
+  if (!stingy) {
+    const warm = () => { import("../pdf/heavy.js").catch(() => {}); };
+    // requestIdleCallback is still missing from Safari, where this matters
+    // most; a timer after load is the portable version of the same idea.
+    const schedule = () =>
+      typeof requestIdleCallback === "function"
+        ? requestIdleCallback(warm, { timeout: 4000 })
+        : setTimeout(warm, 1200);
+    if (document.readyState === "complete") schedule();
+    else addEventListener("load", schedule, { once: true });
+  }
 }

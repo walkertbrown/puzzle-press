@@ -137,7 +137,8 @@ try {
   // assumed (test/funnel.mjs re-checks this and fails if a build moves it):
   //
   //   page load ............ main.js + several chunk-*.js
-  //   Download clicked ..... render-*.js, the fonts, and one more chunk
+  //   stayed a moment ...... heavy-*.js and the big chunk, warmed at idle
+  //   Download clicked ..... render-*.js and the fonts
   //   Cover made ........... cover-*.js
   //
   // The old version keyed "made a book" on any chunk-*.js, which every visitor
@@ -145,6 +146,10 @@ try {
   // nothing but open the page.
   const requested = hits(/^\/$/);
   const ranTheApp = hits(/^\/js\/main\.js$/);
+  // Warming the PDF chunk happens on an idle callback after the first render,
+  // so it is only reached by a browser that loaded the page and stayed put for
+  // a moment. Next to "ran the app", the gap is the instant bounces.
+  const stayed = hits(/^\/js\/heavy-/);
   const madeBook = hits(/^\/js\/render-/);
   const fonts = hits(/^\/fonts\//);
   const covers = hits(/^\/js\/cover-/);
@@ -153,6 +158,7 @@ try {
   console.log("\n  Last 24h, by what people did (free plan keeps one day):");
   console.log(`    Requests for the page       ${requested}`);
   console.log(`    ...that ran the app         ${ranTheApp}   <-- a real browser; the rest are crawlers`);
+  console.log(`    ...and did not bounce       ${stayed}   <-- stayed long enough to idle-warm the PDF chunk`);
   console.log(`    Opened a sample PDF         ${samples}`);
   console.log(`    Used a calculator page      ${calc}`);
   console.log(`    Made a book                 ${madeBook}   <-- clicked Download and it rendered`);

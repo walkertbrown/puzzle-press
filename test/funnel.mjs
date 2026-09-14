@@ -22,6 +22,11 @@ const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } 
 // The patterns scripts/traffic.mjs counts. Keep the two in step.
 const SIGNAL = {
   ranTheApp: /^\/js\/main\.js$/,
+  // Fetched during idle time after the first render, to have the 1.3 MB PDF
+  // chunk in hand before anybody presses the button. It is its own module for
+  // exactly this reason: warming through render.js would have made every
+  // visitor indistinguishable from a visitor who made a book.
+  warmed: /^\/js\/heavy-/,
   madeBook: /^\/js\/render-/,
   madeCover: /^\/js\/cover-/,
   fonts: /^\/fonts\//,
@@ -51,6 +56,7 @@ async function session(name, act) {
 // event, so it is the one that matters most.
 const landed = await session("landed only", async () => {});
 check(landed(SIGNAL.ranTheApp), "a real browser that lands fetches main.js");
+check(landed(SIGNAL.warmed), "a real browser that lands warms the PDF chunk");
 check(!landed(SIGNAL.madeBook), "landing must NOT look like making a book");
 check(!landed(SIGNAL.madeCover), "landing must NOT look like making a cover");
 check(!landed(SIGNAL.fonts), "landing must NOT fetch the fonts");
