@@ -92,10 +92,16 @@ if (paid.length) {
 if (real.length && !paid.length) {
   console.log("\n  Someone opened checkout and did not pay. Worth knowing why.");
 }
-// Per-path funnel. The free plan keeps zone analytics for 24 hours, so this
-// is always "the last day" regardless of what was asked for above.
+// Per-path funnel. The free plan keeps zone analytics for 24 hours — but that
+// is a limit on how far BACK this can reach, not on how narrow the window can
+// be, so it follows the hours argument like everything above it and only caps
+// at a day. This used to be hard-wired to 23.5h while the header above said
+// "last 2h", which on launch morning is a trap with my name on it: I would ask
+// for the last two hours, read a whole day's funnel underneath it, and think a
+// launch was happening.
 const ZONE = "4169ea6b92a0920d72f9ebc5f7653e9d";
-const daySince = new Date(Date.now() - 23.5 * 3600e3).toISOString().replace(/\.\d+Z$/, "Z");
+const funnelHours = Math.min(hours, 23.5);
+const daySince = new Date(Date.now() - funnelHours * 3600e3).toISOString().replace(/\.\d+Z$/, "Z");
 // The live suites now run against the customer-facing domain — which is the
 // right thing for testing and the wrong thing for this dashboard, because a
 // full sweep makes dozens of books and covers and every one lands in the
@@ -167,7 +173,8 @@ try {
   const covers = hits(/^\/js\/cover-/);
   const samples = hits(/^\/samples\//);
   const calc = hits(/calculator/);
-  console.log("\n  Last 24h, by what people did (free plan keeps one day):");
+  const window = funnelHours >= 23.5 ? "Last 24h" : `Last ${hours}h`;
+  console.log(`\n  ${window}, by what people did (a day is all the free plan keeps):`);
   console.log(`    Requests for the page       ${requested}`);
   console.log(`    ...that ran the app         ${ranTheApp}   <-- a real browser; the rest are crawlers`);
   console.log(`    ...and did not bounce       ${stayed}   <-- stayed long enough to idle-warm the PDF chunk`);
