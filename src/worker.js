@@ -77,6 +77,13 @@ async function verify(request, env) {
     // there are more than a hundred sales. MAX_SCAN_PAGES keeps this inside
     // a Worker's subrequest budget (50 per request on the free plan); at 100
     // sessions a page that reaches 2,000 payments back.
+    //
+    // What it costs, measured against production 2026-09-13: an email with no
+    // payment behind it — the worst case, because it can never short-circuit —
+    // came back in 0.33 seconds, three times running. The account is nearly
+    // empty, so the scan stops after one page. It grows one Stripe round trip
+    // per hundred completed sessions, so the day this becomes slow is the day
+    // there are a thousand sales, and that day can afford a better index.
     const MAX_SCAN_PAGES = 20;
     if (!paid) {
       let after = null;
