@@ -72,10 +72,20 @@ send. What it is actually doing matters, because it shapes every answer here:
 browser holding an email and a token, and nothing validates the token. There is
 no licence to issue, no account to flip, no database to write to. So the fix is
 never "I have unlocked it for you" — it is always **"here is the exact address
-Stripe has; type that one."** This file used to promise the other thing, and
-the Worker's error message still says "we will unlock it by hand", which is
-near enough true from the customer's side (a person does sort it out) but is
-not a thing anyone can literally do.
+Stripe has; type that one."**
+
+This file used to promise the other thing, and so did the Worker: both 404
+messages ended "we will unlock it by hand", which is a thing no one can
+literally do. They now end "we will find it and sort it out by hand" — which is
+exactly what the lookup above does. Verified live on 2026-09-14:
+
+```
+$ curl -s -X POST https://puzzlepress.bananafest-destiny.com/api/verify \
+    -H 'content-type: application/json' -d '{"email":"nobody@example.com"}'
+{"ok":false,"error":"No completed payment found for that email. Use the exact
+email on your Stripe receipt — if that still does not work, email
+support@bananafest-destiny.com and we will find it and sort it out by hand."}
+```
 
 The one case that cannot be fixed: paid, but Stripe holds no email on the
 session. `/api/verify` can never match it. The lookup says so in as many words
