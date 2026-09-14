@@ -167,9 +167,10 @@ your decision, not mine:
 Boss:
 - [x] Search Console indexing requested for the guide and the three type
       pages (boss, 09-11).
-- [ ] Product Hunt: schedule the launch for Tue 2026-09-15 12:01am PT with the
-      copy above; `thumbnail.png` as the thumbnail, video as gallery item 1,
-      then the six gallery frames and the GIF in the order listed.
+- [ ] Product Hunt: schedule the launch for Tue 2026-09-15 12:01am PT.
+      **Use `ph-schedule-packet.md`** — same copy, in form order, with every
+      asset as a download link and every character count checked live. This
+      file is the reasoning; that one is the form.
 - [ ] Post the first comment right after it goes live; keep the type-page and
       guide links handy for replies.
 - [x] Pinterest appeal submitted and DENIED (09-12). Pins now link to the YouTube video instead. Re-appeal ~mid-October once the domain has age and traffic.
