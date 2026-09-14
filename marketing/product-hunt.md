@@ -117,7 +117,7 @@ the vertical Short (`npm run video:short`) went out via Buffer the same day.
 
 ## First comment (post this yourself, right after launch)
 
-> Low-content publishing on Amazon KDP is a real niche — puzzle books, journals, planners — and the tooling for it is oddly bad. Free generators make one puzzle at a time. The paid options are $10/month subscriptions or desktop software that looks like it stopped being updated in 2011.
+> Low-content publishing on Amazon KDP is a real niche — puzzle books, journals, planners — and the tooling for it is oddly split. There are free generators that will happily make you fifty puzzles with answer keys, and then hand you a browser print-to-PDF. The paid options are $10/month subscriptions or desktop software that looks like it stopped being updated in 2011. Nothing in either camp makes the book.
 >
 > The hard part was never the puzzle. It's the book. KDP bounces manuscripts for boring reasons: the inside margin has to get wider as the book gets thicker, fonts have to be embedded, there's a 24-page minimum, the page count has to be even. Get one wrong and you're back in the upload queue.
 >
@@ -143,6 +143,13 @@ the vertical Short (`npm run video:short`) went out via Buffer the same day.
 > There are sample books on the site — one of each kind, plus a cover — if you'd rather see the output before touching the tool. Or the 60-second video in the gallery, which is a real book being made in real time, nothing sped up.
 >
 > Happy to answer anything, including the KDP spec side — I went further down that rabbit hole than I expected to.
+
+**One thing not to say, in the post or in any reply:** "free generators make one
+puzzle at a time." It was true when this file was first written and it is not
+true now — several bulk-generate fifty with answer keys, free, no account, no
+watermark. It survived in this comment for a day after the compare page and the
+Show HN reply were corrected, which is how a line like this gets said out loud.
+The true difference is puzzles versus a book, and it is a stronger point.
 
 ---
 
