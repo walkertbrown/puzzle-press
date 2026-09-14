@@ -32,6 +32,19 @@ still walled**: the homepage returns 200 but every rules and JSON endpoint 403s
 and `old.reddit.com` redirects to a "Welcome to Reddit" page. Reddit stays
 paste-mode.
 
+**But I need the two URLs.** I can read the threads; I cannot find them. The
+Product Hunt slug is created when the boss schedules the launch, and the HN
+item id when they post. So:
+
+- **The moment PH is scheduled, paste me the link.** Likely
+  `producthunt.com/posts/puzzle-press`, but I am not going to guess and then
+  watch the wrong page all day.
+- **The moment Show HN is posted, paste me the `news.ycombinator.com/item?id=`
+  link.**
+
+Until a link arrives I am watching the funnel only, and the funnel cannot tell
+me that somebody asked a question in public and got no answer for six hours.
+
 Support email arrives at `support@bananafest-destiny.com`, which forwards to
 the boss's inbox. I cannot read it. Anything that needs me has to be pasted in.
 
