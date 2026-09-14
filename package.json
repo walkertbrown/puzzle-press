@@ -41,11 +41,12 @@
     "test:kidsudoku": "node test/kidsudoku.mjs",
     "test:bigbook": "node test/bigbook.mjs",
     "test:nostorage": "node test/nostorage.mjs",
-    "test:mobile": "node test/mobile.mjs && node test/mobile.mjs \"iPhone SE\" && node test/mobile.mjs \"Pixel 7\"",
+    "test:mobile": "node test/mobile.mjs webkit \"iPhone 13\" && node test/mobile.mjs webkit \"iPhone SE\" && node test/mobile.mjs chromium \"Pixel 7\"",
     "video": "node scripts/video.mjs",
     "video:short": "node scripts/video.mjs --short",
     "video:types": "node scripts/video-types.mjs",
-    "video:types:short": "node scripts/video-types.mjs --short"
+    "video:types:short": "node scripts/video-types.mjs --short",
+    "test:engines": "node test/browser.mjs firefox && node test/browser.mjs webkit && node test/freecover.mjs webkit && node test/nostorage.mjs webkit && node test/paidreturn.mjs webkit"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",

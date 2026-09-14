@@ -1,10 +1,12 @@
 // The live payment link once sent buyers to a Stripe confirmation page and
 // never back here, so a paid customer unlocked nothing. This checks both ends
 // of that path: Stripe redirects to us, and we greet a payer correctly.
-import { chromium } from "playwright";
+import * as playwright from "playwright";
 import { readFileSync } from "node:fs";
 
-const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
+const args = process.argv.slice(2);
+const base = args.find((a) => /^https?:\/\//.test(a)) || "https://puzzlepress.bananafest-destiny.com";
+const ENGINE = args.find((a) => ["chromium", "firefox", "webkit"].includes(a)) || "chromium";
 const creds = readFileSync(new URL("../../.git-credentials", import.meta.url), "utf8");
 const STRIPE = (creds.match(/^STRIPE_KEY=(.*)$/m) || [])[1]?.trim();
 
@@ -21,7 +23,7 @@ for (const l of live) {
   if (!/[?&]paid=1/.test(ac.redirect.url)) throw new Error(`${l.id} redirects to ${ac.redirect.url}, which will not open the unlock dialog`);
 }
 
-const b = await chromium.launch();
+const b = await playwright[ENGINE].launch();
 const p = await b.newPage({ viewport: { width: 1200, height: 900 } });
 const errs = [];
 p.on("pageerror", (e) => errs.push(String(e)));
@@ -92,4 +94,4 @@ await p.click("#closeDialog");
 
 console.log("page errors:", errs.length ? errs : "none");
 await b.close();
-console.log("PAID RETURN OK");
+console.log(`PAID RETURN OK — ${ENGINE}`);

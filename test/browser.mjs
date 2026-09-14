@@ -1,19 +1,44 @@
 // End-to-end check in a real browser: load the page, make a free-tier book,
 // then a licensed 60-puzzle book, and verify both downloads are valid PDFs.
-// Run: node test/browser.mjs [baseUrl]   (default http://127.0.0.1:8787)
-import { chromium } from "playwright";
+// Run: node test/browser.mjs [baseUrl] [chromium|firefox|webkit]
+//
+// The engine argument exists because for weeks it did not, and every test in
+// this repository — this one, and the "mobile" one, which is Chromium wearing
+// an iPhone's viewport — ran on Chromium alone. This app does all its work in
+// the browser: it generates the puzzles, lays out sixty pages, embeds the
+// fonts and hands back a PDF. That is the heaviest thing a page can ask for,
+// and asking only one engine to do it is not a test of anything but that
+// engine. A stranger on an iPhone is running WebKit.
+//
+// Getting the engines onto this machine:
+//   npx playwright install webkit firefox
+// Firefox then works. WebKit's dependency check asks for libwoff1 and
+// libavif16 via sudo, but the only library actually missing here was
+// libjxl.so.0.8 (the system has 0.7), so rather than install anything:
+//   ln -s /usr/lib/x86_64-linux-gnu/libjxl.so.0.7 \
+//     ~/.cache/ms-playwright/webkit-*/minibrowser-gtk/lib/libjxl.so.0.8
+// JPEG XL is a format this site never decodes, so the version gap cannot
+// reach anything we test. A Playwright reinstall wipes the symlink; if WebKit
+// suddenly refuses to launch, that is why.
+import * as playwright from "playwright";
 import { PDFDocument } from "pdf-lib";
 import { mkdirSync, writeFileSync } from "node:fs";
 
-const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
-const out = new URL("../samples/browser/", import.meta.url);
+const args = process.argv.slice(2);
+const ENGINE = args.find((a) => ["chromium", "firefox", "webkit"].includes(a)) || "chromium";
+const base = args.find((a) => /^https?:\/\//.test(a)) || "https://puzzlepress.bananafest-destiny.com";
+// Screenshots go in per-engine folders so a Firefox run does not overwrite the
+// Chromium pictures and quietly leave one engine's evidence behind.
+const out = new URL(`../samples/browser/${ENGINE === "chromium" ? "" : ENGINE + "/"}`, import.meta.url);
 mkdirSync(out, { recursive: true });
 
 // HOST_MAP="example.com 1.2.3.4" pins DNS for the run — useful right after a
 // custom domain is created, while a local resolver still has the old answer.
-const browser = await chromium.launch({
-  args: process.env.HOST_MAP ? [`--host-resolver-rules=MAP ${process.env.HOST_MAP}`] : [],
+// It is a Chromium flag; the other engines simply do without it.
+const browser = await playwright[ENGINE].launch({
+  args: ENGINE === "chromium" && process.env.HOST_MAP ? [`--host-resolver-rules=MAP ${process.env.HOST_MAP}`] : [],
 });
+console.log(`engine: ${ENGINE} ${browser.version()}`);
 const page = await browser.newPage({ viewport: { width: 1280, height: 1000 }, acceptDownloads: true });
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
@@ -132,4 +157,4 @@ if (errors.length) {
   console.error("Browser errors:", errors);
   process.exit(1);
 }
-console.log("browser test OK");
+console.log(`browser test OK — ${ENGINE}`);
