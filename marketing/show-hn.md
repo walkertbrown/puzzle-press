@@ -44,11 +44,22 @@ Delete the last paragraph. But HN in particular will ask, and finding out later 
 ## Replies you will need (paste and adapt)
 
 **"Why not just use Book Bolt / Canva / a free generator?"** — expect this to be the top comment. Answer it early and concede the true part first.
-> Fair question, and for a lot of people the free ones are the right answer. PuzzleForge, for instance, is genuinely free, no account, no watermark, and bulk-generates 50 puzzles with answer keys. If you don't need a cover and don't mind assembling the interior, use it.
+> Fair question, and for a lot of people the free ones are the right answer. PuzzleForge, for instance, is genuinely free, no account, no watermark, six puzzle types, and bulk-generates up to 50 puzzles with answer keys. If you don't need a cover and don't mind assembling the interior, use it.
 >
-> What it doesn't do — by its own FAQ — is make a book. "Save PDF" opens your browser's print dialog and tells you to pick "Save as PDF" as the printer, so you get puzzle pages: no title page, no copyright page, no page numbers, no padding to KDP's 24-page minimum or an even page count, no inside margin scaled to page count, and no cover at all. That last one is the wall people hit: the spine width depends on the page count of the book you just made.
+> What it doesn't do — by its own FAQ — is make a book. "Save PDF" opens a print window and tells you to pick "Save as PDF" as the printer, so you get puzzle pages: no title page, no copyright page, no page numbers, no inside margin scaled to page count and swapping sides by parity, no even page count, and no cover at all. That last one is the wall people hit: the spine width depends on the page count of the book you just made, so the cover can't exist until the interior is final.
 >
-> This makes the uploadable file — interior and full-wrap cover, fonts embedded, 6 trims, up to 200 puzzles — and it's free to use with a watermark, $19 once to remove it. Comparison with the free tools named: https://puzzlepress.bananafest-destiny.com/compare
+> This makes the uploadable pair — interior and full-wrap cover, fonts embedded, 6 trims, up to 200 puzzles — free with a watermark, $19 once to remove it. Comparison: https://puzzlepress.bananafest-destiny.com/compare
+
+**The site is `the-puzzle-forge.org`. Do not check `puzzleforge.app`** — it is
+a different product with almost the same name, five types, no KDP framing, and
+no FAQ page. I checked the wrong one on 2026-09-14 and briefly concluded our
+own copy had gone stale and needed weakening. It had not.
+
+Re-verified on the right domain, 2026-09-14: the FAQ still reads *"Click 'Save
+PDF' after generating. A clean print window opens — in Chrome or Edge choose
+'Save as PDF' as the printer."* The homepage still says 100% free, no sign-up,
+no watermarks, bulk 1–50, answer keys included, six types. Every claim in the
+reply above is theirs about themselves. Re-read it on the day anyway.
 
 **Do not say** "free generators only make one puzzle." That was true when the compare page was written and is no longer true. Getting a competitor's capabilities wrong on HN costs more than the point is worth, and somebody will check.
 
