@@ -26,6 +26,7 @@
     "test:defaults": "node test/defaults.mjs",
     "test:graded": "node test/graded.mjs",
     "test:wordlist": "node test/wordlist.mjs",
+    "test:dialog": "node test/dialog.mjs",
     "test:livecheckout": "node test/livecheckout.mjs",
     "test:funnel": "node test/funnel.mjs",
     "test:unlock": "node test/unlock.mjs",

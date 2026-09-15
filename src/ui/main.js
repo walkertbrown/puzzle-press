@@ -67,7 +67,7 @@ const el = {
   wpp: $("wpp"), difficulty: $("difficulty"), size: $("size"), seed: $("seed"), largePrint: $("largePrint"), kind: $("kind"), sudokuSize: $("sudokuSize"),
   download: $("download"), downloadCover: $("downloadCover"), coverNote: $("coverNote"), moneyNote: $("moneyNote"), list: $("list"), ink: $("ink"), paper: $("paper"), reshuffle: $("reshuffle"), status: $("status"), tier: $("tier"), warnings: $("warnings"),
   meta: $("meta"), lengthWarn: $("lengthWarn"), page: $("page"), prev: $("prev"), next: $("next"), navLabel: $("navLabel"),
-  dialog: $("unlockDialog"), dialogTitle: $("dialogTitle"), dialogLede: $("dialogLede"), buyLine: $("buyLine"), email: $("email"), unlockErr: $("unlockErr"), verify: $("verify"), closeDialog: $("closeDialog"),
+  dialog: $("unlockDialog"), dialogTitle: $("dialogTitle"), dialogLede: $("dialogLede"), buyLine: $("buyLine"), paidLead: $("paidLead"), email: $("email"), unlockErr: $("unlockErr"), verify: $("verify"), closeDialog: $("closeDialog"),
 };
 
 let book = null;
@@ -519,28 +519,58 @@ function refreshTier(note = "") {
     for (const id of ["unlockLink", "alreadyPaid"]) {
       el.tier.querySelector(`#${id}`).addEventListener("click", (e) => {
         e.preventDefault();
-        openUnlock();
+        openUnlock({ intent: id === "alreadyPaid" ? "unlock" : "buy" });
       });
     }
   }
 }
 
 let unlockTried = false;
-function openUnlock({ justPaid = false } = {}) {
+// Three different people open this dialog and until 2026-09-15 all three got the
+// same thing: the heading "Unlock full books", the purchase as a text link, and
+// the cursor sitting in an email box. That is a login form. The tier line goes
+// to some trouble to tell "Remove both — $19" apart from "Already paid?", and
+// the dialog threw the distinction away the moment it opened.
+//
+// The live Stripe account agreed. In its entire history there were zero real
+// checkout sessions — every one was mine — while people were making whole books
+// on the site, including a stranger the night before launch who built one and
+// left. The drop-off was not at the card form. Nobody ever got to the card form.
+//
+// So `intent` now carries through: "buy" makes buying the visible action and
+// focuses it, "unlock" is for somebody who has already paid and only needs the
+// email box. Nothing is hidden in either case — the email field stays visible
+// and fillable in buy mode, because somebody who has paid and clicked the wrong
+// link should not be stuck.
+function openUnlock({ justPaid = false, intent = "buy" } = {}) {
+  const buying = !justPaid && intent === "buy" && !!PAY_URL;
   el.unlockErr.textContent = "";
-  el.dialogTitle.textContent = justPaid ? "Thanks — one last step" : "Unlock full books";
+  el.dialogTitle.textContent = justPaid
+    ? "Thanks — one last step"
+    : buying
+      ? "Remove the watermark"
+      : "Enter the email you paid with";
   el.dialogLede.textContent = justPaid
     ? "Enter the email you used at checkout and everything unlocks on this device."
-    : "Pay once, make unlimited books with no watermark. After paying, enter the email you used at checkout.";
+    : buying
+      ? `${PRICE_LABEL}. Unlimited books, no line in the footer, no PREVIEW across the cover. No account and no subscription.`
+      : "Enter the email you used at checkout and everything unlocks on this device.";
   if (justPaid) {
     // Offering to sell again to somebody who has just paid reads as a failed
     // payment. Show them the next step instead.
     el.buyLine.textContent = "";
   } else if (PAY_URL) {
-    el.buyLine.innerHTML = `<a href="${escapeHtml(PAY_URL)}" target="_blank" rel="noopener"><b>Buy now — ${PRICE_LABEL}</b></a> (opens Stripe checkout)`;
+    // Still `#buyLine a` with target=_blank and rel=noopener — the new tab is
+    // deliberate, so the book they just built is still there when they come
+    // back. Only the weight changed.
+    el.buyLine.innerHTML = buying
+      ? `<a class="buybtn" href="${escapeHtml(PAY_URL)}" target="_blank" rel="noopener">Buy now — ${PRICE_LABEL}</a><span class="fine">Opens Stripe checkout in a new tab. This page keeps your book.</span>`
+      : `<a href="${escapeHtml(PAY_URL)}" target="_blank" rel="noopener"><b>Buy now — ${PRICE_LABEL}</b></a> (opens Stripe checkout)`;
   } else {
     el.buyLine.textContent = "Checkout is not available yet.";
   }
+  el.paidLead.hidden = !buying;
+  el.paidLead.textContent = buying ? "Already paid? Enter that email instead:" : "";
   el.justPaid = justPaid;
   unlockTried = false;
   // <dialog> arrived in Safari 15.4, and an iPad left on an older iOS still
@@ -551,7 +581,11 @@ function openUnlock({ justPaid = false } = {}) {
   // than a button that silently does nothing.
   if (typeof el.dialog.showModal === "function") el.dialog.showModal();
   else el.dialog.setAttribute("open", "");
-  el.email.focus();
+  // Where the cursor lands is the whole argument. Somebody who has not paid
+  // cannot fill an email box, and a focused text field says "type here" louder
+  // than any heading. Put the focus on the thing they can actually do.
+  const buyBtn = buying && el.buyLine.querySelector("a");
+  (buyBtn || el.email).focus();
 }
 
 // close() came with showModal(), so an engine missing one is missing both —
