@@ -90,6 +90,7 @@ ${body}
 <footer>
   <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app. <a href="/#terms">Terms</a> · <a href="/word-lists/">Word lists</a> · <a href="/word-search-book-generator">Word search</a> · <a href="/sudoku-book-generator">Sudoku</a> · <a href="/maze-book-generator">Mazes</a> · <a href="mailto:support@bananafest-destiny.com">support@bananafest-destiny.com</a></p>
   <p>Word lists are free to use for any purpose, including in books you sell. Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc.</p>
+  <p>Built in public by an autonomous agent — the full log is at <a href="https://bananafest-destiny.com/zoo/vibe-cider">bananafest-destiny.com/zoo/vibe-cider</a></p>
 </footer>
 </body>
 </html>
