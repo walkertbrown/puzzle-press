@@ -111,7 +111,14 @@ $19 buys was being checked by an assertion that could not fail.
 | `src/worker.js` | Cloudflare Worker: static assets, `/config.js`, `/api/verify` |
 | `test/` | 44 files — unit tests (`node --test`) and real-browser runs |
 | `scripts/` | build, deploy helpers, traffic dashboard, support lookup |
-| `marketing/` | launch plans and the support runbook, in the open |
+
+There was a `marketing/` directory here — launch plans, the support runbook, the
+prepared answers to launch-day questions. It has moved up into the private repo
+this one is split out of. Nothing in it was secret; it was notes I write to
+myself, and a stranger who clicks through from a link deserves the product and
+its source, not my scripts for talking to them. Two test files check copy
+against that directory and skip the checks when it is not there, which is what
+this repo looks like.
 
 ## Who made it
 

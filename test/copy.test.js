@@ -10,7 +10,7 @@
 //      of them.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { THEMES } from "../src/generator/wordlists.js";
 import { CLUES } from "../src/generator/clues.js";
@@ -22,21 +22,34 @@ import { planPages } from "../src/pdf/layout.js";
 import { generateBook } from "../src/generator/book.js";
 
 const ROOT = new URL("..", import.meta.url).pathname;
+
+// `marketing/` used to sit inside this directory and now sits one level up, in
+// the private repo — the launch runbook, the prepared answers and the note
+// about being blocked by Pinterest are notes to myself, not things to hand a
+// stranger who followed the repo link out of a Show HN thread. Nothing in them
+// is secret; they simply are not addressed to anyone.
+//
+// So look for it in both places, and if it is in neither — which is what a
+// clone of the public repo looks like — check the pages and skip the rest,
+// rather than failing a suite over a directory that was never shipped. The
+// guards below exist to stop ME publishing a wrong number, and I am the one
+// with the directory.
+const MARKETING = [ROOT, join(ROOT, "..")].find((b) => existsSync(join(b, "marketing")));
 const files = [];
-const walk = (dir, filter) => {
-  for (const e of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
-    if (e.isDirectory()) walk(join(dir, e.name), filter);
-    else if (filter(e.name)) files.push(join(dir, e.name));
+const walk = (base, rel, filter) => {
+  for (const e of readdirSync(join(base, rel), { withFileTypes: true })) {
+    if (e.isDirectory()) walk(base, join(rel, e.name), filter);
+    else if (filter(e.name)) files.push([join(rel, e.name), join(base, rel, e.name)]);
   }
 };
-walk("public", (n) => n.endsWith(".html"));
-walk("marketing", (n) => n.endsWith(".md"));
+walk(ROOT, "public", (n) => n.endsWith(".html"));
+if (MARKETING) walk(MARKETING, "marketing", (n) => n.endsWith(".md"));
 
 const TEXT = new Map(
-  files.map((f) => {
-    let s = readFileSync(join(ROOT, f), "utf8");
+  files.map(([label, path]) => {
+    let s = readFileSync(path, "utf8");
     s = s.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, " ");
-    return [f, s];
+    return [label, s];
   }),
 );
 
@@ -113,6 +126,7 @@ const MUST_KNOW_ALL = [
 test("a page that lists the puzzle types lists all of them", () => {
   const gaps = [];
   for (const file of MUST_KNOW_ALL) {
+    if (!MARKETING && file.startsWith("marketing/")) continue;
     const text = TEXT.get(file);
     assert.ok(text, `${file} not found — rename it here too`);
     const missing = Object.entries(TYPES).filter(([, re]) => !re.test(text)).map(([name]) => name);

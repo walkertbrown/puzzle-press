@@ -15,11 +15,16 @@
 // retina screen; what matters is the ratio and the ceiling.
 //
 // Run: node test/launch-assets.mjs
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 const pub = new URL("../public/", import.meta.url).pathname;
-const doc = readFileSync(new URL("../marketing/product-hunt.md", import.meta.url).pathname, "utf8");
+// marketing/ moved up into the private repo — see the note in test/copy.test.js.
+// Half of this file checks the images, which are shipped, and half checks the
+// launch copy against them, which is not. Without the copy, check the images.
+const root = new URL("..", import.meta.url).pathname;
+const mdir = [root, join(root, "..")].map((b) => join(b, "marketing")).find(existsSync);
+const doc = mdir ? readFileSync(join(mdir, "product-hunt.md"), "utf8") : null;
 
 const MAX_BYTES = 3 * 1024 * 1024;
 const GALLERY_RATIO = 1270 / 760;
@@ -84,10 +89,10 @@ for (const f of gallery) {
   check(Math.abs(ratio - GALLERY_RATIO) < 0.01, `gallery/${f} is ${ratio.toFixed(3)}:1; Product Hunt lays out ${GALLERY_RATIO.toFixed(3)}:1, so it will be cropped or letterboxed`);
   check(m.w >= 1270 && m.h >= 760, `gallery/${f} is ${m.w}x${m.h}, under the 1270x760 Product Hunt renders at`);
   check(m.bytes <= MAX_BYTES, `gallery/${f} is ${(m.bytes / 1024 / 1024).toFixed(1)} MB, over the 3 MB limit`);
-  check(doc.includes(`gallery/${f}`), `gallery/${f} exists but the launch doc never names it — it will not get uploaded`);
+  if (doc) check(doc.includes(`gallery/${f}`), `gallery/${f} exists but the launch doc never names it — it will not get uploaded`);
 }
 // And the reverse: nothing named in the doc may be missing from disk.
-for (const named of doc.match(/gallery\/[\w.-]+\.png/g) ?? []) {
+for (const named of doc?.match(/gallery\/[\w.-]+\.png/g) ?? []) {
   check(gallery.includes(named.slice("gallery/".length)), `the launch doc names ${named}, which is not in public/gallery/`);
 }
 
@@ -101,22 +106,23 @@ check(gif.bytes <= MAX_BYTES, `demo.gif is ${(gif.bytes / 1024 / 1024).toFixed(1
 // chars" and was 250 — harmless at 250, but the count is there so nobody has
 // to retype the text into a character counter at 2am, and a count that lies is
 // worse than no count.
-const tagline = doc.match(/^\*\*(.+?)\*\* — (\d+) chars ← recommended$/m);
-check(Boolean(tagline), "no recommended tagline is marked in the launch doc");
+if (!doc) console.log("marketing/product-hunt.md not in this checkout — images checked, launch copy not");
+const tagline = doc?.match(/^\*\*(.+?)\*\* — (\d+) chars ← recommended$/m);
+if (doc) check(Boolean(tagline), "no recommended tagline is marked in the launch doc");
 if (tagline) {
   console.log(`tagline             ${tagline[1].length} chars`);
   check(tagline[1].length <= TAGLINE_MAX, `the tagline is ${tagline[1].length} chars, over the ${TAGLINE_MAX} limit`);
   check(Number(tagline[2]) === tagline[1].length, `the tagline says ${tagline[2]} chars but is ${tagline[1].length}`);
 }
-const description = doc.match(/## Description \(260 char limit\)\n\n> (.+)\n\n(\d+) chars\./);
-check(Boolean(description), "no description block found in the launch doc");
+const description = doc?.match(/## Description \(260 char limit\)\n\n> (.+)\n\n(\d+) chars\./);
+if (doc) check(Boolean(description), "no description block found in the launch doc");
 if (description) {
   console.log(`description         ${description[1].length} chars`);
   check(description[1].length <= DESCRIPTION_MAX, `the description is ${description[1].length} chars, over the ${DESCRIPTION_MAX} limit`);
   check(Number(description[2]) === description[1].length, `the description says ${description[2]} chars but is ${description[1].length}`);
 }
 // And the thumbnail, which the doc did not mention at all until today.
-check(/^## Thumbnail$/m.test(doc) && doc.includes("thumbnail.png"), "the launch doc does not name a thumbnail");
+if (doc) check(/^## Thumbnail$/m.test(doc) && doc.includes("thumbnail.png"), "the launch doc does not name a thumbnail");
 
 if (failed) { console.log(`\n${failed} check(s) failed`); process.exit(1); }
 console.log("LAUNCH ASSETS OK — square thumbnail, every gallery frame at Product Hunt's shape and under its limits, and the words fit the form");
