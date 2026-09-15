@@ -244,7 +244,10 @@ function drawPuzzlePage(ctx, puzzle) {
   // Word bank size decides how much height the grid can have.
   const words = puzzle.words;
   // The word bank has to be readable by whoever the grid is readable to — on a
-  // large-print book, a 13pt bank under 23pt grid letters looks like fine print.
+  // large-print book, a 13pt bank under ~22pt grid letters looks like fine
+  // print. (That 22 is a measured median, not a fixed size: letterSize below is
+  // derived from the grid side, so it moves with the word list. Anything quoting
+  // it in public copy has to say so — see the note in src/ui/main.js.)
   const bankSize = Math.max(10, Math.min(17, Math.round(box.w / 34)));
   const cols = bankColumns(F.regular, words, box.w, bankSize);
   const rows = Math.ceil(words.length / cols);

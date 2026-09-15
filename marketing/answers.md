@@ -232,14 +232,24 @@ count, not as "several people asked for more types".
 ### "What trim sizes / is there large print?"
 
 > Large print is a checkbox — it sets the trim and the word count together
-> (8.5×11, fourteen words a page) so the grid auto-sizes to about 15–16 cells,
-> which puts the letters at roughly 22–23pt. It is the biggest sub-category in
-> puzzle books and the most common thing to get half-right.
+> (8.5×11, fourteen words a page) and lets the grid size itself from there,
+> which lands around 16 cells and puts the letters at about 22pt, against
+> about 14pt on a standard 6×9 page. It is the biggest sub-category in puzzle
+> books and the most common thing to get half-right.
 
-*Say "roughly 22–23pt", not a single number.* The grid size is derived from the
-page width rather than set, so the exact point size moves with the word list;
-the code's own two comments about it say 22 and 23. The range is true, either
-single number is a hostage.
+*Those are medians, and the honest way to say them is "around 22pt" with the
+6×9 comparison attached.* Measured on 2026-09-14 across eight word lists, 240
+puzzles: grids come out **14–19 cells, median 16**, and letters **18–25pt,
+median 22**, with four in five between 20 and 24. The spread is the word list —
+a book of long state names sizes up, a book of bird names sizes down.
+
+**How this was got wrong twice.** The first version of this answer said "around
+23pt" because a comment in `src/pdf/render.js` says 23. The correction said
+"roughly 22–23pt" because a second comment in `src/ui/main.js` says 22 and "about
+15–16 cells". Both comments are a developer's round number, and averaging two
+guesses produced a range narrower than the truth and stated with more confidence
+than either. The number above came from running the layout arithmetic over real
+generated books. **A comment is not a measurement.**
 
 *(Before quoting a list of trim sizes, read them off `src/pdf/kdp.js`. Do not
 recite them from memory into a public thread.)*

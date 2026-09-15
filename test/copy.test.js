@@ -19,6 +19,7 @@ import { SUDOKU_DIFFICULTY } from "../src/generator/sudoku.js";
 import { MAZE_DIFFICULTY } from "../src/generator/maze.js";
 import { PRICE_LABEL } from "../src/ui/license.js";
 import { planPages } from "../src/pdf/layout.js";
+import { generateBook } from "../src/generator/book.js";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const files = [];
@@ -61,10 +62,15 @@ const numberClaims = [
 
 // The maze range is quoted as a pair ("15×15 up to 39×39"), so check both
 // ends of any such pair rather than every square grid mentioned anywhere.
+// The pattern is "any N×N to M×M", which is not maze-specific — it matched a
+// word-search grid range the moment one was written. So a match only counts if
+// the sentence around it is actually about mazes.
 test("the maze size range matches the code", () => {
   const wrong = [];
   for (const [file, text] of TEXT) {
     for (const m of text.matchAll(/(\d+)\s*×\s*\1\s*(?:up\s+)?to\s*(\d+)\s*×\s*\2/gi)) {
+      const sentence = text.slice(Math.max(0, m.index - 200), m.index + 200);
+      if (!/\bmaze/i.test(sentence)) continue;
       if (Number(m[1]) !== MAZE_DIFFICULTY.easy.w || Number(m[2]) !== MAZE_DIFFICULTY.expert.w) {
         wrong.push(`${file}: maze range "${m[0]}" but the code is ${MAZE_DIFFICULTY.easy.w}×${MAZE_DIFFICULTY.easy.h} to ${MAZE_DIFFICULTY.expert.w}×${MAZE_DIFFICULTY.expert.h}`);
       }
@@ -166,6 +172,48 @@ test("the Notes pages promised at the back are the ones a book really gets", () 
   for (const [file, text] of TEXT) {
     for (const m of text.matchAll(/\b(four|five|\d+)\s+ruled\s+Notes\s+pages\b[^.]*\./gi)) {
       if (!/five/i.test(m[0])) wrong.push(`${file}: "${m[0].trim().slice(0, 110)}" — a book can have five`);
+    }
+  }
+  assert.deepEqual(wrong, [], `\n${wrong.join("\n")}\n`);
+});
+
+// Three separate pieces of copy quoted a word-search grid size or a large-print
+// point size tonight, and all three were wrong, because all three were copied
+// out of a round number in a source comment rather than measured. Grid size is
+// derived from the word list, so the only true statement is a typical value —
+// and a typical value drifts the moment the generator or the word lists change.
+// So: generate, measure, and make the copy agree with the measurement.
+// The first version of this test asserted the claimed size equalled the median,
+// and it failed on its own first run — the median is 16 over four word lists and
+// 17 over eight. That is the finding, not a bug in the test: there is no single
+// typical grid, there are three (15, 16 and 17 are 79% of all grids). So the
+// test guards the middle half of the distribution. A number inside it is a fair
+// thing to print; 12×12 or 20×20 is not.
+test("a grid size called typical is one the generator typically makes", () => {
+  const sizes = [];
+  for (const theme of ["halloween", "animals", "garden", "birds"]) {
+    const b = generateBook({ pools: [THEMES[theme]], count: 30, wordsPerPuzzle: 15, difficulty: "graded", seed: `typical-${theme}` });
+    for (const p of b.puzzles) sizes.push(p.size);
+  }
+  sizes.sort((a, b) => a - b);
+  const at = (f) => sizes[Math.floor(f * (sizes.length - 1))];
+  const [q1, q3] = [at(0.25), at(0.75)];
+  assert.ok(q1 < q3, "the grid size stopped varying — this test is now measuring nothing");
+
+  const wrong = [];
+  for (const [file, text] of TEXT) {
+    // A square size offered as what a reader should expect: "15×15 is typical",
+    // "a typical 15×15 grid", "usually 15×15 to 17×17". Both ends of a range
+    // are claims, so both get checked.
+    const claims = [
+      ...text.matchAll(/(\d+)\s*×\s*\1\s+is\s+typical/gi),
+      ...text.matchAll(/typical(?:ly)?\s+(\d+)\s*×\s*\1/gi),
+      ...text.matchAll(/usually\s+(\d+)\s*×\s*\1\s*(?:–|-|to)\s*(\d+)\s*×\s*\2/gi),
+    ];
+    for (const m of claims) {
+      for (const n of m.slice(1).filter(Boolean).map(Number)) {
+        if (n < q1 || n > q3) wrong.push(`${file}: "${m[0]}" — ${n}×${n} is outside the generator's middle half, ${q1}–${q3} (full range ${sizes[0]}–${sizes[sizes.length - 1]})`);
+      }
     }
   }
   assert.deepEqual(wrong, [], `\n${wrong.join("\n")}\n`);
