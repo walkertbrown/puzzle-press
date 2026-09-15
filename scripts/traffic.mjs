@@ -178,14 +178,46 @@ const pathCounts = async (extra = "") => {
   return out;
 };
 
+// Filtering the scanners out by PATH is not enough, and this took a trace
+// through the raw rows to see. A scanner that probes /.env also fetches /,
+// /js/main.js and the chunks — those paths are real, so they survive the
+// `served` filter below and land in "...that ran the app" as a person.
+// On 2026-09-14, four of the nine "real browsers" in the pre-launch baseline
+// were one Azure host (57.154.3.151) that walked all 164 URLs of the site in
+// three minutes and then asked for /.env, /.git/HEAD and /config.js.map. Two
+// more were a Google Cloud address. The honest count was three.
+//
+// So judge the ADDRESS, not the request: anyone who asked for several things
+// that do not exist is a scanner, and none of their requests count. Three,
+// not one, because a real browser asks for /favicon.ico and gets a 404 — a
+// WARP visitor tonight had exactly that one 404 and was a person.
+//
+// (The clean way to do this is by ASN — a datacenter is not a reader. The
+// clientAsn dimension is real but gated behind a paid plan on this zone,
+// checked, not assumed: "zone does not have access to the field 'clientasn'".)
+const SCANNER_404S = 3;
+let scannerIps = [];
+try {
+  const probes = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
+    httpRequestsAdaptiveGroups(limit: 200, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%", edgeResponseStatus: 404}, orderBy: [count_DESC]) {
+      count dimensions { clientIP }
+    } } } }`);
+  scannerIps = probes.viewer.zones[0].httpRequestsAdaptiveGroups
+    .filter((r) => r.count >= SCANNER_404S)
+    .map((r) => r.dimensions.clientIP)
+    .filter((ip) => !myIps.includes(ip));
+} catch { /* no scanner split rather than no dashboard */ }
+
 try {
   const everyone = await pathCounts();
   const mine = myIps.length ? await pathCounts(`, clientIP_in: [${myIps.map((ip) => JSON.stringify(ip)).join(", ")}]`) : new Map();
+  const scan = scannerIps.length ? await pathCounts(`, clientIP_in: [${scannerIps.map((ip) => JSON.stringify(ip)).join(", ")}]`) : new Map();
   const all = [...everyone].map(([path, count]) => ({
-    count: count - (mine.get(path) ?? 0),
+    count: count - (mine.get(path) ?? 0) - (scan.get(path) ?? 0),
     dimensions: { clientRequestPath: path },
   })).filter((r) => r.count > 0);
   const minePaths = [...mine.values()].reduce((a, c) => a + c, 0);
+  const scanPaths = [...scan.values()].reduce((a, c) => a + c, 0);
   // Vulnerability scanners probe for leaked config files all day long and
   // every one of them 404s. They are not visitors, so keep them out of the
   // numbers — but say how many there were, so a jump is not mistaken for
@@ -229,6 +261,7 @@ try {
   console.log(`    Made a cover                ${covers}`);
   console.log(`    Font fetches                ${fonts}   (should track "made a book")`);
   console.log(`    (scanner/bot noise ignored: ${noise} requests to paths that do not exist)`);
+  if (scannerIps.length) console.log(`    (whole scanners ignored:    ${scannerIps.length} address${scannerIps.length > 1 ? "es" : ""}, ${scanPaths} requests — each asked for ${SCANNER_404S}+ things that do not exist, then read the site like a browser)`);
   if (minePaths) console.log(`    (my own machine ignored:    ${minePaths} requests from ${myIp})`);
   else if (!myIp) console.log("    (could not work out this machine's IP — my own test runs are IN these numbers)");
   if (requested && !ranTheApp) {
