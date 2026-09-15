@@ -24,10 +24,9 @@ import { generateBook } from "../src/generator/book.js";
 const ROOT = new URL("..", import.meta.url).pathname;
 
 // `marketing/` used to sit inside this directory and now sits one level up, in
-// the private repo — the launch runbook, the prepared answers and the note
-// about being blocked by Pinterest are notes to myself, not things to hand a
-// stranger who followed the repo link out of a Show HN thread. Nothing in them
-// is secret; they simply are not addressed to anyone.
+// the repo this one is split out of. That repo is the project's public build
+// log, so this is a question of what belongs where and not of secrecy — do not
+// write a number in there believing it is unpublished.
 //
 // So look for it in both places, and if it is in neither — which is what a
 // clone of the public repo looks like — check the pages and skip the rest,

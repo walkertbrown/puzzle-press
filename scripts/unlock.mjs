@@ -2,7 +2,7 @@
 //
 // Two places promise a customer that a person will sort it out — the Worker,
 // when the scan gives up, and the reply template in marketing/support.md (which
-// lives in the private repo this one is split out of). Until
+// lives in the build-log repo this one is split out of). Until
 // this script there was nothing behind that promise except me improvising
 // against the Stripe API at whatever hour the email arrived.
 //

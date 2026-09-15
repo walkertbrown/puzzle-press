@@ -739,8 +739,8 @@ const debounced = () => {
 // generated puzzles across eight word lists: fourteen words on an 8.5×11 page
 // give 14–19 cells (median 16) and 18–25pt letters (median 22), against a
 // median 14pt at 6×9. The spread is the word list, so do not quote a single
-// number in public copy — see marketing/answers.md (private repo), which has
-// had to correct this twice off the round numbers in these comments.
+// number in public copy — see marketing/answers.md in the build-log repo,
+// which has had to correct this twice off the round numbers here.
 const LARGE_PRINT = { trim: "8.5x11", size: "", wpp: "14" };
 el.largePrint.addEventListener("change", () => {
   if (!el.largePrint.checked) return;
