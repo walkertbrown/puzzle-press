@@ -170,3 +170,28 @@ test("the Notes pages promised at the back are the ones a book really gets", () 
   }
   assert.deepEqual(wrong, [], `\n${wrong.join("\n")}\n`);
 });
+
+test("nothing claims we pad a book out to KDP's page minimum", () => {
+  // We do not. A one-puzzle book is ten pages and stays ten pages; the only
+  // page ever added is a fifth Notes page to make the count even. The claim
+  // keeps coming back because it is the obvious thing for a KDP tool to do,
+  // and because it reads well next to what the free generators skip — it has
+  // been written and removed four separate times now (a code comment, the
+  // public README, /compare, and the landing page FAQ), so it gets a guard
+  // rather than a fifth correction.
+  const shortest = planPages(1, 4);
+  assert.ok(shortest.total < 24, `a one-puzzle book is ${shortest.total} pages — if this now pads, delete this test`);
+  assert.equal(shortest.total % 2, 0, "page counts are still made even");
+
+  const wrong = [];
+  for (const [file, text] of TEXT) {
+    // "pad"/"padding"/"padded" within a sentence that also mentions a page
+    // minimum or a legal/required page count.
+    for (const m of text.matchAll(/[^.!?]*\bpad(?:s|ded|ding)?\b[^.!?]*[.!?]/gi)) {
+      if (/\b(minimum|24[- ]page|legal page|required page)\b/i.test(m[0])) {
+        wrong.push(`${file}: "${m[0].trim().slice(0, 120)}"`);
+      }
+    }
+  }
+  assert.deepEqual(wrong, [], `\n${wrong.join("\n")}\n`);
+});

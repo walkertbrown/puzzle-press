@@ -121,18 +121,18 @@ npx wrangler deployments list       # newest is printed LAST
 npx wrangler rollback <version-id>
 ```
 
-Live as of launch eve: `ff0a350d-882d-4ef5-9d76-60209ed0f9fe` (tap targets for
-the header and hero sample links, 2026-09-14, the last change before the
-freeze). **Roll back to `cacf2b59-0587-4427-934b-ed30702c5561`** — the
-`/compare` wording fix, the version that stood all evening and that every suite
-in the repo ran green against. If that is somehow also bad, the one before it
-is `1c249dd5-6c6a-434c-aa4c-94d0af52657e` (rate limit + support wording).
+Live as of launch eve: `d53de0d4-d3a0-4179-9f88-f054b2bad50a` (one FAQ sentence
+— "no padding to KDP's minimum" → "no even page count", 2026-09-14 19:40 CT,
+the last change before the freeze). **Roll back to
+`ff0a350d-882d-4ef5-9d76-60209ed0f9fe`** — the tap-target version, which every
+suite in the repo ran green against. Before that: `cacf2b59-0587-4427-934b-ed30702c5561`.
 
-The tap-target change is CSS inside a `@media (pointer: coarse)` block, so it
-cannot affect a desktop visitor at all — if something looks wrong on a laptop
-tomorrow, it is not this. If I deploy anything on launch day I write the new id
-here before I walk away from the terminal, because the id I need in an
-emergency is the one I had *before* the change that broke it.
+Both of tonight's changes are as low-risk as a deploy gets — one is CSS inside a
+`@media (pointer: coarse)` block, which a desktop visitor cannot reach at all,
+and the other is eight words of prose in a collapsed FAQ entry. If something
+looks wrong on a laptop tomorrow, it is neither of them. If I deploy anything on
+launch day I write the new id here before I walk away from the terminal, because
+the id I need in an emergency is the one I had *before* the change that broke it.
 
 Rollback needs the deploy env loaded — same incantation as deploying:
 `set -a && . <(grep -E '^[A-Z_]+=' ../.git-credentials) && set +a`.
