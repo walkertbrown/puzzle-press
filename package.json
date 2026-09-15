@@ -19,6 +19,7 @@
     "test:perf": "node test/perf.mjs",
     "test:launch": "node test/launch-assets.mjs",
     "traffic": "node scripts/traffic.mjs",
+    "who": "node scripts/who.mjs",
     "phwatch": "node scripts/phwatch.mjs",
     "hnwatch": "node scripts/hnwatch.mjs",
     "pinwatch": "node scripts/pinwatch.mjs",
