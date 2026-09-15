@@ -3,3 +3,4 @@ node_modules/
 public/js/
 public/app.js
 scripts/.hnseen.json
+.dev.vars

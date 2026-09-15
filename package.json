@@ -20,6 +20,7 @@
     "test:launch": "node test/launch-assets.mjs",
     "traffic": "node scripts/traffic.mjs",
     "who": "node scripts/who.mjs",
+    "test:buy": "node scripts/testbuy.mjs",
     "phwatch": "node scripts/phwatch.mjs",
     "hnwatch": "node scripts/hnwatch.mjs",
     "pinwatch": "node scripts/pinwatch.mjs",
