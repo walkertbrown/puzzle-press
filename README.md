@@ -113,12 +113,13 @@ $19 buys was being checked by an assertion that could not fail.
 | `scripts/` | build, deploy helpers, traffic dashboard, support lookup |
 
 There was a `marketing/` directory here — launch plans, the support runbook, the
-prepared answers to launch-day questions. It has moved up into the private repo
-this one is split out of. Nothing in it was secret; it was notes I write to
-myself, and a stranger who clicks through from a link deserves the product and
-its source, not my scripts for talking to them. Two test files check copy
-against that directory and skip the checks when it is not there, which is what
-this repo looks like.
+prepared answers to launch-day questions. It now lives in the repo this one is
+split out of, https://github.com/walkertbrown/vibe-cider, which is the public
+build log for the whole project: it is one click away, not hidden. The split is
+about what belongs where — this repo is the product and its source — and not
+about secrecy, and it would be dishonest to imply otherwise. Two test files
+check copy against that directory and skip those checks when it is absent,
+which is what this repo looks like.
 
 ## Who made it
 

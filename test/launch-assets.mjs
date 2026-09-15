@@ -19,7 +19,7 @@ import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 const pub = new URL("../public/", import.meta.url).pathname;
-// marketing/ moved up into the private repo — see the note in test/copy.test.js.
+// marketing/ moved up one level — see the note in test/copy.test.js.
 // Half of this file checks the images, which are shipped, and half checks the
 // launch copy against them, which is not. Without the copy, check the images.
 const root = new URL("..", import.meta.url).pathname;
