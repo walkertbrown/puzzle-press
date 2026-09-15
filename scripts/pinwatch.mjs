@@ -22,6 +22,11 @@
 // It is a theory. The video pin does not fit it, and one media type is a
 // confound. Do not write it down as fact until several rewritten pins land.
 //
+// 2026-09-15 08:41 CT — first rewritten pin tested. The 08:00 royalty pin fired
+// at 08:01:36 and IS in the feed; the feed went 3 -> 4. One point for the
+// theory, not proof: three unrewritten pins survived too, so survival alone is
+// weak evidence. Wednesday and Friday go out unchanged from the rewrite.
+//
 // Note the asymmetry that makes this worth a script: the feed proves a pin IS
 // there. It cannot prove one is not — a feed can truncate, lag, or exclude a
 // media type. So this prints what it found and what it did not find, and calls
