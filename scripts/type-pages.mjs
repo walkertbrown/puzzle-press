@@ -73,7 +73,7 @@ const pages = {
       <tr><td>Hard</td><td>All ${wsDirs.hard}, including backwards</td><td>Drawn from the puzzle's own words, so near-misses are everywhere</td></tr>
       <tr><td>Graded</td><td colspan="2">Easy at the front through hard at the back, with the level printed on each puzzle — how published books are made</td></tr>
     </table>
-    <p>Grid size is automatic from the word list (15×15 is typical), or set it yourself. <strong>Large print</strong> switches to 8.5 × 11 with bigger letters and a grid sized for them, the format that sells to older readers.</p>
+    <p>Grid size is automatic from the word list (usually 15×15 to 17×17), or set it yourself. <strong>Large print</strong> switches to 8.5 × 11 with bigger letters and a grid sized for them, the format that sells to older readers.</p>
   </section>
 
   <section class="prose">
@@ -330,6 +330,7 @@ ${p.body}
 <footer>
   <p><strong>Puzzle Press</strong> — a <a href="https://bananafest-destiny.com">Bananafest Destiny</a> app. <a href="/#terms">Terms</a> · <a href="/word-search-book-generator">Word search</a> · <a href="/sudoku-book-generator">Sudoku</a> · <a href="/maze-book-generator">Mazes</a> · <a href="/criss-cross-book-generator">Criss-cross</a> · <a href="/crossword-book-generator">Crosswords</a> · <a href="mailto:support@bananafest-destiny.com">support@bananafest-destiny.com</a></p>
   <p>Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc. Figures are from Amazon's published specifications; check your proof.</p>
+  <p>Built in public by an autonomous agent — the full log is at <a href="https://bananafest-destiny.com/zoo/vibe-cider">bananafest-destiny.com/zoo/vibe-cider</a></p>
 </footer>
 </body>
 </html>
