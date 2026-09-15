@@ -7,9 +7,9 @@ be working out what to look at. Same principle as `support.md`.
 
 | When | What | Who |
 |---|---|---|
-| Mon 2026-09-14 | Schedule the Product Hunt launch from `product-hunt.md` | **boss** |
+| Mon 2026-09-14 | Schedule the Product Hunt launch from `ph-schedule-packet.md` | **boss — DONE**, post 1250478 |
 | Tue 2026-09-15, 12:01am PT = **2:01am CT** | Product Hunt goes live | automatic |
-| Tue, first minutes | Post the first comment from `product-hunt.md` | **boss** |
+| Tue, first minutes | Post the first comment (§8 of `ph-schedule-packet.md`) | **boss** |
 | Tue, all day | Watch the funnel, answer everything | me |
 | Tue 6:30pm CT | Reminder fires for Wednesday | my cron |
 | Wed 2026-09-16, 7–9am CT | **Show HN** from `show-hn.md` | **boss** |
@@ -32,15 +32,32 @@ still walled**: the homepage returns 200 but every rules and JSON endpoint 403s
 and `old.reddit.com` redirects to a "Welcome to Reddit" page. Reddit stays
 paste-mode.
 
-**But I need the two URLs.** I can read the threads; I cannot find them. The
-Product Hunt slug is created when the boss schedules the launch, and the HN
-item id when they post. So:
+**Product Hunt — have it.** The boss pasted it on launch eve:
 
-- **The moment PH is scheduled, paste me the link.** Likely
-  `producthunt.com/posts/puzzle-press`, but I am not going to guess and then
-  watch the wrong page all day.
-- **The moment Show HN is posted, paste me the `news.ycombinator.com/item?id=`
-  link.**
+```
+https://www.producthunt.com/products/puzzle-press?launch=puzzle-press
+```
+
+Note the shape. `producthunt.com/posts/puzzle-press` — the URL I had guessed
+here — **404s**; PH launches now live on the product page behind a `?launch=`
+parameter. Good thing I asked rather than watched.
+
+How to tell whether it has actually gone live, without logging in and without
+hammering them: fetch that URL and look at the embedded JSON. Before launch it
+reads `"latestLaunch":null` and `"postsCount":0`. After 2:01am CT `latestLaunch`
+goes non-null and `postsCount` becomes 1. One request answers it.
+
+```
+curl -s 'https://www.producthunt.com/products/puzzle-press?launch=puzzle-press' | grep -o '"latestLaunch":[^,]*'
+```
+
+**Once an hour, not once a minute.** On 2026-09-14 I put a cache-busting loop on
+this page and made 401 requests, which tripped their bot challenge on this
+machine for most of a day — the night before launching on them. The block has
+since expired. Do not earn a second one.
+
+**Still need the HN URL.** The moment Show HN is posted on Wednesday, paste me
+the `news.ycombinator.com/item?id=` link.
 
 Until a link arrives I am watching the funnel only, and the funnel cannot tell
 me that somebody asked a question in public and got no answer for six hours.
@@ -98,6 +115,18 @@ normal day here. So **five real browsers is a change, and one stranger making a
 book is the launch working.** Do not celebrate the invocation count — most of
 it is crawlers hitting `/sitemap.xml` and script-kiddie probes for
 `config.env`, and that number moves on its own.
+
+Re-read at 19:55, an hour later: 29 requests, 8 real browsers, 7 stayed, 0 books.
+Same shape. Either number is a fair baseline; the point is the order of magnitude.
+
+**The dashboard cannot tell you where anyone came from.** Cloudflare has referer
+and query-string dimensions, but they are gated behind a paid plan on this zone
+— checked properly on launch eve, not guessed. So the `?ref=producthunt` that
+Product Hunt appends to the outbound link is invisible here. Attribution is by
+clock: the launch fires at a known minute, the baseline is tens of requests a
+day, and a jump into the hundreds inside that hour is Product Hunt. Do not go
+adding a beacon to the page to do better — the page promises nothing leaves your
+browser, and that promise is worth more than the attribution.
 
 ## Thresholds — when a number means act
 

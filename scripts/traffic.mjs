@@ -219,6 +219,27 @@ try {
   }
   console.log("\n  Top paths:");
   for (const r of rows.slice(0, 12)) console.log(`    ${String(r.count).padStart(5)}  ${r.dimensions.clientRequestPath}`);
+
+  // There is no "where did they come from" line here, and it is not for want of
+  // trying. Checked properly on launch eve rather than guessed at:
+  //
+  //   clientRefererHost, clientRequestReferer, clientRequestQuery and
+  //   clientRequestQueryParameterNames all exist in the schema — I had
+  //   previously guessed the name `refererHost`, watched it error, and written
+  //   down that the data did not exist, which was the wrong conclusion from the
+  //   right error. Introspecting `ZoneHttpRequestsAdaptiveGroupsDimensions`
+  //   lists 102 dimensions and all four are there.
+  //
+  //   All four then fail with "zone ... does not have access to the field".
+  //   They are gated behind a paid Cloudflare plan. clientRequestPath, clientIP,
+  //   userAgent and clientCountryName are the ones this zone can actually read.
+  //
+  // So on this plan Product Hunt traffic cannot be told apart from any other
+  // traffic by referer, and adding a beacon to the page to do it would break the
+  // promise on the page that nothing leaves your browser. Attribution here is by
+  // timing instead: the baseline is tens of requests a day, the launch fires at a
+  // known minute, and a jump to hundreds inside that hour is Product Hunt. That
+  // is coarse, and it is enough to answer the only question being asked.
 } catch (e) {
   console.log("\n  (zone analytics unavailable: " + e.message.slice(0, 80) + ")");
 }
