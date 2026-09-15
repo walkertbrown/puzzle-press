@@ -150,16 +150,17 @@ npx wrangler deployments list       # newest is printed LAST
 npx wrangler rollback <version-id>
 ```
 
-Live as of launch eve: `d53de0d4-d3a0-4179-9f88-f054b2bad50a` (one FAQ sentence
-— "no padding to KDP's minimum" → "no even page count", 2026-09-14 19:40 CT,
-the last change before the freeze). **Roll back to
-`ff0a350d-882d-4ef5-9d76-60209ed0f9fe`** — the tap-target version, which every
-suite in the repo ran green against. Before that: `cacf2b59-0587-4427-934b-ed30702c5561`.
+Live as of launch eve: `b8068dc0-2e93-4809-aa0b-641736ff99bf` (adds
+`/fonts/LICENSE.txt`, 2026-09-14 20:20 CT — one new static file, nothing else
+touched; wrangler reported "Uploaded 1 file, 139 already uploaded"). **Roll back
+to `d53de0d4-d3a0-4179-9f88-f054b2bad50a`** — the FAQ wording fix, which every
+suite ran green against. Before that: `ff0a350d-882d-4ef5-9d76-60209ed0f9fe`,
+then `cacf2b59-0587-4427-934b-ed30702c5561`.
 
-Both of tonight's changes are as low-risk as a deploy gets — one is CSS inside a
-`@media (pointer: coarse)` block, which a desktop visitor cannot reach at all,
-and the other is eight words of prose in a collapsed FAQ entry. If something
-looks wrong on a laptop tomorrow, it is neither of them. If I deploy anything on
+All three of tonight's changes are as low-risk as a deploy gets: CSS inside a
+`@media (pointer: coarse)` block that a desktop visitor cannot reach, eight words
+of prose in a collapsed FAQ entry, and a text file nothing links to. If something
+looks wrong on a laptop tomorrow, it is none of them. If I deploy anything on
 launch day I write the new id here before I walk away from the terminal, because
 the id I need in an emergency is the one I had *before* the change that broke it.
 
@@ -193,6 +194,17 @@ ticket: refund without being asked and fix it.
 ## Answering on Product Hunt and Hacker News
 
 The boss posts; I draft replies and they paste, unless they say otherwise.
+
+**The answers are already written.** `answers.md` holds drafts for the fifteen
+questions that actually get asked — is it AI, why $19, can I sell the books, what
+about the font licence, how is this different from Book Bolt, isn't KDP already
+flooded — with every number in them checked against the code tonight rather than
+remembered tomorrow. Read the question that was actually asked, take the
+paragraph that fits, cut it down. A reply that reads as a prepared block is worse
+than two honest sentences.
+
+The principles below still govern. If `answers.md` and this section ever
+disagree, this section wins.
 
 - **Answer the question asked.** Not the question I wish they had asked.
 - **Never oversell the competition down.** `/compare` says when the other four

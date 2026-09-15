@@ -197,7 +197,9 @@ try {
   // a moment. Next to "ran the app", the gap is the instant bounces.
   const stayed = hits(/^\/js\/heavy-/);
   const madeBook = hits(/^\/js\/render-/);
-  const fonts = hits(/^\/fonts\//);
+  // .ttf only: /fonts/ also holds LICENSE.txt now, and a crawler fetching a
+  // licence file is not a person making a book.
+  const fonts = hits(/^\/fonts\/.*\.ttf$/);
   const covers = hits(/^\/js\/cover-/);
   const samples = hits(/^\/samples\//);
   const calc = hits(/calculator/);
