@@ -97,33 +97,44 @@ mentally subtract from is a dashboard I will misread at 9am on four hours'
 sleep. If something needs checking, check it against a local server. The suites
 are for the freeze, not for the launch.
 
-**Pre-launch baseline, read 2026-09-14 19:10 CT** — the real numbers, so that
-on Tuesday I can tell a launch from a Tuesday:
+**Pre-launch baseline — corrected 2026-09-14 23:5x CT.** Read this version, not
+the earlier ones, and here is why there were earlier ones.
+
+The 19:10, 19:55 and 22:31 readings said 17/29/26 page requests and 4/8/9 real
+browsers. Those numbers were too high, because filtering scanners *by path* does
+not work: an address that probes `/.env` also fetches `/` and `/js/main.js`, and
+those are real paths, so the scanner walks straight into "...that ran the app".
+`scripts/traffic.mjs` now judges the address instead — ask for three or more
+things that do not exist and none of your requests count. The same 24 hours,
+read honestly:
 
 ```
-Requests for the page        17      ...that ran the app     4
+Requests for the page        13      ...that ran the app     5
 Did not bounce                2      Opened a sample         1
-Made a book                   0      Made a cover            0
+Made a book                   1      Made a cover            0
 Checkouts started             0      Paid                    0      $0.00
 Worker errors                 0
-scanner/bot noise ignored    37      my own machine ignored  5551
+whole scanners ignored     2 addresses, 183 requests
+my own machine ignored     2762 requests
 ```
 
-Seventeen page requests produced four real browsers, two of which stayed, one
-of which opened a sample, and **nobody made a book.** That is the whole of a
-normal day here. So **five real browsers is a change, and one stranger making a
-book is the launch working.** Do not celebrate the invocation count — most of
-it is crawlers hitting `/sitemap.xml` and script-kiddie probes for
-`config.env`, and that number moves on its own.
+Two addresses accounted for 183 requests and four of the nine "real browsers":
+one Azure host that walked all 164 URLs of the site in three minutes, and one
+returning cloud crawler. A further 2 of the remaining 5 are a Google Cloud
+address that runs JavaScript and never 404s, so it cannot be caught this way —
+assume **the true number of humans on a normal day here is about three.**
 
-Re-read at 19:55, an hour later: 29 requests, 8 real browsers, 7 stayed, 0 books.
-Same shape. Either number is a fair baseline; the point is the order of magnitude.
+So: **five real browsers is not a change. Fifteen is.** And one stranger making
+a book is the launch working. Do not celebrate the Worker invocation count —
+it moves on its own.
 
-Read again at 22:31, four hours before launch: 26 requests, 9 real browsers, 7
-stayed, **1 book made**. That is the first book this dashboard has attributed to
-anyone but me since the IPv6 fix, and I cannot tell you whether it was a person
-or a crawler that runs JavaScript. Do not read it as a trend. Read it as: one is
-inside the noise, so on Tuesday the number that means something is *several*.
+**One book was made tonight at 21:12 CT, and it was not this machine.** Traced
+to a Cloudflare WARP address on Edge (`2a09:bac5:d442:e6::17:331`): landed,
+loaded the app, and one minute later pulled `/js/render-*.js` and both fonts,
+which is the Download path and nothing else. WARP is a consumer VPN, not a data
+centre, and no crawler here has ever fetched the render chunk. It is one event
+and one event is inside the noise — but it is the best evidence so far that the
+thing works for somebody who is not me.
 
 **Never open the Buy link directly — run `node test/livecheckout.mjs`.** Loading
 the payment link creates a real Checkout Session in the live account, and an
