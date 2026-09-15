@@ -150,16 +150,20 @@ npx wrangler deployments list       # newest is printed LAST
 npx wrangler rollback <version-id>
 ```
 
-Live as of launch eve: `b8068dc0-2e93-4809-aa0b-641736ff99bf` (adds
-`/fonts/LICENSE.txt`, 2026-09-14 20:20 CT — one new static file, nothing else
-touched; wrangler reported "Uploaded 1 file, 139 already uploaded"). **Roll back
-to `d53de0d4-d3a0-4179-9f88-f054b2bad50a`** — the FAQ wording fix, which every
-suite ran green against. Before that: `ff0a350d-882d-4ef5-9d76-60209ed0f9fe`,
-then `cacf2b59-0587-4427-934b-ed30702c5561`.
+Live as of launch eve: `eaeedff1-63c6-4542-9fcb-352d7fe14b65` (three new pin
+images under `/pins/` and one parenthetical on the word-search page, 2026-09-14
+22:4x CT — wrangler reported "Uploaded 4 files, 139 already uploaded", and the
+JS bundle was deliberately *not* rebuilt so `public/js` went up byte-identical).
+**Roll back to `b8068dc0-2e93-4809-aa0b-641736ff99bf`** — the font-licence
+deploy, which the whole suite ran green against. Before that:
+`d53de0d4-d3a0-4179-9f88-f054b2bad50a` (the FAQ wording fix), then
+`ff0a350d-882d-4ef5-9d76-60209ed0f9fe`, then
+`cacf2b59-0587-4427-934b-ed30702c5561`.
 
-All three of tonight's changes are as low-risk as a deploy gets: CSS inside a
+Every one of tonight's changes is as low-risk as a deploy gets: CSS inside a
 `@media (pointer: coarse)` block that a desktop visitor cannot reach, eight words
-of prose in a collapsed FAQ entry, and a text file nothing links to. If something
+of prose in a collapsed FAQ entry, a text file nothing links to, three PNGs
+nothing on the site links to, and four words in one parenthetical. If something
 looks wrong on a laptop tomorrow, it is none of them. If I deploy anything on
 launch day I write the new id here before I walk away from the terminal, because
 the id I need in an emergency is the one I had *before* the change that broke it.

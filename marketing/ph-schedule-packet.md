@@ -127,7 +127,7 @@ specifics.
 >
 > It also shows what the book is worth while you build it: printing cost and royalty for the page count you are actually at, using Amazon's own rate table — including the large-trim rates (6×9 is regular trim; 8.5×11 is not, and costs about 40% more per page). There are standalone calculators for that and for spine width on the site, free and no sign-up.
 >
-> There's also a large-print mode, which is the biggest sub-niche in puzzle books — one checkbox sets the trim and the word count so the letters come out around 23pt.
+> There's also a large-print mode, which is the biggest sub-niche in puzzle books — one checkbox sets the trim and the word count, and the grid letters come out around 22pt instead of about 14.
 >
 > It is free to use, and not in the crippled sense: make the entire book, all two hundred puzzles if you want them, with solutions and a cover. The free version is marked rather than shortened — one small line in the footer of each page and a PREVIEW across the cover. $19 once removes both marks, forever. No account, no subscription, and nothing you type ever leaves your browser.
 >

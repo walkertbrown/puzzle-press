@@ -735,8 +735,12 @@ const debounced = () => {
 // Large print is the biggest sub-niche in puzzle books. It was always possible
 // (big trim, fewer words) but nobody found it, so make it one checkbox.
 // Grid size is left automatic on purpose: pinning it to 15 made any pasted
-// word over 15 letters vanish from the book. Fourteen words auto-size to about
-// 15–16 cells on an 8.5×11 page, which is still ~22pt letters.
+// word over 15 letters vanish from the book. Measured 2026-09-14 over 240
+// generated puzzles across eight word lists: fourteen words on an 8.5×11 page
+// give 14–19 cells (median 16) and 18–25pt letters (median 22), against a
+// median 14pt at 6×9. The spread is the word list, so do not quote a single
+// number in public copy — see marketing/answers.md, which has had to correct
+// this twice off the round numbers in these comments.
 const LARGE_PRINT = { trim: "8.5x11", size: "", wpp: "14" };
 el.largePrint.addEventListener("change", () => {
   if (!el.largePrint.checked) return;
