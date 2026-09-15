@@ -112,7 +112,7 @@ for (const ua of ["OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "Claude-User
   check(!blocked(ua), `robots.txt lets ${ua} (live retrieval, not training) reach the site`);
 }
 // Say what is blocked, so a managed list that quietly grows is visible rather
-// than a surprise. Not a failure — see marketing/ai-crawlers.md for the call.
+// than a surprise. Not a failure — see marketing/ai-crawlers.md (private repo).
 const denied = groups.filter((g) => g.rules.some(([f, v]) => f === "disallow" && v === "/") && !g.agents.includes("*"))
   .flatMap((g) => g.agents);
 if (denied.length) console.log(`  robots.txt blocks ${denied.length} named crawler(s): ${denied.join(", ")}`);
