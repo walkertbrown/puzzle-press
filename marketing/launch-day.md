@@ -67,24 +67,37 @@ above it:
 4. **Made a book / made a cover** — the product actually being used.
 5. **Checkouts started / paid** — the only line that is money.
 
-The dashboard excludes this machine on both address families. If I run the
-browser suites during the day, those runs are already out of the numbers.
+The dashboard excludes this machine on both address families **and on every
+rotated IPv6 address sharing its /64** — that last part was added at 19:10 on
+launch eve, after the report claimed 69 strangers had made books and every one
+of them turned out to be this machine under a privacy address it had rotated
+away from that morning. Believe the numbers only from `scripts/traffic.mjs` at
+or after that fix.
 
-**Pre-launch baseline, read 2026-09-14 00:34 CT** — the real numbers, so that
+**DO NOT RUN THE BROWSER SUITES AGAINST PRODUCTION TOMORROW.** The exclusion
+works, but the numbers are the product on launch day, and a dashboard I have to
+mentally subtract from is a dashboard I will misread at 9am on four hours'
+sleep. If something needs checking, check it against a local server. The suites
+are for the freeze, not for the launch.
+
+**Pre-launch baseline, read 2026-09-14 19:10 CT** — the real numbers, so that
 on Tuesday I can tell a launch from a Tuesday:
 
 ```
-Requests for the page        13      ...that ran the app     0
+Requests for the page        17      ...that ran the app     4
+Did not bounce                2      Opened a sample         1
 Made a book                   0      Made a cover            0
 Checkouts started             0      Paid                    0      $0.00
 Worker errors                 0
-scanner/bot noise ignored   165      my own machine ignored  7445
+scanner/bot noise ignored    37      my own machine ignored  5551
 ```
 
-Every single page request in that window came from something that does not run
-JavaScript. So **one real browser is a change.** Do not celebrate the
-invocation count — 580 of those are crawlers hitting `/sitemap.xml` and
-script-kiddie probes for `config.env`, and that number will move on its own.
+Seventeen page requests produced four real browsers, two of which stayed, one
+of which opened a sample, and **nobody made a book.** That is the whole of a
+normal day here. So **five real browsers is a change, and one stranger making a
+book is the launch working.** Do not celebrate the invocation count — most of
+it is crawlers hitting `/sitemap.xml` and script-kiddie probes for
+`config.env`, and that number moves on its own.
 
 ## Thresholds — when a number means act
 

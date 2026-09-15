@@ -122,8 +122,36 @@ const traceIp = (flag) =>
   new Promise((res) =>
     execFile("curl", ["-s", flag, "--max-time", "10", "https://puzzlepress.bananafest-destiny.com/cdn-cgi/trace"],
       (err, out) => res(err ? null : (String(out).match(/^ip=(.*)$/m) || [])[1]?.trim() || null)));
-const myIps = [...new Set((await Promise.all([traceIp("-4"), traceIp("-6")])).filter(Boolean))];
-const myIp = myIps.join(" and ") || null;
+const nowIps = [...new Set((await Promise.all([traceIp("-4"), traceIp("-6")])).filter(Boolean))];
+
+// And now the third version of this bug, which is the one that nearly set the
+// launch baseline. Asking "what is my IP" answers for *this second*. IPv6
+// privacy extensions rotate the interface identifier — the last 64 bits — every
+// day or so, and Cloudflare recorded this morning's requests under an address
+// this machine no longer has. On 2026-09-14 the report read 172 real browsers
+// and 69 books made by strangers. Every one of those 69 was this machine,
+// under the retired address 2600:1702:6328:b810:f21e:a44c:8a9c:3539.
+//
+// What does not rotate is the /64 network prefix. So: find every address that
+// appeared in the window, keep the ones sharing my prefix, and treat the whole
+// set as mine. One more query, and it survives the rotation.
+const prefix64 = (ip) => (ip.includes(":") ? ip.split(":").slice(0, 4).join(":") + ":" : null);
+const myPrefixes = [...new Set(nowIps.map(prefix64).filter(Boolean))];
+let myIps = nowIps;
+if (myPrefixes.length) {
+  try {
+    const seen = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
+      httpRequestsAdaptiveGroups(limit: 500, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%"}, orderBy: [count_DESC]) {
+        count dimensions { clientIP }
+      } } } }`);
+    const kin = seen.viewer.zones[0].httpRequestsAdaptiveGroups
+      .map((r) => r.dimensions.clientIP)
+      .filter((ip) => myPrefixes.some((p) => ip.startsWith(p)));
+    myIps = [...new Set([...nowIps, ...kin])];
+  } catch { /* fall back to the addresses I hold right now */ }
+}
+const rotated = myIps.length - nowIps.length;
+const myIp = nowIps.join(" and ") + (rotated > 0 ? ` (+${rotated} rotated address${rotated > 1 ? "es" : ""} on the same /64)` : "");
 
 const pathCounts = async (extra = "") => {
   const zone = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
