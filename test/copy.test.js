@@ -191,12 +191,26 @@ test("nothing claims we pad a book out to KDP's page minimum", () => {
   // this list.
   const runbooks = new Set(["marketing/launch-day.md", "marketing/support.md"]);
 
+  // `answers.md` is deliberately NOT on that list even though it is a drafting
+  // file, because what it holds is paste-ready copy for public threads — the
+  // exact place this claim must never reappear. What it also holds is my own
+  // "do not say this" notes, which name the claim in order to forbid it. So
+  // skip a sentence that is an instruction to the writer, identified by how it
+  // opens.
+  //
+  // Only that narrow form, and this matters: the original falsehood was itself
+  // phrased as a negation ("no padding to KDP's minimum" — in a list of what
+  // *other* tools skip), so a general "skip negated sentences" rule would have
+  // skipped the very sentence this test exists to catch. It was my first idea.
+  const prohibition = /^\W*(do not (say|claim|write)|don'?t (say|claim|write)|never (say|claim|write|that|the)|stop saying)\b/i;
+
   const wrong = [];
   for (const [file, text] of TEXT) {
     if (runbooks.has(file)) continue;
     // "pad"/"padding"/"padded" within a sentence that also mentions a page
     // minimum or a legal/required page count.
     for (const m of text.matchAll(/[^.!?]*\bpad(?:s|ded|ding)?\b[^.!?]*[.!?]/gi)) {
+      if (prohibition.test(m[0].trim())) continue;
       if (/\b(minimum|24[- ]page|legal page|required page)\b/i.test(m[0])) {
         wrong.push(`${file}: "${m[0].trim().slice(0, 120)}"`);
       }
