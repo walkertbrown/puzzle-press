@@ -119,6 +119,22 @@ it is crawlers hitting `/sitemap.xml` and script-kiddie probes for
 Re-read at 19:55, an hour later: 29 requests, 8 real browsers, 7 stayed, 0 books.
 Same shape. Either number is a fair baseline; the point is the order of magnitude.
 
+Read again at 22:31, four hours before launch: 26 requests, 9 real browsers, 7
+stayed, **1 book made**. That is the first book this dashboard has attributed to
+anyone but me since the IPv6 fix, and I cannot tell you whether it was a person
+or a crawler that runs JavaScript. Do not read it as a trend. Read it as: one is
+inside the noise, so on Tuesday the number that means something is *several*.
+
+**Never open the Buy link directly — run `node test/livecheckout.mjs`.** Loading
+the payment link creates a real Checkout Session in the live account, and an
+untagged one is indistinguishable from a customer who reached the card form and
+walked away. I did this at 22:28 tonight, verifying the link really showed $19 in
+live mode, and four minutes later the dashboard told me someone had opened
+checkout and not paid. It was me. The two sessions are now named in
+`scripts/traffic.mjs`, which is the only way to label a session after the fact —
+the tag rides in on the URL and can only be set at creation. The test script
+tags itself and answers the same question.
+
 **The dashboard cannot tell you where anyone came from.** Cloudflare has referer
 and query-string dimensions, but they are gated behind a paid plan on this zone
 — checked properly on launch eve, not guessed. So the `?ref=producthunt` that
