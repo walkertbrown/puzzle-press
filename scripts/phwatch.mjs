@@ -31,6 +31,19 @@
 //
 // Usage: node scripts/phwatch.mjs [product-slug]
 const slug = process.argv[2] || "puzzle-press";
+
+// Comments already accounted for, so the count means something on its own.
+// 2026-09-15 11:xx CT — the boss confirmed the single comment on the thread is
+// their own maker comment (§8 of ph-schedule-packet.md, posted in the first
+// minutes). So 1 is the floor, not an unread question, and asking about it is
+// the nagging the runbook says not to do.
+//
+// This is a constant rather than something I remember because I have twice
+// reported a number I had no baseline for. Raise it when the boss pastes a
+// comment: the point of the number is that "2 comments, 1 accounted for" is a
+// specific ask and "there are comments" is not.
+const ACCOUNTED = 1;
+const ACCOUNTED_NOTE = "the boss's own maker comment";
 const url = `https://www.producthunt.com/products/${slug}?launch=${slug}`;
 
 const res = await fetch(url, {
@@ -109,13 +122,24 @@ if (live) {
   // So a 0 here means nobody has voted, and it meant that all morning.
   console.log(`  Score           ${say(inLaunchNode("latestScore"))}   (PH's own score field — watch it move, don't call it votes)`);
   console.log(`  Launch-day      ${say(inLaunchNode("launchDayScore"))}`);
-  console.log(`  Comments        ${say(inLaunchNode("commentsCount"))}   <-- a count only; see below`);
+  const comments = inLaunchNode("commentsCount");
+  console.log(`  Comments        ${say(comments)}   <-- a count only; see below`);
   if (launchSlug) console.log(`\n  Thread          https://www.producthunt.com/products/${slug}/launches/${launchSlug}`);
-  console.log(`
-  I cannot read the comments themselves — they are streamed in after the page
-  loads and a headless browser gets Cloudflare's challenge. If this count is
-  above what the boss has pasted, ask them to paste the new ones. Say the
-  number, so the ask is specific.`);
+  if (comments === null) {
+    console.log(`
+  No comment count on the page. Do not guess one — open the thread.`);
+  } else if (comments <= ACCOUNTED) {
+    console.log(`
+  Nothing unread. ${ACCOUNTED} of ${ACCOUNTED} accounted for (${ACCOUNTED_NOTE}).
+  Do not ask the boss about the thread until this count is ${ACCOUNTED + 1} or more.`);
+  } else {
+    const unread = comments - ACCOUNTED;
+    console.log(`
+  ASK THE BOSS: there are ${comments}, I have read ${ACCOUNTED} (${ACCOUNTED_NOTE}).
+  ${unread} unread. I cannot read them myself — they are streamed in after the
+  page loads and a headless browser gets Cloudflare's challenge. Ask for the
+  ${unread} new one${unread === 1 ? "" : "s"} by number, then raise ACCOUNTED in this file.`);
+  }
 } else {
   console.log(`
   Nothing has gone live. Before 02:01 CT on launch day this is correct.`);
