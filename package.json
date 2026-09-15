@@ -19,6 +19,7 @@
     "test:perf": "node test/perf.mjs",
     "test:launch": "node test/launch-assets.mjs",
     "traffic": "node scripts/traffic.mjs",
+    "phwatch": "node scripts/phwatch.mjs",
     "test:shortbook": "node test/shortbook.mjs",
     "test:paidreturn": "node test/paidreturn.mjs",
     "test:defaults": "node test/defaults.mjs",
