@@ -95,10 +95,18 @@ if (live) {
   const say = (v) => (v === null ? "not on the page — do not guess, open the thread" : v);
   console.log(`  Launch          ${name ?? "?"}  (${launchSlug ?? "?"})`);
   if (featured) console.log(`  Featured at     ${featured}`);
-  // `latestScore` is the field Product Hunt ranks by. It is probably the number
-  // in the upvote button, but the button's number is not in the server HTML, so
-  // I have not seen the two agree and will not call this "upvotes". Watch it
-  // move; do not quote it as a vote count.
+  // `latestScore` is the field Product Hunt ranks by, and it is REAL and
+  // server-rendered. Settled 2026-09-15 10:15 CT: all 71 launches in the
+  // homepage payload carry a non-zero score (310, 485, 530, 535…).
+  //
+  // I had concluded the opposite eight hours earlier, at 02:44 CT, on the
+  // grounds that all 41 front-page launches read 0 — and wrote "PH hydrates
+  // vote counts, the number is meaningless" into a report. They read 0 because
+  // it was 00:44 Pacific and the day was 43 minutes old. Every launch really
+  // did have zero votes. "The field is broken" and "the number is genuinely
+  // zero" produce identical HTML, and I picked the flattering one.
+  //
+  // So a 0 here means nobody has voted, and it meant that all morning.
   console.log(`  Score           ${say(inLaunchNode("latestScore"))}   (PH's own score field — watch it move, don't call it votes)`);
   console.log(`  Launch-day      ${say(inLaunchNode("launchDayScore"))}`);
   console.log(`  Comments        ${say(inLaunchNode("commentsCount"))}   <-- a count only; see below`);
