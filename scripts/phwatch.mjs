@@ -63,7 +63,9 @@ console.log(`\n  Live            ${live ? "YES" : "not yet"}   (latestLaunch ${l
 if (live) {
   const launchSlug = one(/"latestLaunch":\{[^}]*?"slug":"([a-z0-9-]+)"/);
   const name = one(/"latestLaunch":[\s\S]{0,1500}?"name":"([^"]+)"/);
-  const featured = one(/"featuredAt":"([^"]+)"/);
+  // `featuredAt` unscoped is the same bug as the counts, and it bit on launch
+  // morning: the first one on our own page reads 2026-02-11, which belongs to
+  // some other launch entirely. Scoped below, with the counts.
   // The counts must be tied to OUR launch, and that is the whole reason this
   // is a file and not a grep. A product page carries every launch the product
   // has ever had, each with its own numbers: customer-io's page carries six,
@@ -79,16 +81,17 @@ if (live) {
   // So: find the node that carries our slug, stop at the next node's boundary,
   // and read only inside it. If the page's shape changes and nothing is found,
   // print that, rather than the nearest number lying around.
-  const inLaunchNode = (key) => {
+  const inLaunchNode = (key, pattern = "(\\d+)") => {
     for (const m of html.matchAll(new RegExp(`"slug":"${launchSlug}"`, "g"))) {
       let node = html.slice(m.index, m.index + 4000);
       const next = node.indexOf('"__typename":"Post', 10); // where the next launch begins
       if (next > 0) node = node.slice(0, next);
-      const hit = node.match(new RegExp(`"${key}":(\\d+)`));
-      if (hit) return Number(hit[1]);
+      const hit = node.match(new RegExp(`"${key}":${pattern}`));
+      if (hit) return pattern === "(\\d+)" ? Number(hit[1]) : hit[1];
     }
     return null;
   };
+  const featured = inLaunchNode("featuredAt", '"([^"]+)"');
   const say = (v) => (v === null ? "not on the page — do not guess, open the thread" : v);
   console.log(`  Launch          ${name ?? "?"}  (${launchSlug ?? "?"})`);
   if (featured) console.log(`  Featured at     ${featured}`);
