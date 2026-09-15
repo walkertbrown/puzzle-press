@@ -72,7 +72,22 @@ for (let page = 0, after = null; page < 20; page++) {
 // one of my own runs — there has never been a real one. Say so, rather than
 // let a wider window (`npm run traffic 72`) show them as customers.
 const TAGGED_SINCE = Date.parse("2026-09-13T22:25:00Z") / 1000;
-const isSelfTest = (s) => s.created < TAGGED_SINCE || String(s.client_reference_id ?? "").startsWith("selftest-");
+// Two sessions that are mine and cannot prove it. On launch eve I wanted to
+// confirm the Buy link really showed $19 in live mode, and I loaded the raw
+// payment link in playwright instead of running test/livecheckout.mjs — which
+// exists for exactly this, and whose header comment warns about exactly this.
+// The tag rides in on the URL, so it can only be applied at creation; there is
+// no way to label these after the fact. Naming them here is the only honest
+// option, because the alternative is a line in the runbook telling me to
+// subtract two at 9am, and that runbook already says a dashboard I have to
+// mentally subtract from is one I will misread.
+//
+// **Do not open the Buy link directly. Run `node test/livecheckout.mjs`.**
+const UNTAGGED_MINE = new Set([
+  "cs_live_a1eUdkrksG9hi7ZNspJMgIfG3tTeVZk6hK1Mi1Emn7Y96EYYznHWd2wdPP", // 2026-09-15 04:29Z
+  "cs_live_a13fMtn9S062QFhAyzHn4StU4FA9otu0DRU1m4sdn44TUEKzzCnbifO5Rt", // 2026-09-15 04:28Z
+]);
+const isSelfTest = (s) => s.created < TAGGED_SINCE || UNTAGGED_MINE.has(s.id) || String(s.client_reference_id ?? "").startsWith("selftest-");
 const selftests = recent.filter(isSelfTest);
 const real = recent.filter((s) => !isSelfTest(s));
 const paid = real.filter((s) => s.payment_status === "paid");
