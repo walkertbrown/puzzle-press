@@ -249,14 +249,30 @@ try {
   const fonts = hits(/^\/fonts\/.*\.ttf$/);
   const covers = hits(/^\/js\/cover-/);
   const samples = hits(/^\/samples\//);
-  const calc = hits(/calculator/);
+  // A calculator is *used* when its script runs, not when its HTML is fetched.
+  // Keyed on the script for the same reason "made a book" is keyed on the
+  // render chunk rather than on a page view: the HTML is what a crawler takes,
+  // the JS is what a person needs.
+  //
+  // 2026-09-15 18:15 CT, the first "Used a calculator page 1" of the launch:
+  // three addresses in 43.x, one request each, all carrying the same spoofed
+  // "iPhone OS 13_2_3" user-agent, one of them asking for /spine-calculator and
+  // never for /spine.js. RDAP puts them in Aceville Pte Ltd — datacentre proxy
+  // space, registered SG, announced from BR. A distributed crawler spreading
+  // one request per address, and the dashboard called it a person using a tool.
+  //
+  // The old line was `hits(/calculator/)`, which also matched the HTML page,
+  // so every crawler that fetched the page scored a use. Same error as
+  // "ran the app" counting anything under /js/ — see the note above.
+  const calc = hits(/^\/(spine|royalty|margin)\.js$/);
+  const calcPages = hits(/calculator/);
   const window = funnelHours >= 23.5 ? "Last 24h" : `Last ${hours}h`;
   console.log(`\n  ${window}, by what people did (a day is all the free plan keeps):`);
   console.log(`    Requests for the page       ${requested}`);
   console.log(`    ...that ran the app         ${ranTheApp}   <-- a real browser; the rest are crawlers`);
   console.log(`    ...and did not bounce       ${stayed}   <-- stayed long enough to idle-warm the PDF chunk`);
   console.log(`    Opened a sample PDF         ${samples}`);
-  console.log(`    Used a calculator page      ${calc}`);
+  console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} fetched the page and never ran it — crawlers)` : ""}`);
   console.log(`    Made a book                 ${madeBook}   <-- clicked Download and it rendered`);
   console.log(`    Made a cover                ${covers}`);
   console.log(`    Font fetches                ${fonts}   (should track "made a book")`);
