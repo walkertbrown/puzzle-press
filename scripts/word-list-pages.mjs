@@ -75,6 +75,7 @@ const shell = ({ title, description, path, ogImage, body, jsonld }) => `<!doctyp
 <script type="application/ld+json">
 ${JSON.stringify(jsonld, null, 2)}
 </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "b7be686eebf64639b0e60d43860bbd54"}'></script>
 </head>
 <body>
 <header>

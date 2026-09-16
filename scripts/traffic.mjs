@@ -1,6 +1,11 @@
 // Launch-day dashboard, built from data Cloudflare and Stripe already hold.
-// Nothing is added to the page: no analytics script, no cookie, no beacon.
-// The site's promise that nothing you type leaves your browser stays true.
+// 2026-09-16: every page also carries Cloudflare's Web Analytics beacon now
+// (boss's token) — cookieless, no PII, records pageviews/referrer/country
+// only. It does not touch the site's actual promise, which was always about
+// typed content specifically: "nothing you type leaves your browser" is
+// still true and still enforced by test/privacy.mjs. This dashboard's own
+// numbers below are unaffected too — they come from Worker/Stripe logs, not
+// the beacon, which Cloudflare's Web Analytics UI reads separately.
 //
 // The funnel falls out of how the app is built. The PDF engine and the fonts
 // are only fetched when somebody actually clicks Download, so a request for
