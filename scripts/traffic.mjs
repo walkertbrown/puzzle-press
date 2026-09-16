@@ -243,9 +243,30 @@ try {
   // so it is only reached by a browser that loaded the page and stayed put for
   // a moment. Next to "ran the app", the gap is the instant bounces.
   const stayed = hits(/^\/js\/heavy-/);
-  const madeBook = hits(/^\/js\/render-/);
+  // "Clicked Download", not "made a book" — and the difference cost me an hour.
+  //
+  // 2026-09-15 21:43 CT, the launch's only book: 3.82.141.143, one Amazon
+  // us-east-1 address presenting three different operating systems across seven
+  // requests (Chrome 124 on Linux, 125 on Mac, 126 on Windows). A person has one
+  // OS. It loaded render-*.js AND cover-*.js and fetched no font at all.
+  //
+  // The click was real — these chunks are not preloaded, they are dynamic
+  // import()s inside the download and cover handlers, so something invoked them.
+  // What did not happen is the render: pdf-lib asks for the .ttf files at embed
+  // time, so a book that actually came out always pulls fonts. **Loading the
+  // module proves a click. Only the fonts prove a file.**
+  //
+  // Third time this exact shape: chunk-*.js counted landings as books, the
+  // calculator HTML counted crawlers as users, and now the render module counts
+  // clicks as books. Every time, the thing I keyed on sat one step upstream of
+  // the act I was claiming.
+  const clickedDownload = hits(/^\/js\/render-/);
   // .ttf only: /fonts/ also holds LICENSE.txt now, and a crawler fetching a
   // licence file is not a person making a book.
+  //
+  // Undercounts by design: a second book in the same session re-uses cached
+  // fonts. So fonts>0 proves a PDF was built, fonts==0 alongside a click proves
+  // one was not, and the count itself is a floor rather than a tally of books.
   const fonts = hits(/^\/fonts\/.*\.ttf$/);
   const covers = hits(/^\/js\/cover-/);
   const samples = hits(/^\/samples\//);
@@ -273,9 +294,9 @@ try {
   console.log(`    ...and did not bounce       ${stayed}   <-- stayed long enough to idle-warm the PDF chunk`);
   console.log(`    Opened a sample PDF         ${samples}`);
   console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} fetched the page and never ran it — crawlers)` : ""}`);
-  console.log(`    Made a book                 ${madeBook}   <-- clicked Download and it rendered`);
+  console.log(`    Clicked Download            ${clickedDownload}${clickedDownload && !fonts ? "   (and no font was ever fetched — nothing rendered)" : ""}`);
+  console.log(`    ...and a book came out      ${fonts ? `yes, ${fonts} font fetches` : "no"}   <-- fonts embed at render time; the only proof a PDF exists`);
   console.log(`    Made a cover                ${covers}`);
-  console.log(`    Font fetches                ${fonts}   (should track "made a book")`);
   console.log(`    (scanner/bot noise ignored: ${noise} requests to paths that do not exist)`);
   if (scannerIps.length) console.log(`    (whole scanners ignored:    ${scannerIps.length} address${scannerIps.length > 1 ? "es" : ""}, ${scanPaths} requests — each asked for ${SCANNER_404S}+ things that do not exist, then read the site like a browser)`);
   if (minePaths) console.log(`    (my own machine ignored:    ${minePaths} requests from ${myIp})`);
