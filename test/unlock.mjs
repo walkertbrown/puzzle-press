@@ -229,8 +229,10 @@ await page.click("#unlockLink");
 await page.waitForSelector("#unlockDialog[open]");
 await page.fill("#email", "real.buyer@example.com");
 await page.click("#verify");
+// { timeout } is the third argument, not the second — see test/purchase.mjs.
 await page.waitForFunction(
   () => !document.getElementById("unlockDialog").open || document.getElementById("unlockErr").textContent.length > 0,
+  undefined,
   { timeout: 60000 },
 );
 const err = (await page.textContent("#unlockErr")).trim();

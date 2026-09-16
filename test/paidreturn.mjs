@@ -38,21 +38,23 @@ console.log("returning buyer sees:", title, "| buy line:", JSON.stringify(buy));
 if (/Buy now/i.test(buy)) throw new Error("do not offer to sell again to somebody who has just paid");
 if (!/Thanks/i.test(title)) throw new Error("a returning buyer should be thanked, not re-pitched");
 
-// 3. Stripe lag must not read as a failed payment — the first time.
+// 3. Stripe lag must not read as a failed payment — the first time. Retries
+// now happen on their own (main.js's own background loop), not by asking the
+// buyer to click Unlock again.
 await p.fill("#email", "nobody-paid-this@example.com");
 await p.click("#verify");
-await p.waitForFunction(() => document.getElementById("unlockErr").textContent.length > 0, { timeout: 30000 });
+await p.waitForFunction(() => document.getElementById("unlockErr").textContent.length > 0, undefined, { timeout: 30000 });
 const err = await p.textContent("#unlockErr");
 console.log("lag message:", err.trim());
 if (/No completed payment/i.test(err)) throw new Error("a paying customer must not be told their payment does not exist");
 
-// 4. But "wait a few seconds and try again" is only true once. The other way
-// to land here is a buyer typing a different address from the one on their
-// receipt, and for them the reassurance is a loop with no exit: it is true
-// forever, never mentions the address, and never mentions support. Pressing
-// Unlock a second time has to say something a stuck buyer can act on.
-await p.fill("#email", "nobody-paid-this-either@example.com");
-await p.click("#verify");
+// 4. But pure reassurance forever is its own trap: the other way to land
+// here is a buyer typing a different address from the one on their receipt,
+// and for them "wait, we're checking" with no way out is a dead end. Once it
+// has run long enough that a typo is at least as likely as ongoing lag
+// (main.js's SOFT_MENTION_AFTER_MS, 60s), the message — still updating on
+// its own, no click needed — has to add the support address, without the
+// retrying underneath it ever stopping.
 await p.waitForFunction(
   (first) => {
     const t = document.getElementById("unlockErr").textContent.trim();
@@ -65,9 +67,12 @@ await p.waitForFunction(
   { timeout: 90000 },
 );
 const second = await p.textContent("#unlockErr");
-console.log("second try :", second.trim());
+console.log("after ~1 minute of automatic retrying:", second.trim());
 if (!/support@bananafest-destiny\.com/.test(second)) {
-  throw new Error(`a buyer who cannot unlock gets no way out on the second try: ${second.trim()}`);
+  throw new Error(`a buyer stuck for a minute gets no way out: ${second.trim()}`);
+}
+if (!(await p.$("#unlockDialog[open]"))) {
+  throw new Error("the dialog gave up instead of continuing to retry quietly in the background");
 }
 
 // 5. A normal visitor still gets the sales pitch.

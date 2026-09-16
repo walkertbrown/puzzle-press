@@ -85,9 +85,26 @@ console.log("after payment, landed on:", landed.slice(0, 90));
 const redirectedBack = !landed.includes("stripe.com");
 console.log("redirect-back configured on the payment link:", redirectedBack);
 
-// Unlock on the real site with the email that paid.
-const site = redirectedBack ? checkout : page;
-if (!redirectedBack) {
+// Unlock on the real site with the email that paid. Stripe's redirect goes to
+// the real production custom domain — that is what the payment link is
+// actually configured with, and there is no way to make Stripe send it to
+// 127.0.0.1 instead. Simply following it (the original design here) silently
+// tested PRODUCTION's already-deployed code against a live-mode Stripe key
+// that can never see a test-mode session — every run looked like a real
+// failure and was actually testing the wrong server entirely. Confirmed live:
+// the unlock dialog showed copy that does not exist anywhere in this
+// session's edited source, only in a much older committed version, which
+// only makes sense if it was never talking to this local worker at all.
+// Once the redirect has proven its path+query are right, replay that same
+// path+query against the LOCAL worker under test instead of trusting the
+// live navigation.
+const site = page;
+await checkout.close().catch(() => {});
+if (redirectedBack) {
+  const u = new URL(landed);
+  await page.bringToFront();
+  await page.goto(`${base}${u.pathname}${u.search}`, { waitUntil: "networkidle" });
+} else {
   await page.bringToFront();
   await page.reload({ waitUntil: "networkidle" });
 }
@@ -96,13 +113,40 @@ if (!(await site.$("#unlockDialog[open]"))) {
   await site.click("#unlockLink");
   await site.waitForSelector("#unlockDialog[open]");
 }
+// 2026-09-16: a real test-mode payment took Stripe's own list endpoint over
+// 230s to surface a session a direct lookup confirmed was already paid — so
+// main.js now retries the "not recorded yet" case itself in the background
+// (AUTO_RETRY_CEILING_MS, 5 minutes) instead of asking a human to click
+// Unlock again. This test now matches that: one click, then wait out
+// whatever the page's own retry loop takes, with margin over the ceiling.
+site.on("console", (msg) => {
+  if (msg.type() === "error") console.log("  [page console error]", msg.text().slice(0, 200));
+});
+site.on("pageerror", (e) => console.log("  [page exception]", String(e).slice(0, 200)));
+
 await site.fill("#email", email);
+const verifyStart = Date.now();
 await site.click("#verify");
-await site.waitForFunction(
-  () => !document.getElementById("unlockDialog").open || document.getElementById("unlockErr").textContent.length > 0,
-  { timeout: 60000 },
-);
-const err = await site.textContent("#unlockErr");
+// Polling and logging instead of one blind wait: a prior run timed out the
+// full 330s with the cause invisible, so this trades a single waitForFunction
+// for visibility into how the message actually evolves.
+let dialogClosed = false;
+let err = "";
+let lastSeen = "";
+const deadline = Date.now() + 330000;
+while (Date.now() < deadline) {
+  dialogClosed = !(await site.$("#unlockDialog[open]"));
+  if (dialogClosed) break;
+  err = (await site.textContent("#unlockErr")) || "";
+  if (err.trim() !== lastSeen) {
+    lastSeen = err.trim();
+    console.log(`  +${((Date.now() - verifyStart) / 1000).toFixed(1)}s: ${lastSeen.slice(0, 120)}`);
+  }
+  if (/support@/i.test(err)) break;
+  await site.waitForTimeout(3000);
+}
+console.log(`  resolved at +${((Date.now() - verifyStart) / 1000).toFixed(1)}s: ${dialogClosed ? "unlocked" : err.trim().slice(0, 90)}`);
+if (!dialogClosed && !/support@/i.test(err)) throw new Error("Timed out waiting for unlock or a support-email message: " + err);
 if (err.trim()) throw new Error("Unlock refused after a real test payment: " + err);
 const tier = await site.textContent("#tier");
 console.log("tier now:", tier.trim());
