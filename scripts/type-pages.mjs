@@ -289,6 +289,7 @@ ${JSON.stringify({
   about: { "@type": "SoftwareApplication", name: "Puzzle Press", url: `${SITE}/`, applicationCategory: "DesignApplication", operatingSystem: "Any browser", offers: { "@type": "Offer", price: "19.00", priceCurrency: "USD" } },
 }, null, 2)}
 </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "b7be686eebf64639b0e60d43860bbd54"}'></script>
 </head>
 <body>
 <header>

@@ -48,9 +48,14 @@ if (leaked.length) {
   throw new Error("user input left the browser");
 }
 
-// Nothing third-party at all.
+// Nothing third-party except Cloudflare's own Web Analytics beacon, added
+// 2026-09-16 (boss's token). It is cookieless and sends no page content —
+// pageview, referrer, country only — so it does not touch the actual promise
+// this test exists to enforce, which is about what a user types, checked
+// above by the SECRET leak search. Everything else must still be same-origin.
 const origin = new URL(base).origin;
-const offsite = requests.filter((r) => !r.url.startsWith(origin) && !r.url.startsWith("data:") && !r.url.startsWith("blob:"));
+const ALLOWED_THIRD_PARTY = /^https:\/\/(static\.)?cloudflareinsights\.com\//;
+const offsite = requests.filter((r) => !r.url.startsWith(origin) && !r.url.startsWith("data:") && !r.url.startsWith("blob:") && !ALLOWED_THIRD_PARTY.test(r.url));
 console.log("off-site requests:", offsite.length, offsite.map((r) => new URL(r.url).host));
 if (offsite.length) throw new Error("page contacts a third party: " + offsite.map((r) => r.url).join(", "));
 
