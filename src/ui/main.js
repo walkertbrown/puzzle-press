@@ -525,7 +525,20 @@ function refreshTier(note = "") {
   }
 }
 
-let unlockTried = false;
+let autoRetryTimer = null;
+let autoRetryFirstFailAt = 0;
+// A real test-mode payment on 2026-09-16 took Stripe's own
+// /v1/checkout/sessions list — the only thing /api/verify can query — over
+// 230 seconds to start showing a session that a direct, unfiltered lookup
+// confirmed was already `status: complete, payment_status: paid`. So the
+// single retry this dialog used to ask a human to perform by hand ("press
+// Unlock again") was never going to be enough; this is the ceiling for
+// retrying automatically instead, with margin over what was actually measured.
+const AUTO_RETRY_INTERVAL_MS = 10000;
+const AUTO_RETRY_CEILING_MS = 5 * 60 * 1000;
+function stopAutoRetry() {
+  if (autoRetryTimer) { clearTimeout(autoRetryTimer); autoRetryTimer = null; }
+}
 // Three different people open this dialog and until 2026-09-15 all three got the
 // same thing: the heading "Unlock full books", the purchase as a text link, and
 // the cursor sitting in an email box. That is a login form. The tier line goes
@@ -572,7 +585,8 @@ function openUnlock({ justPaid = false, intent = "buy" } = {}) {
   el.paidLead.hidden = !buying;
   el.paidLead.textContent = buying ? "Already paid? Enter that email instead:" : "";
   el.justPaid = justPaid;
-  unlockTried = false;
+  stopAutoRetry();
+  autoRetryFirstFailAt = 0;
   // <dialog> arrived in Safari 15.4, and an iPad left on an older iOS still
   // browses. Without showModal the click does nothing whatsoever — no dialog,
   // no error, no clue — and it is the click where the money is. `open` is the
@@ -595,6 +609,10 @@ function closeUnlock() {
   if (typeof el.dialog.close === "function") el.dialog.close();
   else el.dialog.removeAttribute("open");
 }
+// Covers every way the dialog can shut — the button, Escape, a backdrop
+// click, close() called from a successful verify — in one place, so a
+// pending auto-retry never fires into a dialog the buyer already left.
+el.dialog.addEventListener("close", stopAutoRetry);
 
 // ---------- download ----------
 
@@ -843,35 +861,91 @@ function showUnlockError(message) {
   el.unlockErr.append(message.slice(0, at), link, message.slice(at + SUPPORT.length));
 }
 
+async function attemptVerify(email) {
+  const rec = await verifyEmail(email);
+  sessionLicense = rec; // so this tab stays unlocked even if storage is refused
+  const stored = setLicense(rec);
+  closeUnlock();
+  refreshTier(stored ? "" : "storage");
+  regenerate();
+}
+
+// Somebody back from Stripe seconds ago can genuinely arrive before the
+// session is recorded, and telling them their payment does not exist is the
+// wrong answer. But it is only the right answer for a while: the other way
+// to reach this branch is a buyer typing a different address from the one on
+// the receipt, and for them "the payment isn't recorded yet" is never true —
+// it is permanently wrong, and leaving them staring at pure reassurance for
+// the whole AUTO_RETRY_CEILING_MS with no way out is its own failure. So this
+// still retries the whole time, but the message itself splits in two: quiet
+// reassurance at first, then — once it has run long enough that a real typo
+// is at least as likely as a real lag — the same message plus the support
+// address, so a stuck buyer has an exit without the retrying ever stopping
+// under them. Only past the ceiling does it give up and hand over the plain,
+// unhedged message.
+const SOFT_MENTION_AFTER_MS = 60000;
+// "No completed payment" is not the only answer that means "try again, not
+// never": a 429 ("Too many tries in a row...") or a 502 ("Could not reach the
+// payment provider...") are exactly as transient, and the server's own text
+// already says so. The first version of this only retried on the first one —
+// so a single rate-limit reply during the retry window (which itself calls
+// /api/verify every AUTO_RETRY_INTERVAL_MS) fell straight through to a
+// permanent dead end with no support-email mention and no further retries,
+// even though the server had just said "wait a minute and press Unlock
+// again". Confirmed live: that exact gap produced a real payer stuck for the
+// whole 5-minute ceiling with no visible message change at all.
+const RETRYABLE = /No completed payment|Too many tries in a row|Could not reach the payment provider/i;
+function handleVerifyFailure(email, err) {
+  // Not gated on el.justPaid: that only reflects whether *this* dialog-open
+  // happened to be the one auto-triggered by a ?paid=1 redirect. A buyer who
+  // pays, closes that dialog, and reopens Unlock manually a minute later —
+  // or, it turns out, the TEST-mode payment link's own redirect, which does
+  // not carry ?paid=1 the way the live link does — hits the exact same
+  // Stripe lag and deserves the exact same patient retry, not an immediate
+  // dead end. The two-stage message (and the support-email mention from
+  // SOFT_MENTION_AFTER_MS on) is what protects a genuinely-wrong-email buyer
+  // from being stuck forever, regardless of how they got to this dialog.
+  const race = RETRYABLE.test(err.message);
+  if (race) {
+    if (!autoRetryFirstFailAt) autoRetryFirstFailAt = Date.now();
+    const elapsed = Date.now() - autoRetryFirstFailAt;
+    if (elapsed < AUTO_RETRY_CEILING_MS) {
+      showUnlockError(
+        elapsed < SOFT_MENTION_AFTER_MS
+          ? "Stripe has not finished recording that payment yet — your money is fine. " +
+              "Checking again automatically; you don't need to press anything."
+          : "Still checking with Stripe — this can take a few minutes right after paying, " +
+              "and we keep trying automatically. If you are sure that is not the email on " +
+              `your receipt, email ${SUPPORT} and we will find it and sort it out by hand.`,
+      );
+      stopAutoRetry();
+      autoRetryTimer = setTimeout(async () => {
+        autoRetryTimer = null;
+        try {
+          await attemptVerify(email);
+        } catch (err2) {
+          handleVerifyFailure(email, err2);
+        }
+      }, AUTO_RETRY_INTERVAL_MS);
+      return;
+    }
+  }
+  showUnlockError(err.message);
+}
+
 el.verify.addEventListener("click", async () => {
   const email = el.email.value.trim();
   if (!email.includes("@")) {
     showUnlockError("Enter the email you used at checkout.");
     return;
   }
+  stopAutoRetry();
   el.verify.disabled = true;
   el.unlockErr.textContent = "";
   try {
-    const rec = await verifyEmail(email);
-    sessionLicense = rec; // so this tab stays unlocked even if storage is refused
-    const stored = setLicense(rec);
-    closeUnlock();
-    refreshTier(stored ? "" : "storage");
-    regenerate();
+    await attemptVerify(email);
   } catch (err) {
-    // Somebody back from Stripe seconds ago can genuinely arrive before the
-    // session is recorded, and telling them their payment does not exist is
-    // the wrong answer. But it is only the right answer once: the other way
-    // to reach this is a buyer typing a different address from the one on
-    // the receipt, and for them "wait a few seconds and press Unlock again"
-    // is true forever, hides the fact that the address is wrong, and never
-    // mentions support. So the reassurance gets one turn, then the real
-    // message — which names both the receipt and a person to email.
-    const race = el.justPaid && !unlockTried && /No completed payment/i.test(err.message);
-    unlockTried = true;
-    showUnlockError(race
-      ? "Stripe has not finished recording that payment yet. Give it a few seconds and press Unlock again — your money is fine."
-      : err.message);
+    handleVerifyFailure(email, err);
   } finally {
     el.verify.disabled = false;
   }

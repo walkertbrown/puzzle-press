@@ -89,19 +89,41 @@ console.log(`  local  http://127.0.0.1:${PORT}   — nothing is deployed\n`);
 writeFileSync(devVars, `STRIPE_KEY = "${KEY}"\nPAY_URL = "${LINK}"\n`);
 
 let worker;
-const cleanup = () => {
-  try { worker?.kill("SIGTERM"); } catch {}
-  // Kill by the pid I hold, never by `pkill -f <pattern>` — a pattern that
-  // matches "wrangler dev" also matches the shell running the pkill, and that
-  // has killed this session three times.
+// Kill by the pid I hold, never by `pkill -f <pattern>` — a pattern that
+// matches "wrangler dev" also matches the shell running the pkill, and that
+// has killed this session three times.
+//
+// 2026-09-16: SIGTERM alone is not enough, and not just because of the
+// SIGTERM/SIGKILL escalation — `npx` does not exec into `wrangler`, it spawns
+// it as a separate child, which itself spawns a workerd grandchild. Killing
+// the `worker` pid (npx) only ever signalled npx; wrangler and workerd kept
+// running and kept port 8791 bound for minutes, so the *next* run's own
+// "Ready on http" wait timed out against a port that was never freed —
+// confirmed live: after a failed run, `ps` still showed a wrangler dev pid
+// (reparented to init, its npx parent already gone) and a workerd pid under
+// it. Fix: spawn detached so it gets its own process group leader (pid ==
+// pgid), then signal the whole group with a negative pid — that reaches npx,
+// wrangler, and workerd in one signal regardless of how many hops deep.
+// `detached: true` also means Node's own exit does not implicitly kill the
+// child, so the explicit stop below is the only thing that ever does.
+const stopWorker = async () => {
+  if (!worker || worker.exitCode !== null) return;
+  const exited = new Promise((resolve) => worker.once("exit", resolve));
+  try { process.kill(-worker.pid, "SIGTERM"); } catch {}
+  const gone = await Promise.race([exited.then(() => true), new Promise((r) => setTimeout(() => r(false), 3000))]);
+  if (!gone) { try { process.kill(-worker.pid, "SIGKILL"); } catch {} await exited; }
+};
+const cleanupSync = () => {
+  try { if (worker) process.kill(-worker.pid, "SIGKILL"); } catch {}
   try { rmSync(devVars); } catch {}
 };
-process.on("exit", cleanup);
-process.on("SIGINT", () => { cleanup(); process.exit(130); });
+process.on("exit", cleanupSync);
+process.on("SIGINT", () => { cleanupSync(); process.exit(130); });
 
 worker = spawn("npx", ["wrangler", "dev", "--port", String(PORT), "--local"], {
   cwd: root,
   stdio: ["ignore", "pipe", "pipe"],
+  detached: true,
 });
 
 const ready = await new Promise((resolve) => {
@@ -115,6 +137,8 @@ const ready = await new Promise((resolve) => {
 
 if (!ready) {
   console.log("  The local worker never came up in 60s. Nothing was tested.\n");
+  await stopWorker();
+  rmSync(devVars, { force: true });
   process.exit(1);
 }
 
@@ -123,6 +147,8 @@ if (!ready) {
 const config = await (await fetch(`http://127.0.0.1:${PORT}/config.js`)).text();
 if (!config.includes("/test_")) {
   console.log(`  REFUSING: the local worker is not serving a test link.\n  /config.js says: ${config.trim()}\n`);
+  await stopWorker();
+  rmSync(devVars, { force: true });
   process.exit(1);
 }
 console.log("  local /config.js is serving the test link — running the purchase test\n");
@@ -135,4 +161,6 @@ console.log(
     ? "\n  PASS — a real Stripe payment unlocked a real unwatermarked book, in test mode.\n"
     : `\n  FAIL (exit ${code}) — and this is the path a paying stranger walks. Fix before anything else.\n`,
 );
+await stopWorker();
+rmSync(devVars, { force: true });
 process.exit(code ?? 1);
