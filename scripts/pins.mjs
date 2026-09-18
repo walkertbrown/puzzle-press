@@ -132,7 +132,7 @@ await pin("02-spine.png", {
 await pin("03-word-search.png", {
   kicker: "Word search book ideas",
   title: "Pick a niche. Halloween sells every October.",
-  body: "36 built-in themes or paste your own list. Every word appears exactly once — checked, not hoped.",
+  body: "51 built-in themes or paste your own list. Every word appears exactly once — checked, not hoped.",
   img: png(wsPdf, 4),
   foot: "How to make a puzzle book for KDP →",
 });
@@ -168,7 +168,7 @@ await pin("06-crisscross.png", {
 await pin("07-crossword.png", {
   kicker: "Themed crossword books",
   title: "Crosswords with clues, a whole book at a time.",
-  body: "Plain-language clues for 1,888 words across 36 themes, or paste your own word — clue lines. Solutions at the back.",
+  body: "Plain-language clues for 2,095 words across 51 themes, or paste your own word — clue lines. Solutions at the back.",
   img: png(xwPdf, 20),
   foot: "Make a crossword book free →",
 });

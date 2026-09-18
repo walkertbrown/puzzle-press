@@ -126,7 +126,7 @@ if (!SHORT) {
   await wait(2800);
 
   // ---- 3. Pick a theme — the preview redraws.
-  await caption("Word search draws on 36 themes, or a list you paste. Pick one.", 300);
+  await caption("Word search draws on 51 themes, or a list you paste. Pick one.", 300);
   await scrollTo(".themes");
   await click(".themes input[value='animals']");
   await wait(500);
@@ -167,7 +167,7 @@ if (!SHORT) {
   await typeInto("#subtitle", "60 spooky puzzles, easy to hard");
   await typeInto("#count", "60");
   await wait(600);
-  await caption("Pick a theme — 36 built in, or paste your own words.", 300);
+  await caption("Pick a theme — 51 built in, or paste your own words.", 300);
   await scrollTo(".themes");
   await click(".themes input[value='animals']");
   await wait(300);
