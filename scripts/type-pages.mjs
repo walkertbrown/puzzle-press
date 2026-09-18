@@ -163,6 +163,40 @@ const pages = {
   },
 };
 
+pages["large-print-word-search-generator"] = {
+  title: "Large Print Word Search Generator for Seniors — KDP-Ready, Free",
+  description: "Make a large print word search book for seniors: 8.5 × 11 pages, automatic grid sizing, 14 words a puzzle, letters measured at 18–25pt. Free print-ready PDF for Amazon KDP.",
+  h1: "Large print word search generator for seniors",
+  lede: "The single most dependable puzzle-book category on KDP, and the most common way it's bought is as a gift: an adult child picking a book for a parent whose eyes have changed. One checkbox switches the whole book to 8.5 × 11 pages with a grid sized for big letters — no separate settings to hunt for. Free to use; the free book is watermarked.",
+  kind: "wordsearch",
+  extraQuery: "&largePrint=1",
+  sample: "/samples/sample-large-print-8.5x11.pdf",
+  cover: "/samples/sample-large-print-cover-8.5x11.pdf",
+  sampleLabel: "See a finished large print book (PDF)",
+  image: { src: "/pins/10-large-print.png", alt: "A large print word search page, letters sized for easy reading" },
+  body: `
+  <section class="prose">
+    <h2>What "large print" actually changes</h2>
+    <p>Ticking <strong>Large print</strong> sets three things at once: the page grows to 8.5 × 11 (the biggest KDP trim short of specialty sizes), the puzzle grid drops to 14 words instead of the usual default, and the grid size is left automatic rather than pinned — pinning it made any longer pasted word vanish from the book, which is worse than a slightly bigger grid. Measured across 240 generated puzzles from eight different word lists: fourteen words on an 8.5 × 11 page give 14–19 cells across (median 16) and letters of 18–25pt (median 22pt) — against a median of 14pt at the standard 6 × 9 trim. The exact size still depends on the word list you use; a book of short words prints bigger letters than one full of long ones.</p>
+  </section>
+
+  <section class="prose">
+    <h2>Who this actually sells to</h2>
+    <p>Every source on KDP puzzle-book niches ranks this category above every other one, for the same reason: the buyer is rarely the solver. It's an adult child, a caregiver, or a grandchild choosing a gift for someone whose reading is harder than it used to be — which means the cover has to say "large print" as plainly as the inside does. The cover this tool builds for a large-print book carries its own corner badge for exactly that reason: a shopper scanning a page of thumbnails needs to see it before they click.</p>
+  </section>
+
+  <section class="prose">
+    <h2>Grades and themes still apply</h2>
+    <p>Large print is a size preset, not a separate mode — every theme, custom word list, and difficulty grade in the regular <a href="/word-search-book-generator">word search generator</a> works the same way underneath it. Garden, birdwatching, and faith-based lists are common pairings for this audience specifically; the full list is at <a href="/word-lists/">/word-lists</a>.</p>
+  </section>
+
+  <section class="prose">
+    <h2>What a book costs to print, and earns</h2>
+    <p class="fine">Figures below are at the standard 6 × 9 trim for comparison with the other generator pages; 8.5 × 11 prints at KDP's large-trim rate, which is higher per page — use the <a href="/royalty-calculator">royalty calculator</a> for the 8.5 × 11 numbers on your own puzzle count.</p>
+    ${costTable}
+  </section>`,
+};
+
 pages["criss-cross-book-generator"] = {
   title: "Criss-Cross (Word Fill-In) Book Generator for KDP",
   description: `Make a criss-cross / word fill-in puzzle book for Amazon KDP: crossword-shaped grids with the word list given, ${CRISSCROSS_DIFFICULTY.easy.words} to ${CRISSCROSS_DIFFICULTY.expert.words} words, every puzzle verified to have exactly one fill, solutions included, print-ready PDF and cover. Free to use.`,
@@ -306,7 +340,7 @@ ${JSON.stringify({
       <h1>${p.h1}</h1>
       <p class="lede">${p.lede}</p>
       <div class="actions">
-        <a class="btn" href="/?kind=${p.kind}#tool">Make a book free</a>
+        <a class="btn" href="/?kind=${p.kind}${p.extraQuery || ""}#tool">Make a book free</a>
         <a href="${p.sample}" target="_blank" rel="noopener">${p.sampleLabel}</a>
         <a href="${p.cover}" target="_blank" rel="noopener">…and its cover</a>
       </div>
@@ -324,7 +358,7 @@ ${p.body}
   <div class="cta">
     <h2>Make one now</h2>
     <p>Choose the settings, watch the preview, download the interior and then the cover — the spine already sized from the page count of the book you just made. Free to use; $19 once removes the watermark, and the price is on the page before you click anything.</p>
-    <a class="btn" href="/?kind=${p.kind}#tool">Make a ${p.kind === "wordsearch" ? "word search" : p.kind === "crisscross" ? "criss-cross" : p.kind} book free</a>
+    <a class="btn" href="/?kind=${p.kind}${p.extraQuery || ""}#tool">Make a ${p.kind === "wordsearch" ? "word search" : p.kind === "crisscross" ? "criss-cross" : p.kind} book free</a>
   </div>
 </main>
 

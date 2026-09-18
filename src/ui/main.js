@@ -194,6 +194,7 @@ function settings() {
     difficulty: el.difficulty.value,
     size: el.kind.value === "sudoku" ? Number(el.sudokuSize.value) || 9 : el.size.value ? n(el.size.value, 8, 30, 15) : null,
     seed: el.seed.value.trim() || "book",
+    largePrint: el.largePrint.checked,
     pools,
   };
 }
@@ -753,6 +754,7 @@ async function downloadCover() {
       samplePuzzle: one.puzzles[0],
       seed: s.seed,
       licensed: Boolean(lic),
+      largePrint: s.largePrint,
       fonts,
     });
     const blob = new Blob([bytes], { type: "application/pdf" });
@@ -976,6 +978,13 @@ refreshTier();
   if (theme && THEMES[theme]) {
     for (const cb of el.themes.querySelectorAll("input")) cb.checked = cb.value === theme;
     if (!titleEdited) el.title.value = `${THEMES[theme].title} Word Search`;
+  }
+  // The large-print landing page links as /?largePrint=1#tool: same checkbox
+  // a visitor would tick by hand, just pre-ticked so the first render is
+  // already the large-print preset, not the default they'd have to find.
+  if (q.get("largePrint") && el.kind.value === "wordsearch") {
+    el.largePrint.checked = true;
+    el.largePrint.dispatchEvent(new Event("change"));
   }
 }
 regenerate();

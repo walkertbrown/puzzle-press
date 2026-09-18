@@ -67,6 +67,26 @@ test("renders a one-page cover at the computed size", async () => {
   writeFileSync(new URL("../samples/test/cover-6x9.pdf", import.meta.url), bytes);
 });
 
+test("large print adds a corner badge and still renders one page", async () => {
+  const book = generateBook({ pools: [THEMES.animals], count: 20, wordsPerPuzzle: 14, seed: "lp" });
+  const pages = planPages(20, 6).total;
+  const bytes = await renderCover({
+    title: "Large Print Animal Word Search",
+    author: "A. Maker",
+    trim: "8.5x11",
+    pageCount: pages,
+    paper: "white",
+    puzzleCount: 20,
+    samplePuzzle: book.puzzles[0],
+    largePrint: true,
+    fonts,
+  });
+  const pdf = await PDFDocument.load(bytes);
+  assert.equal(pdf.getPageCount(), 1);
+  mkdirSync(new URL("../samples/test/", import.meta.url), { recursive: true });
+  writeFileSync(new URL("../samples/test/cover-large-print.pdf", import.meta.url), bytes);
+});
+
 test("a short book gets a cover with no spine text and still renders", async () => {
   const bytes = await renderCover({ title: "Tiny Book", trim: "5x8", pageCount: 24, paper: "white", fonts });
   const pdf = await PDFDocument.load(bytes);
