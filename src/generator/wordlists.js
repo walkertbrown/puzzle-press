@@ -591,6 +591,110 @@ export const THEMES = {
       "powder", "sundance",
     ],
   },
+  nevada: {
+    title: "Nevada",
+    words: [
+      "carsoncity", "lasvegas", "silverstate", "mountainbluebird", "sagebrush", "bristlecone", "hooverdam",
+      "laketahoe", "redrock", "reno", "mojave", "battleborn",
+    ],
+  },
+  iowa: {
+    title: "Iowa",
+    words: [
+      "desmoines", "hawkeye", "easterngoldfinch", "wildrose", "oak", "cornfield", "fieldofdreams",
+      "amanacolonies", "caucus", "loesshills", "statefair",
+    ],
+  },
+  arkansas: {
+    title: "Arkansas",
+    words: [
+      "littlerock", "naturalstate", "mockingbird", "appleblossom", "pine", "ozarks", "hotsprings", "diamond",
+      "buffaloriver", "razorback", "quapaw",
+    ],
+  },
+  kansas: {
+    title: "Kansas",
+    words: [
+      "topeka", "wichita", "sunflowerstate", "meadowlark", "sunflower", "cottonwood", "wheat", "dodgecity",
+      "flinthills", "tornadoalley",
+    ],
+  },
+  mississippi: {
+    title: "Mississippi",
+    words: [
+      "jackson", "magnoliastate", "mockingbird", "magnolia", "blues", "vicksburg", "natchez", "cotton",
+      "riverboat", "delta", "catfish", "gulfcoast",
+    ],
+  },
+  newmexico: {
+    title: "New Mexico",
+    words: [
+      "santafe", "albuquerque", "enchantment", "roadrunner", "yucca", "pinon", "carlsbad", "whitesands",
+      "balloon", "zia", "greenchile", "adobe", "taos",
+    ],
+  },
+  nebraska: {
+    title: "Nebraska",
+    words: [
+      "lincoln", "omaha", "cornhusker", "meadowlark", "goldenrod", "cottonwood", "chimneyrock", "platte",
+      "sandhills", "arborday", "bison",
+    ],
+  },
+  idaho: {
+    title: "Idaho",
+    words: [
+      "boise", "gemstate", "mountainbluebird", "syringa", "whitepine", "potato", "sawtooth", "sunvalley",
+      "hellscanyon", "snakeriver", "cratersmoon", "huckleberry", "silver",
+    ],
+  },
+  westvirginia: {
+    title: "West Virginia",
+    words: [
+      "charleston", "cardinal", "rhododendron", "sugarmaple", "newrivergorge", "mothman", "coal", "senecarocks",
+      "blackwaterfalls", "countryroads", "spruceknob", "mountaineer", "greenbrier",
+    ],
+  },
+  hawaii: {
+    title: "Hawaii",
+    words: [
+      "honolulu", "aloha", "nene", "hibiscus", "kukui", "kilauea", "waikiki", "pearlharbor", "lei", "ukulele",
+      "luau", "diamondhead", "maunakea",
+    ],
+  },
+  newhampshire: {
+    title: "New Hampshire",
+    words: [
+      "concord", "manchester", "granite", "purplefinch", "lilac", "birch", "whitemountains", "mountwashington",
+      "winnipesaukee", "portsmouth", "livefree", "moose",
+    ],
+  },
+  maine: {
+    title: "Maine",
+    words: [
+      "augusta", "portlandhead", "pinetree", "chickadee", "whitepine", "katahdin", "acadia", "lobster", "moose",
+      "blueberry", "aroostook",
+    ],
+  },
+  montana: {
+    title: "Montana",
+    words: [
+      "helena", "billings", "bigsky", "meadowlark", "bitterroot", "ponderosa", "glacier", "grizzly", "bison",
+      "treasure", "rodeo", "elk",
+    ],
+  },
+  rhodeisland: {
+    title: "Rhode Island",
+    words: [
+      "providence", "oceanstate", "newport", "narragansett", "blockisland", "violet", "redmaple", "redhen",
+      "calamari", "quahog", "littlerhody",
+    ],
+  },
+  delaware: {
+    title: "Delaware",
+    words: [
+      "dover", "wilmington", "firststate", "bluehen", "peachblossom", "holly", "rehoboth", "dupont", "taxfree",
+    ],
+  },
 };
 
 export function themeIds() {
