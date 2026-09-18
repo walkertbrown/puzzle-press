@@ -383,6 +383,109 @@ export const THEMES = {
       "trinity", "wisdom", "worship",
     ],
   },
+  california: {
+    title: "California",
+    words: [
+      "sacramento", "losangeles", "hollywood", "goldengate", "yosemite", "alcatraz", "malibu", "napa", "silicon", "sequoia",
+      "redwood", "poppy", "quail", "disneyland", "surfing", "earthquake", "golden",
+    ],
+  },
+  texas: {
+    title: "Texas",
+    words: [
+      "austin", "houston", "lonestar", "mockingbird", "bluebonnet", "pecan", "alamo", "longhorn", "cowboy", "rodeo",
+      "barbecue", "ranch", "riogrande", "dallas", "oilfield", "ranger",
+    ],
+  },
+  florida: {
+    title: "Florida",
+    words: [
+      "tallahassee", "jacksonville", "sunshine", "mockingbird", "palmetto", "everglades", "alligator", "manatee", "hurricane", "orlando",
+      "miami", "keywest", "canaveral", "flamingo", "citrus", "disneyworld",
+    ],
+  },
+  newyork: {
+    title: "New York",
+    words: [
+      "albany", "manhattan", "brooklyn", "empire", "bluebird", "rose", "maple", "niagara", "broadway", "liberty",
+      "harlem", "hudson", "adirondack", "subway", "yankees", "catskills",
+    ],
+  },
+  pennsylvania: {
+    title: "Pennsylvania",
+    words: [
+      "harrisburg", "philadelphia", "keystone", "grouse", "laurel", "hemlock", "liberty", "independence", "amish", "gettysburg",
+      "pittsburgh", "steel", "cheesesteak", "appalachian", "poconos",
+    ],
+  },
+  illinois: {
+    title: "Illinois",
+    words: [
+      "springfield", "chicago", "lincoln", "prairie", "oak", "cubs", "bulls", "bears", "willis", "midway",
+      "loop", "farmland", "soybean", "cardinal", "violet",
+    ],
+  },
+  ohio: {
+    title: "Ohio",
+    words: [
+      "columbus", "cleveland", "cincinnati", "buckeye", "scarlet", "canton", "erie", "amish", "browns", "reds",
+      "bengals", "toledo", "dayton", "cardinal", "carnation",
+    ],
+  },
+  georgia: {
+    title: "Georgia",
+    words: [
+      "atlanta", "savannah", "augusta", "macon", "hartsfield", "thrasher", "cherokee", "oak", "peach", "falcons",
+      "braves", "hawks", "peanut", "okefenokee", "cocacola",
+    ],
+  },
+  northcarolina: {
+    title: "North Carolina",
+    words: [
+      "raleigh", "charlotte", "tarheel", "dogwood", "pine", "outerbanks", "blueridge", "biltmore", "wright", "hurricanes",
+      "panthers", "furniture", "tobacco", "triangle", "asheville",
+    ],
+  },
+  michigan: {
+    title: "Michigan",
+    words: [
+      "lansing", "detroit", "wolverine", "robin", "blossom", "motown", "mackinac", "lions", "tigers", "redwings",
+      "dearborn", "ford", "greatlakes", "apple", "pine",
+    ],
+  },
+  newjersey: {
+    title: "New Jersey",
+    words: [
+      "trenton", "newark", "garden", "goldfinch", "violet", "oak", "boardwalk", "turnpike", "shore", "diner",
+      "whelk", "honeybee",
+    ],
+  },
+  virginia: {
+    title: "Virginia",
+    words: [
+      "richmond", "jamestown", "williamsburg", "cardinal", "dogwood", "shenandoah", "chesapeake", "pentagon", "peanut", "tobacco",
+      "dominion",
+    ],
+  },
+  washington: {
+    title: "Washington State",
+    words: [
+      "olympia", "seattle", "evergreen", "rainier", "rhododendron", "hemlock", "orca", "salmon", "ferry", "cascades",
+      "apple",
+    ],
+  },
+  arizona: {
+    title: "Arizona",
+    words: [
+      "phoenix", "tucson", "mesa", "saguaro", "paloverde", "turquoise", "ringtail", "sedona",
+    ],
+  },
+  massachusetts: {
+    title: "Massachusetts",
+    words: [
+      "boston", "chickadee", "mayflower", "elm", "cod", "ladybug", "lighthouse", "cranberry", "lobster", "minuteman",
+    ],
+  },
 };
 
 export function themeIds() {
