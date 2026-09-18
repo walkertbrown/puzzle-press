@@ -1888,7 +1888,7 @@ export const CLUES = {
   // ---- massachusetts
   boston: "Capital and largest city of Massachusetts",
   mayflower: "Ship that brought the Pilgrims to Massachusetts in 1620",
-  elm: "Tall shade tree, Massachusetts' official state tree",
+  elm: "Tall shade tree, official state tree of Massachusetts and North Dakota",
   cod: "Fish for which a famous Massachusetts cape is named",
   minuteman: "Revolutionary War militia soldier ready at a moment's notice",
   // ---- tennessee
@@ -1941,7 +1941,7 @@ export const CLUES = {
   milwaukee: "Wisconsin's largest city, on the shore of Lake Michigan",
   dairyland: "Wisconsin's nickname, reflecting its milk and cheese production",
   woodviolet: "Wisconsin's state flower, a small purple bloom common in forests",
-  sugarmaple: "State tree of Wisconsin and West Virginia, tapped in early spring for syrup",
+  sugarmaple: "State tree of Vermont, Wisconsin and West Virginia, tapped in early spring for syrup",
   cheesehead: "Foam wedge hat worn by Wisconsin sports fans",
   packers: "Green Bay's NFL football team, owned by its fans",
   greenbay: "Wisconsin city on the bay of the same name, home to an NFL team",
@@ -2030,7 +2030,7 @@ export const CLUES = {
   // ---- oregon
   salem: "Capital city of Oregon",
   portland: "Oregon's largest city, nicknamed the City of Roses",
-  meadowlark: "State bird of Oregon, Kansas, Nebraska and Montana, with a flute-like prairie song",
+  meadowlark: "State bird of Oregon, Kansas, Nebraska, Montana, Wyoming and North Dakota",
   oregongrape: "State flower emblem: an evergreen shrub with holly-like leaves and yellow blooms",
   douglasfir: "Towering evergreen conifer, Oregon's official state tree and a timber industry staple",
   craterlake: "Oregon's deep blue body of water formed inside a collapsed volcano",
@@ -2094,7 +2094,7 @@ export const CLUES = {
   desmoines: "Iowa's capital and largest city, along the Raccoon River",
   hawkeye: "Iowa's nickname, honoring a legendary Native American leader",
   easterngoldfinch: "Iowa's state bird, a small yellow songbird also called the wild canary",
-  wildrose: "Iowa's official state flower, with pink five-petaled blooms",
+  wildrose: "Official state flower of Iowa and North Dakota, with pink five-petaled blooms",
   fieldofdreams: "1989 baseball movie filmed on an Iowa farm, 'If you build it...'",
   amanacolonies: "Historic Iowa settlements founded by German Pietists in 1855",
   caucus: "Iowa's first-in-the-nation presidential nominating contest",
@@ -2115,7 +2115,7 @@ export const CLUES = {
   topeka: "Kansas's capital city, along the Kansas River",
   wichita: "Kansas's largest city, an aviation manufacturing hub",
   sunflowerstate: "Kansas's nickname, taken from its official golden bloom",
-  cottonwood: "State tree of Kansas and Nebraska, a fast-growing riverside tree with heart-shaped leaves",
+  cottonwood: "State tree of Kansas, Nebraska and Wyoming, a fast-growing tree with heart-shaped leaves",
   wheat: "Golden grain crop that made Kansas a leading U.S. producer",
   dodgecity: "Historic Kansas frontier town famous for its Wild West gunfights",
   flinthills: "Kansas tallgrass prairie region, one of the last of its kind",
@@ -2239,4 +2239,56 @@ export const CLUES = {
   rehoboth: "Popular Delaware beach town known for its wide boardwalk",
   dupont: "Chemical company giant historically headquartered in Wilmington, Delaware",
   taxfree: "Delaware draws shoppers because it charges none of this on retail purchases",
+
+  // ---- southdakota
+  pierre: "South Dakota's capital city, one of the least populous state capitals in the country",
+  siouxfalls: "South Dakota's largest city, named for the cascades on its namesake river",
+  rushmore: "Iconic South Dakota mountainside carved with the faces of four U.S. presidents",
+  badlands: "Eroded rock formations preserved in parkland in both South Dakota and North Dakota",
+  blackhills: "Ancient pine-covered range in western South Dakota, sacred to the Lakota people",
+  pheasant: "South Dakota's state bird, a colorful game bird introduced from Asia in the 1900s",
+  pasqueflower: "South Dakota's official spring bloom, a lavender-petaled bud that opens near Easter",
+  crazyhorse: "Massive in-progress mountain carving of a Lakota leader, near Mount Rushmore",
+  sturgis: "South Dakota town famous for hosting a massive annual motorcycle rally each August",
+  cornpalace: "Mitchell, South Dakota building whose exterior murals are redecorated yearly with crop art",
+
+  // ---- northdakota
+  bismarck: "North Dakota's capital, named for a 19th-century German chancellor",
+  fargo: "North Dakota's largest city, also the title of a Coen brothers film set nearby",
+  peacegarden: "Flower-filled memorial straddling the U.S.-Canada border, partly in North Dakota",
+  redriver: "Northward-flowing waterway forming North Dakota's eastern border with Minnesota",
+  flickertail: "Historic nickname for North Dakota, referencing a common prairie ground squirrel",
+
+  // ---- alaska
+  juneau: "Alaska's capital, reachable only by air or sea, with no road connecting it to the mainland",
+  anchorage: "Alaska's largest city, home to nearly half the state's entire population",
+  lastfrontier: "Alaska's nickname, evoking its vast wilderness and remoteness",
+  ptarmigan: "Alaska's state bird, a grouse that turns white for winter camouflage",
+  sitkaspruce: "Tall coastal evergreen and Alaska's official state tree, named for a historic coastal town",
+  denali: "Tallest peak in North America, rising over 20,000 feet in Alaska",
+  iditarod: "Famous long-distance sled dog race across the Alaskan wilderness",
+  permafrost: "Alaska's perpetually frozen subsurface ground, present across much of the state",
+  midnightsun: "Summer phenomenon in Alaska where the sun barely sets near the solstice",
+
+  // ---- vermont
+  montpelier: "Vermont's capital, the least populous state capital in the country",
+  burlington: "Vermont's largest city, on the shore of a lake shared with New York",
+  greenmountain: "Vermont's nickname, from the range running the length of the state",
+  hermitthrush: "Vermont's state bird, a shy woodland songbird with a flute-like song",
+  redclover: "Vermont's state flower, a purple-blossomed plant common in fields and pastures",
+  maplesyrup: "Vermont's signature amber product, boiled down from tree sap each spring",
+  champlain: "Large lake bordering Vermont, New York, and Quebec",
+  coveredbridge: "Vermont has more of these historic wooden spans, per square mile, than any other state",
+  stowe: "Popular Vermont ski resort town nestled below the state's tallest peak",
+
+  // ---- wyoming
+  cheyenne: "Wyoming's capital and largest city, named for a Plains Native American nation",
+  casper: "Wyoming's second-largest city, an oil-industry hub on the North Platte River",
+  equalitystate: "Wyoming's nickname, honoring its 1869 first-in-the-nation women's suffrage law",
+  indianpaintbrush: "Wyoming's state flower, a wildflower with brilliant red-orange bracts",
+  yellowstone: "First national park in the world, mostly located in northwest Wyoming",
+  grandteton: "Jagged mountain range and national park just south of Yellowstone in Wyoming",
+  devilstower: "First U.S. National Monument, a dramatic rock formation rising from the Wyoming plains",
+  jacksonhole: "Scenic valley and resort town near Grand Teton, popular with skiers",
+  oldfaithful: "Yellowstone's most famous geyser, erupting on a fairly predictable schedule",
 };

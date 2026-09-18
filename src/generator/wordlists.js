@@ -695,6 +695,41 @@ export const THEMES = {
       "dover", "wilmington", "firststate", "bluehen", "peachblossom", "holly", "rehoboth", "dupont", "taxfree",
     ],
   },
+  southdakota: {
+    title: "South Dakota",
+    words: [
+      "pierre", "siouxfalls", "rushmore", "badlands", "blackhills", "pheasant", "pasqueflower", "spruce",
+      "crazyhorse", "sturgis", "cornpalace",
+    ],
+  },
+  northdakota: {
+    title: "North Dakota",
+    words: [
+      "bismarck", "fargo", "peacegarden", "meadowlark", "wildrose", "elm", "badlands", "redriver",
+      "flickertail", "sunflower",
+    ],
+  },
+  alaska: {
+    title: "Alaska",
+    words: [
+      "juneau", "anchorage", "lastfrontier", "ptarmigan", "forgetmenot", "sitkaspruce", "denali", "iditarod",
+      "aurora", "permafrost", "midnightsun", "glacier",
+    ],
+  },
+  vermont: {
+    title: "Vermont",
+    words: [
+      "montpelier", "burlington", "greenmountain", "hermitthrush", "redclover", "sugarmaple", "maplesyrup",
+      "champlain", "coveredbridge", "stowe",
+    ],
+  },
+  wyoming: {
+    title: "Wyoming",
+    words: [
+      "cheyenne", "casper", "equalitystate", "meadowlark", "indianpaintbrush", "cottonwood", "yellowstone",
+      "grandteton", "devilstower", "jacksonhole", "oldfaithful",
+    ],
+  },
 };
 
 export function themeIds() {
