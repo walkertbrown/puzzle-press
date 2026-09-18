@@ -486,6 +486,111 @@ export const THEMES = {
       "boston", "chickadee", "mayflower", "elm", "cod", "ladybug", "lighthouse", "cranberry", "lobster", "minuteman",
     ],
   },
+  tennessee: {
+    title: "Tennessee",
+    words: [
+      "nashville", "memphis", "volunteer", "mockingbird", "iris", "tulippoplar", "smokies", "graceland", "chattanooga", "opry",
+      "walkinghorse", "catfish", "limestone",
+    ],
+  },
+  indiana: {
+    title: "Indiana",
+    words: [
+      "indianapolis", "hoosier", "cardinal", "peony", "tuliptree", "speedway", "basketball", "popcorn", "limestone", "wabash",
+      "mastodon", "firefly", "cornfield",
+    ],
+  },
+  missouri: {
+    title: "Missouri",
+    words: [
+      "kansascity", "jeffersoncity", "showme", "bluebird", "hawthorn", "dogwood", "gatewayarch", "stlouis", "ozarks", "branson",
+      "mule", "lewisclark", "riverboat",
+    ],
+  },
+  maryland: {
+    title: "Maryland",
+    words: [
+      "annapolis", "baltimore", "oldline", "oriole", "blackeyedsusan", "whiteoak", "chesapeake", "crab", "lacrosse", "jousting",
+      "navalacademy", "crabcake",
+    ],
+  },
+  wisconsin: {
+    title: "Wisconsin",
+    words: [
+      "madison", "milwaukee", "badger", "dairyland", "robin", "woodviolet", "sugarmaple", "cheesehead", "packers", "greenbay",
+      "brewers", "supperclub",
+    ],
+  },
+  colorado: {
+    title: "Colorado",
+    words: [
+      "denver", "centennial", "columbine", "spruce", "larkbunting", "rockies", "aspen", "broncos", "fourteener", "redrocks",
+      "mesaverde", "pikespeak", "avalanche",
+    ],
+  },
+  minnesota: {
+    title: "Minnesota",
+    words: [
+      "stpaul", "minneapolis", "northstar", "gopher", "loon", "ladyslipper", "pine", "vikings", "twins", "mallofamerica",
+      "walleye", "lutefisk", "superior", "ironrange",
+    ],
+  },
+  southcarolina: {
+    title: "South Carolina",
+    words: [
+      "columbia", "charleston", "palmetto", "jessamine", "carolinawren", "lowcountry", "fortsumter", "gullah", "hiltonhead", "sweetgrass",
+      "rice", "shrimp", "magnolia",
+    ],
+  },
+  alabama: {
+    title: "Alabama",
+    words: [
+      "montgomery", "huntsville", "yellowhammer", "camellia", "longleaf", "birmingham", "selma", "rocketcity", "gulfshores", "crimson",
+      "auburn", "mardigras", "cotton", "heartofdixie",
+    ],
+  },
+  louisiana: {
+    title: "Louisiana",
+    words: [
+      "neworleans", "batonrouge", "pelican", "magnolia", "cypress", "jazz", "mardigras", "gumbo", "creole", "bayou",
+      "frenchquarter", "zydeco", "crawfish",
+    ],
+  },
+  kentucky: {
+    title: "Kentucky",
+    words: [
+      "frankfort", "louisville", "bluegrass", "goldenrod", "tulippoplar", "bourbon", "derby", "thoroughbred", "mammothcave", "lexington",
+      "appalachian", "colonel", "cardinal",
+    ],
+  },
+  oregon: {
+    title: "Oregon",
+    words: [
+      "salem", "portland", "beaver", "meadowlark", "oregongrape", "douglasfir", "craterlake", "mounthood", "willamette", "timber",
+      "coastline", "pinotnoir",
+    ],
+  },
+  oklahoma: {
+    title: "Oklahoma",
+    words: [
+      "oklahomacity", "sooner", "scissortail", "mistletoe", "redbud", "tulsa", "landrun", "dustbowl", "oilderrick", "cherokee",
+      "chickasaw", "rodeo",
+    ],
+  },
+  connecticut: {
+    title: "Connecticut",
+    words: [
+      "hartford", "bridgeport", "constitution", "mountainlaurel", "charteroak", "newhaven", "mystic", "nutmeg", "yale", "submarine",
+      "insurance",
+    ],
+  },
+  utah: {
+    title: "Utah",
+    words: [
+      "saltlakecity", "beehive", "californiagull", "segolily", "quakingaspen", "greatsaltlake", "zion", "brycecanyon", "arches", "mormon",
+      "powder", "sundance",
+    ],
+  },
 };
 
 export function themeIds() {
