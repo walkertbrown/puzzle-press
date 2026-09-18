@@ -70,6 +70,22 @@ for (const [name, book, title, subtitle, seed] of [
   console.log(`wrote public/samples/sample-${name}-cover-6x9.pdf`, c.length, "bytes, sized for", pc, "pages");
 }
 
+// Large print sample and its cover — the exact preset `el.largePrint` sets:
+// 8.5x11, automatic grid size, 14 words per puzzle.
+{
+  const lp = generateBook({ pools: [THEMES.garden, THEMES.birds], count: 20, wordsPerPuzzle: 14, difficulty: "easy", trim: "8.5x11", seed: "public-large-print-1" });
+  const lpBytes = await renderBook(lp, { title: "Large Print Garden Word Search", subtitle: "20 puzzles with solutions — sample book", author: "Puzzle Press", trim: "8.5x11", licensed: true, fonts });
+  writeFileSync(new URL("../public/samples/sample-large-print-8.5x11.pdf", import.meta.url), lpBytes);
+  console.log("wrote public/samples/sample-large-print-8.5x11.pdf", lpBytes.length, "bytes", lp.warnings);
+  const pc = planPages(20, solutionsThatFit(pageGeometry({ trim: "8.5x11" }))).total;
+  const c = await renderCover({
+    title: "Large Print Garden Word Search", subtitle: "20 puzzles with solutions — sample book", author: "Puzzle Press",
+    trim: "8.5x11", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: lp.puzzles[0], seed: "public-large-print-1", largePrint: true, fonts,
+  });
+  writeFileSync(new URL("../public/samples/sample-large-print-cover-8.5x11.pdf", import.meta.url), c);
+  console.log("wrote public/samples/sample-large-print-cover-8.5x11.pdf", c.length, "bytes, sized for", pc, "pages");
+}
+
 // Criss-cross sample and its cover.
 const { generateCrissCrossBook } = await import("../src/generator/crisscross.js");
 const cc = generateCrissCrossBook({ pools: [THEMES.halloween], count: 20, difficulty: "graded", seed: "public-crisscross-1" });

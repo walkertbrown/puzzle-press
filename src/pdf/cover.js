@@ -43,6 +43,7 @@ export async function renderCover({
   samplePuzzle = null, // a generated puzzle, drawn small on the back
   fonts = null,
   seed = "cover",
+  largePrint = false, // the "Large print" preset was on when this book was built
 } = {}) {
   const g = coverGeometry({ trim, pageCount, paper });
   const doc = await PDFDocument.create();
@@ -69,9 +70,33 @@ export async function renderCover({
   drawFront(page, g, { title, subtitle, author, regular, bold });
   drawSpine(page, g, { title, author, regular, bold });
   drawBack(page, g, { title, blurb, puzzleCount, samplePuzzle, regular, bold });
+  if (largePrint) drawLargePrintBadge(page, g, bold);
   if (!licensed) drawCoverWatermark(page, g, bold, regular);
 
   return doc.save();
+}
+
+// Large print is the one niche every KDP guide names as the actual keyword-
+// and-click driver on the thumbnail — a shopper scanning a grid of covers
+// needs to see it without opening the listing. A plain corner medallion,
+// the same convention as an "AS SEEN ON TV" or bestseller sticker, drawn on
+// top of the front panel's background field so it reads at thumbnail size.
+const LARGE_PRINT_INK = rgb(0.62, 0.15, 0.18);
+function drawLargePrintBadge(page, g, bold) {
+  const r = Math.min(g.panelW, g.panelH) * 0.115;
+  const cx = g.frontX + g.panelW - r - 22;
+  const cy = g.panelY + g.panelH - r - 22;
+  if (r < 30 || cx - r < g.frontX) return; // too small a trim for this to read
+  page.drawCircle({ x: cx, y: cy, size: r, color: WHITE, borderWidth: 2, borderColor: LARGE_PRINT_INK });
+  page.drawCircle({ x: cx, y: cy, size: r - 5, color: LARGE_PRINT_INK });
+  const lines = ["LARGE", "PRINT", "EDITION"];
+  const size = Math.max(9, r * 0.19);
+  let ty = cy + size * 1.05;
+  for (const line of lines) {
+    const w = bold.widthOfTextAtSize(line, size);
+    page.drawText(line, { x: cx - w / 2, y: ty - size * 0.85, size, font: bold, color: WHITE });
+    ty -= size * 1.25;
+  }
 }
 
 // An unlicensed cover is a real cover of the buyer's own book, marked so it

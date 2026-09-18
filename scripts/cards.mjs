@@ -42,6 +42,7 @@ await card("sudoku-book-generator.png", { kicker: "Puzzle Press", title: "Sudoku
 await card("maze-book-generator.png", { kicker: "Puzzle Press", title: "Maze book generator for Amazon KDP", body: "Perfect mazes, 15×15 to 39×39, one route each, solutions at the back. Free to use.", img: data("pins/05-mazes.png") });
 await card("criss-cross-book-generator.png", { kicker: "Puzzle Press", title: "Criss-cross fill-in book generator for Amazon KDP", body: "Crossword grids with the word list instead of clues. Every grid verified to have exactly one fill. Free to use.", img: data("pins/06-crisscross.png") });
 await card("crossword-book-generator.png", { kicker: "Puzzle Press", title: "Themed crossword book generator for Amazon KDP", body: "Clued crosswords from 32 themes or your own word — clue lines. Solutions at the back. Free to use.", img: data("pins/07-crossword.png") });
+await card("large-print-word-search-generator.png", { kicker: "Puzzle Press", title: "Large print word search generator for seniors", body: "8.5 × 11 pages, automatic grid sizing, letters measured at 18–25pt. Free to use.", img: data("pins/10-large-print.png") });
 await card("compare.png", { kicker: "Compared", title: "Four ways to make a KDP puzzle book", body: "Subscription suites, free generators, by hand, and Puzzle Press — what each costs and produces.", img: data("pins/01-puzzle-press.png") });
 await card("margin-calculator.png", { kicker: "Free tool", title: "KDP margin calculator", body: "Page size, gutter, outside, top and bottom — for any trim, page count and bleed setting.", img: data("pins/02-spine.png") });
 await card("word-lists.png", { kicker: "Free word lists", title: "32 themed word search lists", body: "1,660 words, each list sized for a 15×15 grid. Free to use in books you sell.", img: data("pins/03-word-search.png") });
@@ -49,4 +50,4 @@ for (const [id, t] of Object.entries(THEMES)) {
   await card(`word-list-${id}.png`, { kicker: "Free word list", title: `${t.title} word search words`, body: `${t.words.length} words, sized for a 15×15 grid. Free to use in any puzzle, including ones you sell.`, img: data("pins/03-word-search.png") });
 }
 await browser.close();
-console.log(`wrote public/cards/ — ${6 + Object.keys(THEMES).length} cards`);
+console.log(`wrote public/cards/ — ${7 + Object.keys(THEMES).length} cards`);
