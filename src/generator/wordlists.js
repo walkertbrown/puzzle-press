@@ -339,6 +339,50 @@ export const THEMES = {
       "swimming", "swimsuit", "tanning", "towel", "umbrella", "volleyball", "waves",
     ],
   },
+  nursing: {
+    title: "Nursing",
+    words: [
+      "ambulance", "anesthesia", "antiseptic", "bandage", "bedside", "biopsy", "caregiver", "cardiac", "catheter", "checkup",
+      "clinic", "clipboard", "crutch", "diagnosis", "discharge", "dosage", "fever", "fracture", "gauze", "glove",
+      "gurney", "hospice", "hygiene", "incision", "infection", "infusion", "injection", "insulin", "mask", "maternity",
+      "medication", "monitor", "needle", "oxygen", "paramedic", "pediatric", "prescription", "pulse", "recovery", "rehab",
+      "sanitize", "scrubs", "shift", "sling", "splint", "sterile", "stethoscope", "surgery", "suture", "symptom",
+      "syringe", "therapy", "thermometer", "triage", "vaccine", "vitals", "ward", "wheelchair", "wound",
+    ],
+  },
+  teaching: {
+    title: "Teaching",
+    words: [
+      "alphabet", "assembly", "assignment", "attendance", "backpack", "blackboard", "bookshelf", "calculator", "chalk", "classmate",
+      "classroom", "crayon", "curriculum", "desk", "dictionary", "diploma", "eraser", "essay", "exam", "faculty",
+      "gradebook", "grades", "gymnasium", "hallway", "highlighter", "homework", "kindergarten", "lecture", "lesson", "library",
+      "literacy", "locker", "lunchbox", "marker", "notebook", "pencil", "playground", "principal", "quiz", "recess",
+      "report", "ruler", "schedule", "scholarship", "semester", "spelling", "stapler", "student", "syllabus", "textbook",
+      "transcript", "tutor", "uniform", "vocabulary", "whiteboard", "worksheet", "yearbook",
+    ],
+  },
+  trucking: {
+    title: "Trucking",
+    words: [
+      "axle", "backhaul", "bunk", "cargo", "caravan", "checkpoint", "citation", "clutch", "convoy", "cruise",
+      "dashboard", "diesel", "dispatch", "dockworker", "downshift", "driver", "flatbed", "forklift", "freight", "fuel",
+      "gauge", "gearshift", "hauler", "highway", "hitch", "horn", "idling", "inspection", "interstate", "jackknife",
+      "ledger", "load", "logbook", "mileage", "mirror", "mudflap", "odometer", "overpass", "pallet", "permit",
+      "radio", "rearview", "rig", "route", "sleeper", "speedometer", "tanker", "tarp", "terminal", "throttle",
+      "tire", "toll", "trailer", "transmission", "tunnel", "warehouse", "weigh", "windshield", "yard",
+    ],
+  },
+  faith: {
+    title: "Bible & Scripture",
+    words: [
+      "altar", "angel", "apostle", "baptism", "blessing", "chapel", "choir", "communion", "congregation", "covenant",
+      "creation", "cross", "crucifixion", "devotion", "disciple", "exodus", "faith", "fellowship", "forgiveness", "genesis",
+      "gospel", "grace", "heaven", "hymn", "manger", "mercy", "ministry", "miracle", "missionary", "nativity",
+      "parable", "pilgrimage", "prayer", "prophet", "proverbs", "psalm", "pulpit", "redeemer", "resurrection", "revelation",
+      "righteous", "sabbath", "sanctuary", "savior", "scripture", "sermon", "shepherd", "steeple", "tabernacle", "testament",
+      "trinity", "wisdom", "worship",
+    ],
+  },
 };
 
 export function themeIds() {

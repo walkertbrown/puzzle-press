@@ -131,7 +131,7 @@ const themePage = (id, t) => {
     <a class="btn" href="/?theme=${id}#tool">Make a ${esc(t.title)} word search book</a>
     <a href="/?kind=crisscross&amp;theme=${id}#tool">…or a fill-in book</a>
     <a href="/?kind=crossword&amp;theme=${id}#tool">…or a crossword book</a>
-    <a href="/word-lists/">All 32 lists</a>
+    <a href="/word-lists/">All ${Object.keys(THEMES).length} lists</a>
   </div>
   <p class="fine">The button opens the free generator with this theme selected. It draws ${WPP} words per puzzle and can make ${sets >= 500 ? "hundreds of" : sets} different puzzles from this list without repeating a set — a ${bookOf}-puzzle book comes to ${pages} pages at 6 × 9.</p>
 
@@ -175,8 +175,8 @@ for (const id of ids) writeFileSync(`${outDir}${id}.html`, themePage(id, THEMES[
 
 const total = ids.reduce((a, id) => a + THEMES[id].words.length, 0);
 const index = shell({
-  title: "Word Search Word Lists — 32 Themes, Free to Use",
-  description: `${total} words across 32 themed lists — animals, Halloween, Christmas, dinosaurs, gardening and more — each sized for a 15×15 word search. Free for any use, with a generator that turns any list into a KDP book.`,
+  title: `Word Search Word Lists — ${ids.length} Themes, Free to Use`,
+  description: `${total} words across ${ids.length} themed lists — animals, Halloween, Christmas, dinosaurs, gardening and more — each sized for a 15×15 word search. Free for any use, with a generator that turns any list into a KDP book.`,
   path: "/word-lists/",
   ogImage: "/cards/word-lists.png",
   jsonld: {
