@@ -730,6 +730,47 @@ export const THEMES = {
       "grandteton", "devilstower", "jacksonhole", "oldfaithful",
     ],
   },
+  quilting: {
+    title: "Quilting",
+    words: [
+      "quilt", "quilting", "patchwork", "applique", "batting", "binding", "backing", "template",
+      "rotarycutter", "cuttingmat", "seamallowance", "fatquarter", "jellyroll", "charmpack", "layercake",
+      "sashing", "border", "sampler", "logcabin", "flyinggeese", "ninepatch", "churndash", "bowtie",
+      "pinwheel", "hexagon", "hexie", "longarm", "handquilting", "embroidery", "thimble", "needle",
+      "thread", "bobbin", "pincushion", "stash", "scraps", "freezerpaper", "basting", "backstitch",
+      "runningstitch", "crazyquilt", "amishquilt", "hawaiianquilt", "album", "friendship", "guild",
+    ],
+  },
+  knitting: {
+    title: "Knitting",
+    words: [
+      "knit", "knitting", "purl", "yarn", "needle", "stitch", "caston", "bindoff", "gauge", "skein",
+      "wool", "alpaca", "cashmere", "cable", "ribbing", "garter", "stockinette", "colorwork", "fairisle",
+      "intarsia", "sweater", "scarf", "mitten", "sock", "beanie", "shawl", "blanket", "afghan",
+      "frogging", "swatch", "circular", "doublepointed", "pattern", "chart", "row", "tension",
+      "increase", "decrease", "yarnover", "slipstitch",
+    ],
+  },
+  golf: {
+    title: "Golf",
+    words: [
+      "golf", "tee", "fairway", "green", "rough", "bunker", "birdie", "eagle", "bogey", "par", "ace",
+      "caddie", "clubhouse", "driver", "putter", "wedge", "iron", "wood", "scorecard", "mulligan",
+      "handicap", "links", "pin", "flagstick", "sandtrap", "dogleg", "fringe", "approach", "chip",
+      "putt", "slice", "hook", "fade", "draw", "backswing", "followthrough", "tour", "masters", "swing",
+      "course", "ninehole", "eighteenhole",
+    ],
+  },
+  wine: {
+    title: "Wine",
+    words: [
+      "wine", "vineyard", "vintage", "cork", "corkscrew", "decanter", "sommelier", "tannin", "terroir",
+      "cellar", "barrel", "oak", "merlot", "cabernet", "chardonnay", "pinot", "syrah", "zinfandel",
+      "riesling", "sauvignon", "sparkling", "champagne", "bordeaux", "burgundy", "napa", "tuscany",
+      "chianti", "rioja", "tasting", "swirl", "bouquet", "palate", "finish", "harvest", "grape",
+      "cluster", "fermentation", "yeast", "label", "bottle", "glass", "grapevine",
+    ],
+  },
 };
 
 export function themeIds() {
