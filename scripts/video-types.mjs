@@ -48,11 +48,11 @@ await caption("");
 await scrollTo(SHORT ? ".preview-stick" : "#tool");
 
 const types = [
-  ["wordsearch", "Word search — 86 themes or your own list. Every word once, checked.", ".grid div"],
+  ["wordsearch", "Word search — 90 themes or your own list. Every word once, checked.", ".grid div"],
   ["sudoku", "Sudoku — every puzzle verified to have exactly one solution.", ".sudoku div"],
   ["maze", "Mazes — one route through, no dead pockets, solutions at the back.", ".maze svg line"],
   ["crisscross", "Criss-cross fill-ins — every grid verified to have one fill.", ".crisscross .cell"],
-  ["crossword", "Themed crosswords — 2,128 clues written by hand, or paste your own.", ".crisscross .cell i"],
+  ["crossword", "Themed crosswords — 2,278 clues written by hand, or paste your own.", ".crisscross .cell i"],
 ];
 const pdfs = {};
 for (const [kind, text, sel] of types) {
