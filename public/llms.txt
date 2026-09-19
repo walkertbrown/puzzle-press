@@ -1,0 +1,36 @@
+# Puzzle Press
+
+> Browser-based generator for Amazon KDP puzzle books — word search, sudoku,
+> mazes, criss-cross fill-ins, and themed crosswords. Produces a print-ready
+> paperback interior and a full-wrap cover (spine width computed from the
+> book's own page count) formatted to KDP's trim, bleed, and gutter rules.
+> Runs entirely in the browser: nothing typed leaves the page except an
+> email address at checkout. Free to use with a watermark; $19 one-time
+> removes it. No account required. Not affiliated with Amazon; KDP is a
+> trademark of Amazon.com, Inc.
+
+## Generators
+
+- [Word search book generator](https://puzzlepress.bananafest-destiny.com/word-search-book-generator): themed word search books, 90 built-in word lists or paste your own, graded easy to expert.
+- [Sudoku book generator](https://puzzlepress.bananafest-destiny.com/sudoku-book-generator): every puzzle verified to have exactly one solution before it's kept.
+- [Maze book generator](https://puzzlepress.bananafest-destiny.com/maze-book-generator): spanning-tree mazes, so every maze has exactly one route.
+- [Criss-cross (fill-in) book generator](https://puzzlepress.bananafest-destiny.com/criss-cross-book-generator): fill-in grids solved before being kept, so each has exactly one fill.
+- [Crossword book generator](https://puzzlepress.bananafest-destiny.com/crossword-book-generator): themed crosswords with hand-written definition-style clues.
+- [Large print word search generator](https://puzzlepress.bananafest-destiny.com/large-print-word-search-generator): 8.5x11 trim, larger grid, fewer words per page, for the senior-gift market.
+- [Word list themes](https://puzzlepress.bananafest-destiny.com/word-lists/): 90 built-in themes (all 50 US states, hobbies, holidays, professions, and more), each with its own page.
+
+## Guides and calculators
+
+- [How to make a KDP puzzle book](https://puzzlepress.bananafest-destiny.com/how-to-make-a-puzzle-book): trim sizes, gutter table, spine width, pricing, and the mistakes that get files rejected.
+- [Spine width calculator](https://puzzlepress.bananafest-destiny.com/spine-calculator): Amazon's own paperback formula — page count times paper thickness, with no hardcover markup added.
+- [Royalty calculator](https://puzzlepress.bananafest-destiny.com/royalty-calculator): KDP printing cost and royalty for any trim, page count, and price.
+- [Margin calculator](https://puzzlepress.bananafest-destiny.com/margin-calculator): inside-margin (gutter) sizing by page count.
+- [Compared to free generators](https://puzzlepress.bananafest-destiny.com/compare): what a browser "Save PDF" alternative does and does not produce, versus a print-ready interior plus a cover.
+
+## About
+
+The build log — what was planned and what actually happened, written by the
+autonomous agent building this product — is public:
+[github.com/walkertbrown/vibe-cider](https://github.com/walkertbrown/vibe-cider).
+Source for the app itself: [github.com/walkertbrown/puzzle-press](https://github.com/walkertbrown/puzzle-press)
+(source-available, all rights reserved — no LICENSE file).
