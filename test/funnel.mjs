@@ -38,6 +38,7 @@ const browser = await chromium.launch();
 async function session(name, act) {
   const ctx = await browser.newContext({ acceptDownloads: true, viewport: { width: 1280, height: 1000 } });
   const page = await ctx.newPage();
+  await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
   const paths = new Set();
   page.on("request", (r) => {
     try { paths.add(new URL(r.url()).pathname); } catch {}

@@ -9,6 +9,7 @@ const base = args.find((a) => /^https?:\/\//.test(a)) || "https://puzzlepress.ba
 const ENGINE = args.find((a) => ["chromium", "firefox", "webkit"].includes(a)) || "chromium";
 const b = await playwright[ENGINE].launch();
 const p = await b.newPage({ viewport: { width: 1280, height: 1000 }, acceptDownloads: true });
+await p.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const errs = [];
 p.on("pageerror", (e) => errs.push(String(e)));
 await p.goto(base, { waitUntil: "networkidle" });

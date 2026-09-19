@@ -24,6 +24,7 @@ await ctx.addInitScript(() => {
   Object.defineProperty(window, "localStorage", { configurable: true, get: boom });
 });
 const page = await ctx.newPage();
+await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 

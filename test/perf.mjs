@@ -33,6 +33,7 @@ const b = await chromium.launch();
 // Mid-range phone on 4G — what most Product Hunt traffic actually is.
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
+await p.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const client = await ctx.newCDPSession(p);
 await client.send("Network.enable");
 await client.send("Network.emulateNetworkConditions", {
@@ -78,6 +79,7 @@ check(res.some((r) => r.url === "/hero-book.webp"), "the hero is served as WebP"
 await ctx.close();
 const phone = await b.newContext({ viewport: { width: 390, height: FOLD }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const page = await phone.newPage();
+await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 await page.goto(base, { waitUntil: "networkidle" });
 
 const top = async (sel) => (await page.locator(sel).first().boundingBox()).y;

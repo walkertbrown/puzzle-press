@@ -13,6 +13,7 @@ const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } 
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 
 const idx = await page.goto(`${base}/word-lists/`, { waitUntil: "networkidle" });
 check(idx.status() === 200, "index serves");

@@ -8,6 +8,7 @@ const SECRET = "ZZQXVWKJPL"; // a word that appears nowhere except what we type
 
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1280, height: 1000 }, acceptDownloads: true });
+await p.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 
 const requests = [];
 p.on("request", (r) => {

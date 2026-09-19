@@ -11,6 +11,7 @@ const inch = (n) => `${(Math.round(n * 1000) / 1000).toString()}"`;
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 const res = await page.goto(`${base}/margin-calculator`, { waitUntil: "networkidle" });

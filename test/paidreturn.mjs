@@ -25,6 +25,7 @@ for (const l of live) {
 
 const b = await playwright[ENGINE].launch();
 const p = await b.newPage({ viewport: { width: 1200, height: 900 } });
+await p.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const errs = [];
 p.on("pageerror", (e) => errs.push(String(e)));
 

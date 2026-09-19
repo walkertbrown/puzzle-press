@@ -15,6 +15,7 @@ const check = (ok, msg) => { console.log(`${ok ? "ok  " : "FAIL"} ${msg}`); if (
 const fits = solutionsThatFit(pageGeometry({ trim: "6x9", bleed: false }));
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 
 for (const [slug, kind] of Object.entries(slugs)) {
   const res = await page.goto(`${base}/${slug}`, { waitUntil: "networkidle" });
