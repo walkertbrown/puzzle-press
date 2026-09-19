@@ -32,6 +32,7 @@ const profile = { ...devices[DEVICE], acceptDownloads: true };
 if (ENGINE === "firefox") { delete profile.isMobile; delete profile.hasTouch; }
 const ctx = await browser.newContext(profile);
 const page = await ctx.newPage();
+await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 

@@ -16,6 +16,7 @@ let failed = 0;
 const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } };
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
+await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 const requests = [];

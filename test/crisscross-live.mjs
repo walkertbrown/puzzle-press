@@ -13,6 +13,7 @@ const base = (process.argv[2] || "https://puzzlepress.bananafest-destiny.com").r
 const tmp = mkdtempSync(join(tmpdir(), "pp-cc-"));
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
+await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 await page.goto(`${base}/?kind=crisscross#tool`, { waitUntil: "networkidle" });

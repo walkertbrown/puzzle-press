@@ -15,6 +15,7 @@ const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport: { width: 1280, height: 1000 } });
 const p = await ctx.newPage();
+await p.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 await p.goto(base, { waitUntil: "networkidle" });
 await p.waitForSelector(".grid div");
 
@@ -40,6 +41,7 @@ const tag = `${SELFTEST_PREFIX}${new Date().toISOString().replace(/[^\dT]/g, "")
 const tagged = `${href}${href.includes("?") ? "&" : "?"}client_reference_id=${tag}`;
 console.log("following (tagged as a self-test):", tag);
 const checkout = await ctx.newPage();
+await checkout.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 await checkout.goto(tagged, { waitUntil: "domcontentloaded" });
 await checkout.waitForSelector("#email", { timeout: 60000 });
 await checkout.waitForTimeout(1500);

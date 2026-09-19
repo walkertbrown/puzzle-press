@@ -20,6 +20,7 @@ const browser = await chromium.launch({
 });
 const ctx = await browser.newContext({ acceptDownloads: true, viewport: { width: 1280, height: 1000 } });
 const page = await ctx.newPage();
+await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 
 await page.goto(base, { waitUntil: "networkidle" });
 await page.waitForSelector(".grid div");

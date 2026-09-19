@@ -44,6 +44,7 @@ const solUri = pageUri(24);
 // must stay that way. Product Hunt needs 1270x760, so the same idea is redrawn
 // at their shape rather than an OG card being stretched into it.
 const card = await browser.newPage(view);
+await card.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 await card.setContent(`<!doctype html><meta charset="utf-8"><style>
   *{box-sizing:border-box} body{margin:0;background:#1d3557;color:#fff;
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -70,6 +71,7 @@ await card.screenshot({ path: join(out, "01-card.png") });
 
 // --- 2. what comes out: a puzzle page beside its solutions page ---
 const pages = await browser.newPage(view);
+await pages.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 await pages.setContent(`<!doctype html><meta charset="utf-8"><style>
   *{box-sizing:border-box} body{margin:0;height:${SHOT.height}px;overflow:hidden;
     background:linear-gradient(160deg,#eef1f6,#e2e7f0);
@@ -86,6 +88,7 @@ await pages.screenshot({ path: join(out, "02-pages.png") });
 
 // --- 3. the tool, mid-use, preview showing ---
 const app = await browser.newPage(view);
+await app.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 await app.goto(base, { waitUntil: "networkidle" });
 // Shoot the paid product: an unlicensed shot shows the 5-puzzle cap under a
 // title promising 100, which reads as a bug rather than a free tier.
@@ -117,6 +120,7 @@ const prefix = join(tmp, "sol");
 execFileSync("pdftoppm", ["-r", "170", "-f", "24", "-l", "24", "-png", pdf, prefix]);
 const uri = `data:image/png;base64,${readFileSync(`${prefix}-24.png`).toString("base64")}`;
 const sol = await browser.newPage(view);
+await sol.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 await sol.setContent(`<!doctype html><meta charset="utf-8"><style>
   body{margin:0;height:${SHOT.height}px;display:flex;align-items:center;justify-content:center;gap:56px;
        background:linear-gradient(160deg,#eef1f6,#e2e7f0);
@@ -155,6 +159,7 @@ execFileSync("pdftoppm", ["-r", "150", "-f", "24", "-l", "24", "-png", sudokuPdf
 const uriP = `data:image/png;base64,${readFileSync(`${sp}-03.png`).toString("base64")}`;
 const uriS = `data:image/png;base64,${readFileSync(`${ss}-24.png`).toString("base64")}`;
 const sud = await browser.newPage(view);
+await sud.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 await sud.setContent(`<!doctype html><meta charset="utf-8"><style>
   body{margin:0;height:${SHOT.height}px;display:flex;align-items:center;justify-content:center;gap:40px;
        background:linear-gradient(160deg,#eef1f6,#e2e7f0);
@@ -193,6 +198,7 @@ execFileSync("pdftoppm", ["-r", "150", "-f", "24", "-l", "24", "-png", mazePdf, 
 const mUriP = `data:image/png;base64,${readFileSync(`${mp}-03.png`).toString("base64")}`;
 const mUriS = `data:image/png;base64,${readFileSync(`${ms}-24.png`).toString("base64")}`;
 const mz = await browser.newPage(view);
+await mz.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 await mz.setContent(`<!doctype html><meta charset="utf-8"><style>
   body{margin:0;height:${SHOT.height}px;display:flex;align-items:center;justify-content:center;gap:40px;
        background:linear-gradient(160deg,#eef1f6,#e2e7f0);

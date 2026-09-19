@@ -36,6 +36,7 @@ const ctx = await browser.newContext(
   deviceName ? { ...devices[deviceName] } : { viewport: { width: 1280, height: 800 } },
 );
 const page = await ctx.newPage();
+await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const label = deviceName ? `${engine} / ${deviceName}` : `${engine} / desktop 1280`;
 
 const t0 = Date.now();

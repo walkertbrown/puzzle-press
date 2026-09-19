@@ -40,6 +40,7 @@ const browser = await playwright[ENGINE].launch({
 });
 console.log(`engine: ${ENGINE} ${browser.version()}`);
 const page = await browser.newPage({ viewport: { width: 1280, height: 1000 }, acceptDownloads: true });
+await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 // Expected: /api/verify answers 4xx/5xx for unknown emails; that is not a page error.

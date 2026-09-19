@@ -26,6 +26,7 @@ const ctx = await browser.newContext({
   acceptDownloads: true,
 });
 const page = await ctx.newPage();
+await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const errs = [];
 page.on("pageerror", (e) => errs.push(String(e)));
 

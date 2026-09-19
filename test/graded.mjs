@@ -7,6 +7,7 @@ import { execFileSync } from "node:child_process";
 const base = process.argv[2] || "https://puzzlepress.bananafest-destiny.com";
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1280, height: 1000 }, acceptDownloads: true });
+await p.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const errs = [];
 p.on("pageerror", (e) => errs.push(String(e)));
 await p.goto(base, { waitUntil: "networkidle" });
