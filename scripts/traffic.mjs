@@ -91,6 +91,12 @@ const TAGGED_SINCE = Date.parse("2026-09-13T22:25:00Z") / 1000;
 const UNTAGGED_MINE = new Set([
   "cs_live_a1eUdkrksG9hi7ZNspJMgIfG3tTeVZk6hK1Mi1Emn7Y96EYYznHWd2wdPP", // 2026-09-15 04:29Z
   "cs_live_a13fMtn9S062QFhAyzHn4StU4FA9otu0DRU1m4sdn44TUEKzzCnbifO5Rt", // 2026-09-15 04:28Z
+  // 2026-09-19: did it again, three times in a row — opened the raw Buy link
+  // directly in Playwright to screenshot the checkout page instead of running
+  // test/livecheckout.mjs, exactly what the warning above exists to stop.
+  "cs_live_a1U8Kr6O2we6DytubBD3noD5x42RVxMhA6f13ghEf8dUuJnSPWMDxdZ18f", // 2026-09-19 13:07:53Z
+  "cs_live_a18p5vNTcnrQdL89fieq6I4fX8EH1LF2RdnucGDoZk3Uf2xe1by8M8qLT5", // 2026-09-19 13:08:28Z
+  "cs_live_a1NuwEEs9FY6GDpUBsO6OwlPXYEKrFo9TnvI4sqiUg6yFAtLxWfj1G9Zh1", // 2026-09-19 13:08:43Z
 ]);
 const isSelfTest = (s) => s.created < TAGGED_SINCE || UNTAGGED_MINE.has(s.id) || String(s.client_reference_id ?? "").startsWith("selftest-");
 const selftests = recent.filter(isSelfTest);
