@@ -18,6 +18,9 @@ mkdirSync(outDir, { recursive: true });
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1, acceptDownloads: true, recordVideo: { dir: tmp, size: { width: W, height: H } } });
+// Runs against the live domain — block the Web Analytics beacon so this
+// doesn't get counted as a visitor (see actual/2026-09-18.md).
+await ctx.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const page = await ctx.newPage();
 const wait = (ms) => page.waitForTimeout(ms);
 const PHONE_CSS = `html{zoom:2} main{grid-template-columns:1fr;padding:16px;gap:16px} header .wide-only{display:none} header{padding:14px 16px}

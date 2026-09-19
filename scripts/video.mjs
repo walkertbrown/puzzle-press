@@ -30,6 +30,10 @@ const ctx = await browser.newContext({
   acceptDownloads: true,
   recordVideo: { dir: tmp, size: { width: W, height: H } },
 });
+// This runs against the live domain to capture the real app, but it isn't a
+// visitor — block the Web Analytics beacon so recording doesn't show up as
+// one on the boss's dashboard (see actual/2026-09-18.md, the 10am mystery).
+await ctx.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
 const page = await ctx.newPage();
 const wait = (ms) => page.waitForTimeout(ms);
 
