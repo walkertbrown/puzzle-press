@@ -256,7 +256,12 @@ function drawPuzzlePage(ctx, puzzle) {
 
   const topY = box.y + box.h - headSize - 16;
   const gridAvailH = topY - (box.y + 28) - bankH;
-  const gridSide = Math.min(box.w, gridAvailH);
+  // Keep a clear gap inside the safe box so the grid frame (a 0.75pt stroke)
+  // never lands on the KDP margin line. Sizing to the full box.w put the frame
+  // exactly on the line, which KDP's previewer flags as "outside the margins"
+  // (worst on verso pages, where that edge is the tighter 0.375" gutter).
+  const GRID_SAFE = 9;
+  const gridSide = Math.min(box.w - 2 * GRID_SAFE, gridAvailH);
   const gridX = box.x + (box.w - gridSide) / 2;
   const gridTop = topY;
   drawGrid(page, F, puzzle, { x: gridX, top: gridTop, side: gridSide, solution: false });
