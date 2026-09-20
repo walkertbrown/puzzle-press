@@ -233,7 +233,15 @@ try {
   // every one of them 404s. They are not visitors, so keep them out of the
   // numbers — but say how many there were, so a jump is not mistaken for
   // interest.
-  const served = /^\/($|js\/|fonts\/|samples\/|gallery\/|spine-calculator|royalty-calculator|config\.js|api\/|demo\.gif|social-card|hero-book|robots|sitemap)/;
+  // 2026-09-19: this regex predates word-lists/, compare.html, the *-book-
+  // generator pages, margin-calculator and how-to-make-a-puzzle-book — every
+  // request to any of them was falling into "noise", mislabeled on the noise
+  // line as "paths that do not exist" even though these are real, deployed,
+  // sitemap-indexed pages. That made the 91 word-list pages currently being
+  // pinned on Pinterest (marketing/pins.md) invisible to this script: no way
+  // to tell whether that traffic is landing at all. Listing every real
+  // top-level page explicitly, since KDP.
+  const served = /^\/($|js\/|fonts\/|samples\/|gallery\/|pins\/|cards\/|video\/|word-lists\/|spine-calculator|royalty-calculator|margin-calculator|compare|how-to-make-a-puzzle-book|word-search-book-generator|sudoku-book-generator|maze-book-generator|criss-cross-book-generator|crossword-book-generator|large-print-word-search-generator|config\.js|api\/|demo\.gif|social-card|hero-book|robots|sitemap)/;
   const rows = all.filter((r) => served.test(r.dimensions.clientRequestPath));
   const noise = all.filter((r) => !served.test(r.dimensions.clientRequestPath)).reduce((a, r) => a + r.count, 0);
   const hits = (re) => rows.filter((r) => re.test(r.dimensions.clientRequestPath)).reduce((a, r) => a + r.count, 0);
@@ -298,12 +306,16 @@ try {
   // "ran the app" counting anything under /js/ — see the note above.
   const calc = hits(/^\/(spine|royalty|margin)\.js$/);
   const calcPages = hits(/calculator/);
+  // What the Pinterest pins (marketing/pins.md) actually drive traffic to —
+  // previously invisible entirely, see the `served` note above.
+  const wordLists = hits(/^\/word-lists\//);
   const window = funnelHours >= 23.5 ? "Last 24h" : `Last ${hours}h`;
   console.log(`\n  ${window}, by what people did (a day is all the free plan keeps):`);
   console.log(`    Requests for the page       ${requested}`);
   console.log(`    ...that ran the app         ${ranTheApp}   <-- a real browser; the rest are crawlers`);
   console.log(`    ...and did not bounce       ${stayed}   <-- stayed long enough to idle-warm the PDF chunk`);
   console.log(`    Opened a sample PDF         ${samples}`);
+  console.log(`    Visited a word-list page     ${wordLists}   <-- what the Pinterest pins point at`);
   console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} fetched the page and never ran it — crawlers)` : ""}`);
   console.log(`    Clicked Download            ${clickedDownload}${clickedDownload && !fonts ? "   (and no font was ever fetched — nothing rendered)" : ""}`);
   console.log(`    ...and a book came out      ${fonts ? `yes, ${fonts} font fetches` : "no"}   <-- fonts embed at render time; the only proof a PDF exists`);
@@ -316,7 +328,7 @@ try {
     console.log("\n  Every request for the page came from something that does not run JavaScript.");
   }
   console.log("\n  Top paths:");
-  for (const r of rows.slice(0, 12)) console.log(`    ${String(r.count).padStart(5)}  ${r.dimensions.clientRequestPath}`);
+  for (const r of rows.slice(0, 25)) console.log(`    ${String(r.count).padStart(5)}  ${r.dimensions.clientRequestPath}`);
 
   // There is no "where did they come from" line here, and it is not for want of
   // trying. Checked properly on launch eve rather than guessed at:
