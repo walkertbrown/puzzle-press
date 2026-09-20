@@ -279,3 +279,27 @@ test("nothing claims we pad a book out to KDP's page minimum", () => {
   }
   assert.deepEqual(wrong, [], `\n${wrong.join("\n")}\n`);
 });
+
+// Missing twice this week — the word-list template (2026-09-19) and four
+// hand-written calculator/guide pages (2026-09-20) — found both times by
+// manually grepping every page after the fact, not by anything that runs on
+// its own. A visitor arriving at any of these pages from a search result or a
+// Pinterest pin has seen nothing else about the site; the button that leads
+// to the generator is exactly where "is this safe, a scam, going to charge
+// me" doubt needs answering, and having nothing there is the actual failure,
+// not a style nit. So: any page whose "make a book" button is present gets
+// checked, not just the ones someone happened to look at.
+test("every page with a make-a-book button says there's no sign-up and a refund", () => {
+  const trustSignal = /refund|no sign.up|money.back/i;
+  const ctaHref = /class="btn"[^>]*href="([^"]*)"/g;
+  const wrong = [];
+  for (const [file, text] of TEXT) {
+    if (!file.startsWith("public/")) continue;
+    const hasGeneratorCta = [...text.matchAll(ctaHref)].some(([, href]) => {
+      const stripped = href.replace(/\?[^#]*/, "");
+      return stripped === "/" || stripped === "/#tool";
+    });
+    if (hasGeneratorCta && !trustSignal.test(text)) wrong.push(file);
+  }
+  assert.deepEqual(wrong, [], `\n${wrong.join("\n")}\n`);
+});
