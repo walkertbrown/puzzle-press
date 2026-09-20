@@ -165,6 +165,28 @@ if (scanners.length) {
   console.log(`  Ignored: ${scanners.length} scanner${scanners.length > 1 ? "s" : ""}, ${total} requests, all probing for files that do not exist.\n`);
 }
 
+// word-lists/* pages are static content — no main.js needed to read them —
+// so they never show in the section above, which is keyed on ranApp. Added
+// 2026-09-19 after traffic.mjs was widened to count these pages for the
+// first time and found 158 hits/day in one day, spread thin across pages
+// nothing has promoted. User-agent only, no RDAP: the deliberate scope above
+// ("only addresses that already ran the app, never a bulk dump of everyone
+// who touched the site") stays as written, and a self-declared bot UA
+// (Googlebot, bingbot both name themselves) needs no registry lookup anyway.
+const wordListOnly = visitors.filter(
+  ([, e]) => [...e.paths.keys()].some((p) => p.startsWith("/word-lists/")) && !did(e.paths).ranApp,
+);
+if (wordListOnly.length) {
+  const total = wordListOnly.reduce((a, [, e]) => a + e.n, 0);
+  console.log(`  Visited a word-list page without ever running the app: ${wordListOnly.length} addresses, ${total} requests.`);
+  for (const [ip, e] of wordListOnly.slice(0, 15)) {
+    const pages = [...e.paths.keys()].filter((p) => p.startsWith("/word-lists/")).length;
+    console.log(`    ${ip}  ${String(e.n).padStart(3)} req, ${pages} word-list page${pages === 1 ? "" : "s"}  ${[...e.uas][0] ?? ""}`);
+  }
+  if (wordListOnly.length > 15) console.log(`    ...and ${wordListOnly.length - 15} more`);
+  console.log("");
+}
+
 console.log(`  A cloud host is not proof of a crawler — a developer on a VPS is a person, and
   the most encouraging visit of launch week came from a Cloudflare WARP address.
   Read the owner and the agent together: Chrome 101 from Google LLC is a robot,
