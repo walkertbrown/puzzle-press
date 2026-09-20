@@ -133,6 +133,7 @@ const themePage = (id, t) => {
     <a href="/?kind=crossword&amp;theme=${id}#tool">…or a crossword book</a>
     <a href="/word-lists/">All ${Object.keys(THEMES).length} lists</a>
   </div>
+  <p class="fine">Runs in your browser — nothing you type leaves your computer. No sign-up. $19 once removes the watermark; 30-day refund, no questions.</p>
   <p class="fine">The button opens the free generator with this theme selected. It draws ${WPP} words per puzzle and can make ${sets >= 500 ? "hundreds of" : sets} different puzzles from this list without repeating a set — a ${bookOf}-puzzle book comes to ${pages} pages at 6 × 9.</p>
 
   <h2>The list</h2>
