@@ -431,6 +431,15 @@ try {
   const comparePages = people(/^\/compare/);
   const fromGuide = people(/^\/px\/guide\.gif$/);
   const fromCompare = people(/^\/px\/compare\.gif$/);
+  // The word-list pages, added 2026-09-21. The "Visited a word-list page"
+  // number below is filtered only by "did not say bot in the user-agent", and
+  // the note beside it already admits Amazonbot and Googlebot's bare Chrome
+  // agent walk straight through that. So until now there was no way to tell
+  // whether a single human being had ever opened one of these 91 pages. This
+  // one needs a browser that runs JavaScript — the same line every other
+  // funnel stage is drawn on.
+  const listRan = people(/^\/px\/list\.gif$/);
+  const listClicked = people(/^\/px\/listclick\.gif$/);
   // "Clicked Download", not "made a book" — and the difference cost me an hour.
   //
   // 2026-09-15 21:43 CT, the launch's only book: 3.82.141.143, one Amazon
@@ -533,6 +542,7 @@ try {
   for (const [path, count] of sampleRows) console.log(`      ${String(count).padStart(3)}  ${path.replace(/^\/samples\//, "")}`);
   console.log(`    Visited a word-list page    ${wordLists}   <-- what the Pinterest pins point at${wordListTotal > wordLists ? `   (${wordListTotal - wordLists} more were crawlers walking the sitemap)` : ""}`);
   console.log(`      of those, ${wordListToApp} read by somebody who also ran the app — the only reason these pages exist`);
+  if (pxTotal) console.log(`      ${listRan} ran JavaScript on one (the only real person/crawler line there is) and ${listClicked} pressed the button`);
   console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} more opened the page and never ran the script)` : ""}`);
   if (pxTotal) console.log(`      of those, ${handoff} pressed "make a book"${handoff ? ` (${handoffTop} from the button beside the answer, the rest from the end of the article)` : ""} and ${handoffToBook} of those got a file   <-- whether the free utilities are a front door`);
   console.log(`    Read the how-to guide       ${guidePages}${pxTotal ? `   (${fromGuide} pressed a button in it)   <-- the highest-intent search phrase on the site` : ""}`);

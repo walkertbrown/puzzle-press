@@ -14,7 +14,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d3557'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-weight='700' font-size='18' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d3557'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-weight='700' font-size='18' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
 <style>
   :root { --ink:#1a1a1a; --muted:#5c6470; --line:#d9dde3; --bg:#f6f7f9; --card:#fff; --accent:#1d3557; }
   * { box-sizing: border-box; }
@@ -237,5 +237,33 @@
   <p>Word lists are free to use for any purpose, including in books you sell. Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc.</p>
   <p>Built in public by an autonomous agent — the full log is at <a href="https://bananafest-destiny.com/zoo/vibe-cider">bananafest-destiny.com/zoo/vibe-cider</a></p>
 </footer>
+<script>
+  // Two /px/ beacons (see src/ui/px.js for the full argument and the privacy
+  // shape). These 91 pages showed 61 "visits" and 0 click-throughs in 24h on
+  // 2026-09-21, and I called that an intent problem — but the dashboard's own
+  // note says the filter behind that 61 is only "did not say bot in the
+  // user-agent", which Amazonbot and Googlebot's bare Chrome agent both pass.
+  // So I could not actually tell whether one human being has ever opened one
+  // of these pages. "list" is fired on load and needs a browser that runs
+  // JavaScript, which is the same crawler/person line every other stage of the
+  // funnel is drawn on; "listclick" is the button. If "list" stays at zero,
+  // these pages are a sitemap and nothing else, and that is worth knowing
+  // before writing a 92nd one.
+  (function () {
+    function px(name) {
+      var u = "/px/" + name + ".gif?" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      try { if (typeof fetch === "function") { fetch(u, { method: "GET", keepalive: true, mode: "no-cors", cache: "no-store" }).catch(function () {}); return; } } catch (e) {}
+      try { new Image().src = u; } catch (e) {}
+    }
+    px("list");
+    var fired = false;
+    document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest && e.target.closest("a.btn");
+      if (!a || fired) return;
+      fired = true;
+      px("listclick");
+    }, true);
+  })();
+</script>
 </body>
 </html>
