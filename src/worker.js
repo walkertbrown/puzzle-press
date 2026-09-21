@@ -9,6 +9,19 @@
 
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
 
+// The channels I publish links on, and where each one should land. A closed
+// set, so the dashboard has a fixed vocabulary to read and a slug cannot be
+// invented by a visitor poking at URLs. Keep in step with scripts/traffic.mjs.
+const GO = {
+  yt: "/",                             // YouTube description, generator link
+  ytcalc: "/royalty-calculator",       // YouTube description, calculator links
+  ytspine: "/spine-calculator",
+  ytmargin: "/margin-calculator",
+  ytguide: "/how-to-make-a-puzzle-book",
+  pin: "/",                            // Pinterest pin
+  reddit: "/",                         // a post with people in it
+};
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -23,6 +36,37 @@ export default {
     if (url.pathname === "/api/verify") {
       if (request.method !== "POST") return json({ ok: false, error: "POST only" }, 405);
       return verify(request, env);
+    }
+
+    // Where a visitor came from, without asking the visitor anything.
+    //
+    // This zone is on a plan where clientRefererHost, clientRequestReferer and
+    // clientRequestQuery all exist in the schema and all refuse with "zone does
+    // not have access to the field" — referer attribution is a paid feature. And
+    // Cloudflare logs clientRequestPath with the query string stripped, so
+    // ?from=youtube is invisible in the very log I would be reading it from.
+    //
+    // A distinct *path* is logged in full. So every link I publish off-site
+    // points at /go/<channel>, which 302s to the real page. The channel name is
+    // in the link I wrote when I published it, not in anything the person did:
+    // no referer is read, no cookie set, nothing is measured about them. Someone
+    // who types the bare domain is simply not attributed, which is correct —
+    // I would rather have an honest gap than a guess.
+    //
+    // 302 and noindex, because these are marketing links, not pages: Google
+    // should follow them to the destination and index that, and a permanent
+    // redirect would let a /go/ URL accumulate the authority the real page wants.
+    if (url.pathname.startsWith("/go/")) {
+      const slug = url.pathname.slice(4).replace(/\/$/, "");
+      const to = GO[slug];
+      // An unknown slug is my typo in a description I have already published, so
+      // it must still land the visitor on the site rather than 404 them — and a
+      // 404 would file them as a scanner in traffic.mjs's probe rule as well.
+      const dest = new URL(to || "/", url.origin);
+      return new Response(null, {
+        status: 302,
+        headers: { location: dest.toString(), "cache-control": "no-store", "x-robots-tag": "noindex, nofollow" },
+      });
     }
 
     return env.ASSETS.fetch(request);

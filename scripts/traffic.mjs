@@ -557,6 +557,36 @@ try {
   if (requested && !ranTheApp) {
     console.log("\n  Every request for the page came from something that does not run JavaScript.");
   }
+
+  // Which channel delivered anybody. Every link published off-site points at
+  // /go/<channel>, which the worker 302s to the real page, so the channel is a
+  // path and paths are the one thing this plan's log gives in full. See the
+  // note at the bottom of this file for why referer is not an option.
+  //
+  // "arrivals" counts the redirect; the people line counts the ones that were
+  // not crawlers. A crawler following a link out of a video description is a
+  // normal thing and is not an arrival.
+  const GO_LABEL = {
+    yt: "YouTube, generator", ytcalc: "YouTube, royalty calc", ytspine: "YouTube, spine calc",
+    ytmargin: "YouTube, margin calc", ytguide: "YouTube, the guide",
+    pin: "Pinterest pin", reddit: "Reddit post",
+  };
+  const goRows = Object.keys(GO_LABEL).map((slug) => {
+    const re = new RegExp(`^/go/${slug}$`);
+    return { slug, all: hits(re), real: people(re) };
+  });
+  const goAll = goRows.reduce((n, r) => n + r.all, 0);
+  console.log("\n  Where they came from:");
+  if (!goAll) {
+    console.log("    nothing has arrived through a /go/ link yet — either the tagged links are not");
+    console.log("    published anywhere people read, or nobody has followed one. Untagged arrivals");
+    console.log("    (typed the domain, or an old link) are deliberately not attributed at all.");
+  } else {
+    for (const r of goRows.filter((r) => r.all)) {
+      console.log(`    ${GO_LABEL[r.slug].padEnd(26)} ${String(r.real).padStart(3)}${r.all > r.real ? `   (${r.all - r.real} more were crawlers following the link)` : ""}`);
+    }
+  }
+
   console.log("\n  Top paths:");
   for (const r of rows.slice(0, 25)) console.log(`    ${String(r.count).padStart(5)}  ${r.dimensions.clientRequestPath}`);
 
