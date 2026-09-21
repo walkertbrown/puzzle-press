@@ -21,6 +21,9 @@ mkdirSync(outDir, { recursive: true });
 const fits = solutionsThatFit(pageGeometry({ trim: "6x9", bleed: false }));
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 const cap = (w) => w.charAt(0).toUpperCase() + w.slice(1);
+// "Make a Alabama word search book" shipped on 46 pages. Vowel test, not a
+// dictionary: every theme title here is a place, a season or a plain noun.
+const an = (s) => (/^[aeiou]/i.test(s) ? "an" : "a");
 
 const favicon = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d3557'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-weight='700' font-size='18' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E`;
 const css = `
@@ -119,8 +122,24 @@ const themePage = (id, t) => {
   const sets = distinctSetsPossible(n, Math.min(WPP, n), 500);
   const bookOf = Math.min(sets, 100);
   const pages = planPages(bookOf, solutionsPerPageFor(bookOf, fits)).total;
+  // 2026-09-21: this paragraph was telling 46 of the 91 pages' readers that the
+  // generator "draws 15 words per puzzle and can make 1 different puzzles from
+  // this list" — on lists of 8 to 14 words, where it draws all of them and
+  // there is exactly one possible set. Grammatically broken, arithmetically
+  // impossible, and the promise underneath it was worse: a one-puzzle "book"
+  // is not a book, and KDP will not take one. Half the pages Google is being
+  // invited to index described a dead end in a sentence that did not parse.
+  //
+  // The lists are short because they are honest — there are only so many
+  // words that say "Alabama" in a 15x15 grid. So say what the reader should
+  // actually do with a short list: the theme picker is checkboxes, so ticking
+  // a second one is the fix, and it is one sentence away.
+  const drawn = Math.min(WPP, n);
   // The same pipeline the tool uses: one puzzle of a one-theme book.
   const puzzle = generateBook({ pools: [t], count: 1, wordsPerPuzzle: WPP, difficulty: "medium", size: 15, seed: `list-${id}` }).puzzles[0];
+  const copy = sets === 1
+    ? `It draws all ${n} words into a single ${puzzle.size}×${puzzle.size} puzzle. A list this size makes one puzzle, not a book — the theme picker is checkboxes, so tick a second list alongside this one and the generator will build as many different puzzles as the combined list allows.`
+    : `It draws ${drawn} words per puzzle and can make ${sets >= 500 ? "hundreds of" : sets} different puzzles from this list without repeating a set — a ${bookOf}-puzzle book comes to ${pages} pages at 6 × 9.`;
   const nested = removeNested(normalizeWords(t.words)).dropped.map((d) => ({ word: d.word, host: d.reason.replace("inside ", "") }));
   const title = `${t.title} Word List — ${n} Words with Crossword Clues, Free`;
   const description = `${n} ${t.title.toLowerCase()} words for a word search: ${words.slice(0, 6).map(cap).join(", ")} and more. Free to use in puzzles you make or sell, each with a crossword clue, plus a sample ${puzzle.size}×${puzzle.size} puzzle and a tool that turns the list into a whole KDP book.`;
@@ -128,13 +147,13 @@ const themePage = (id, t) => {
   <h1>${esc(t.title)} word search word list</h1>
   <p class="lede">${n} words, hand-picked to fit a ${puzzle.size}×${puzzle.size} grid. Free to use in any puzzle you make, including ones you sell.${nested.length ? ` One thing to know if you build grids by hand: ${nested.map((d) => `${d.word} sits inside ${d.host}`).join(", ")} — never put both in the same puzzle, or the shorter one is found twice. The generator keeps them apart automatically.` : ""}</p>
   <div class="actions">
-    <a class="btn" href="/?theme=${id}#tool">Make a ${esc(t.title)} word search book</a>
+    <a class="btn" href="/?theme=${id}#tool">Make ${an(t.title)} ${esc(t.title)} word search book</a>
     <a href="/?kind=crisscross&amp;theme=${id}#tool">…or a fill-in book</a>
     <a href="/?kind=crossword&amp;theme=${id}#tool">…or a crossword book</a>
     <a href="/word-lists/">All ${Object.keys(THEMES).length} lists</a>
   </div>
   <p class="fine">Runs in your browser — nothing you type leaves your computer. No sign-up. $19 once removes the watermark; 30-day refund, no questions.</p>
-  <p class="fine">The button opens the free generator with this theme selected. It draws ${WPP} words per puzzle and can make ${sets >= 500 ? "hundreds of" : sets} different puzzles from this list without repeating a set — a ${bookOf}-puzzle book comes to ${pages} pages at 6 × 9.</p>
+  <p class="fine">The button opens the free generator with this theme selected. ${copy}</p>
 
   <h2>The list</h2>
   <ul class="words">
