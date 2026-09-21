@@ -41,7 +41,29 @@
     header a { display: inline-block; padding-block: 11px; margin-block: -11px; }
   }
   main { display: grid; grid-template-columns: minmax(300px, 480px) 1fr; gap: 24px; padding: 24px; max-width: 1280px; margin: 0 auto; }
-  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  /* One column on a phone — and the puzzle goes first.
+     Measured 2026-09-20 against production on an iPhone 13: with the form
+     first, the preview sat 5.95 screens and the puzzle itself 6.00 screens
+     below the top of #tool, so a phone visitor never saw what they were making
+     before deciding whether to bother. Desktop never had this problem — the
+     preview is sticky above 800px and the puzzle sits at the fold — which is
+     exactly why it went unnoticed.
+     The hero CTA points at #tool, which is <main> itself, so reordering the
+     grid children moves the proof to where the CTA already lands and no anchor
+     changes. display:contents lets "How it works" be ordered separately rather
+     than riding along with the preview and wedging itself between the puzzle
+     and the controls. */
+  @media (max-width: 800px) {
+    main { grid-template-columns: 1fr; }
+    /* `main >` on purpose: the base `.preview { display: flex }` rule sits
+       further down this sheet at equal specificity, so a bare `.preview` here
+       loses on source order and the section stays one grid item — which drags
+       "How it works" along with the puzzle and wedges it before the form. */
+    main > .preview { display: contents; }
+    .preview-stick { order: 1; display: flex; flex-direction: column; gap: 12px; }
+    #settings { order: 2; }
+    .preview .card.how { order: 3; }
+  }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
   fieldset { border: 0; padding: 0; margin: 0 0 18px; }
   legend { font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 8px; }

@@ -43,6 +43,20 @@ await page.getByRole("link", { name: /make a book free/i }).first().click();
 await page.waitForTimeout(1200);
 if (!(await state()).onScreen) fail("the bar did not appear after the hero CTA — the 5.4-screen scroll is back");
 
+// The other half of the same tap: the bar gives a phone visitor the action,
+// this gives them the proof. Before 2026-09-20 the preview sat 6.00 screens
+// below #tool, so nobody on a phone ever saw the puzzle before deciding
+// whether to bother. It is a CSS `order` swap on the grid children, which is
+// precisely the kind of thing a later layout edit undoes without noticing.
+const layout = await page.evaluate(() => {
+  const y = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().top + window.scrollY) : null; };
+  return { vh: window.innerHeight, tool: y("#tool"), puzzle: y("#page"), form: y("#settings"), how: y(".card.how") };
+});
+const screensDown = (layout.puzzle - layout.tool) / layout.vh;
+if (screensDown > 1) fail(`the puzzle is ${screensDown.toFixed(2)} screens below #tool on a phone — the proof is buried again`);
+if (!(layout.puzzle < layout.form)) fail("the form is above the puzzle on a phone — the order swap is gone");
+if (!(layout.form < layout.how)) fail("'How it works' is wedged between the puzzle and the form");
+
 // Two identical Download buttons visible at once is worse than none.
 await page.locator("#actions").scrollIntoViewIfNeeded();
 await page.waitForTimeout(700);
