@@ -219,6 +219,55 @@ try {
     .filter((ip) => !myIps.includes(ip));
 } catch { /* no scanner split rather than no dashboard */ }
 
+// Who ran the app at all, by address. Needed because "Opened a sample PDF" was
+// counting crawlers and I believed it for a day.
+//
+// 2026-09-21: the line read 4, then 6, while Download sat at 0, and I spent a
+// morning on "why does somebody look at a finished book and not make one".
+// who.mjs answered it: every one of those opens was Googlebot, YandexBot,
+// Amazonbot or the Aceville crawler walking the links on the page. Not one
+// person opened a sample. The mystery was the number.
+//
+// Same bug as "Used a calculator" counting HTML fetches and "made a book"
+// counting chunk-*.js — a crawler-reachable URL is not an intention. Every
+// other funnel stage is safe from it by construction: main.js, heavy-*,
+// render-*, cover-* and the fonts are all fetched by script, and a crawler
+// that fetches them has, by the only definition available here, run the app.
+// The samples are plain <a href> PDFs, so they need the filter stated.
+//
+// "Ran the app" is not a bot filter either. Googlebot executes JavaScript: it
+// fetched main.js twice tonight from two addresses and one of them opened the
+// maze sample, so it scores on every stage a person does up to the Download
+// click. The one thing these crawlers do reliably is say who they are, so take
+// them at their word — a self-identified bot is the cheapest honest exclusion
+// available on this plan, and the ones that lie (the Aceville fleet's fake
+// "iPhone OS 13_2_3") are caught by the scanner rule or by who.mjs instead.
+const BOT_UA = /bot|crawl|spider|slurp|Lightpanda|HeadlessChrome|python-requests|curl\//i;
+let appIps = [];
+let botAppIps = [];
+try {
+  const ran = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
+    httpRequestsAdaptiveGroups(limit: 200, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%", clientRequestPath: "/js/main.js"}, orderBy: [count_DESC]) {
+      count dimensions { clientIP userAgent }
+    } } } }`);
+  // Judge the address across everything it asked for, not just this row.
+  // Googlebot sends two different user-agents from one address — the honest
+  // "compatible; Googlebot/2.1" string and a bare Chrome one — and 66.249.74.229
+  // fetched main.js under the bare one, so a per-row test let it through as a
+  // person. One agent saying "bot" anywhere condemns the whole address.
+  const agents = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
+    httpRequestsAdaptiveGroups(limit: 500, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%"}, orderBy: [count_DESC]) {
+      count dimensions { clientIP userAgent }
+    } } } }`);
+  const botIps = new Set(agents.viewer.zones[0].httpRequestsAdaptiveGroups
+    .filter((r) => BOT_UA.test(r.dimensions.userAgent))
+    .map((r) => r.dimensions.clientIP));
+  const seen = [...new Set(ran.viewer.zones[0].httpRequestsAdaptiveGroups.map((r) => r.dimensions.clientIP))]
+    .filter((ip) => !myIps.includes(ip) && !scannerIps.includes(ip));
+  botAppIps = seen.filter((ip) => botIps.has(ip));
+  appIps = seen.filter((ip) => !botIps.has(ip));
+} catch { /* fall back to reporting the raw sample count, marked as unfiltered */ }
+
 try {
   const everyone = await pathCounts();
   const mine = myIps.length ? await pathCounts(`, clientIP_in: [${myIps.map((ip) => JSON.stringify(ip)).join(", ")}]`) : new Map();
@@ -288,7 +337,17 @@ try {
   // one was not, and the count itself is a floor rather than a tally of books.
   const fonts = hits(/^\/fonts\/.*\.ttf$/);
   const covers = hits(/^\/js\/cover-/);
-  const samples = hits(/^\/samples\//);
+  // Samples, counted only for addresses that ran the app — see the note above
+  // the appIps query. The crawler total is kept and printed beside it, because
+  // "0 people and 6 robots" is a different sentence from "0".
+  const sampleTotal = hits(/^\/samples\//);
+  const sampleByApp = appIps.length
+    ? await pathCounts(`, clientIP_in: [${appIps.map((ip) => JSON.stringify(ip)).join(", ")}]`)
+    : new Map();
+  const sampleRows = [...sampleByApp]
+    .filter(([path]) => /^\/samples\//.test(path))
+    .sort((a, b) => b[1] - a[1]);
+  const samples = sampleRows.reduce((a, [, c]) => a + c, 0);
   // A calculator is *used* when its script runs, not when its HTML is fetched.
   // Keyed on the script for the same reason "made a book" is keyed on the
   // render chunk rather than on a page view: the HTML is what a crawler takes,
@@ -313,8 +372,10 @@ try {
   console.log(`\n  ${window}, by what people did (a day is all the free plan keeps):`);
   console.log(`    Requests for the page       ${requested}`);
   console.log(`    ...that ran the app         ${ranTheApp}   <-- a real browser; the rest are crawlers`);
+  if (botAppIps.length) console.log(`      of which ${botAppIps.length} address${botAppIps.length > 1 ? "es" : ""} said "bot" in the user-agent — Googlebot runs JavaScript too`);
   console.log(`    ...and did not bounce       ${stayed}   <-- stayed long enough to idle-warm the PDF chunk`);
-  console.log(`    Opened a sample PDF         ${samples}`);
+  console.log(`    Opened a sample PDF         ${samples}${sampleTotal > samples ? `   (${sampleTotal - samples} more opens came from crawlers — not people)` : ""}`);
+  for (const [path, count] of sampleRows) console.log(`      ${String(count).padStart(3)}  ${path.replace(/^\/samples\//, "")}`);
   console.log(`    Visited a word-list page     ${wordLists}   <-- what the Pinterest pins point at`);
   console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} fetched the page and never ran it — crawlers)` : ""}`);
   console.log(`    Clicked Download            ${clickedDownload}${clickedDownload && !fonts ? "   (and no font was ever fetched — nothing rendered)" : ""}`);

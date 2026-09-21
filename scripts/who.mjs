@@ -89,6 +89,12 @@ const did = (paths) => ({
   stayed: [...paths.keys()].some((p) => p.startsWith("/js/heavy-")),
   madeBook: [...paths.keys()].some((p) => p.startsWith("/js/render-")),
   madeCover: [...paths.keys()].some((p) => p.startsWith("/js/cover-")),
+  // 2026-09-21: the dashboard's "Opened a sample PDF" jumped 0 -> 4 overnight
+  // while Download stayed at 0, and a bare count cannot say whether that was a
+  // person deciding against the tool or Googlebot walking the links. It is the
+  // difference between a conversion problem and no signal at all, so name the
+  // files and let the owner/agent on the same row settle it.
+  samples: [...paths.keys()].filter((p) => p.startsWith("/samples/")).map((p) => p.slice(9)),
 });
 
 // RDAP: registry first, then follow the referral the regional registry gives
@@ -154,6 +160,20 @@ for (const [ip, e] of ranTheApp) {
   if (!mine) console.log(`    owner       ${org ?? "unknown (RDAP had no answer — do not assume person)"}`);
   for (const ua of e.uas) console.log(`    agent       ${ua.slice(0, 100)}`);
   console.log(`    did         ${stage}${d.madeCover ? " + made a cover" : ""}   (${e.n} requests${e.s404 ? `, ${e.s404} were 404s` : ""})`);
+  if (d.samples.length) console.log(`    opened      ${d.samples.join(", ")}`);
+  console.log("");
+}
+
+// Sample PDFs are linked from the landing page, so anything that follows links
+// finds them — including things that never run main.js and therefore never
+// appear above. Listing them separately is what stops a crawler's tour of the
+// samples directory from being read as six people considering the product.
+const sampleOnly = visitors.filter(([, e]) => did(e.paths).samples.length && !did(e.paths).ranApp);
+if (sampleOnly.length) {
+  console.log("  Opened a sample without ever running the app:");
+  for (const [ip, e] of sampleOnly) {
+    console.log(`    ${ip}   ${did(e.paths).samples.join(", ")}   ${[...e.uas][0]?.slice(0, 60) ?? "no agent"}`);
+  }
   console.log("");
 }
 
