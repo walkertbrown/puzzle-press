@@ -421,6 +421,16 @@ try {
   // actually is when they get their number. Both count as a handoff; only the
   // new one reports itself, so the placement can be judged rather than assumed.
   const handoffTop = people(/^\/px\/handofftop\.gif$/);
+  // The same question for the two long article pages, added 2026-09-21 when the
+  // calculators' fix prompted a sweep and found their only button 7.94 and
+  // 13.05 screens down a phone. /how-to-make-a-puzzle-book is the highest
+  // intent page on the site — the phrase is what a buyer types — so "read the
+  // guide and came in" is worth its own line, separate from the raw page view
+  // that a crawler can also produce.
+  const guidePages = people(/^\/how-to-make-a-puzzle-book/);
+  const comparePages = people(/^\/compare/);
+  const fromGuide = people(/^\/px\/guide\.gif$/);
+  const fromCompare = people(/^\/px\/compare\.gif$/);
   // "Clicked Download", not "made a book" — and the difference cost me an hour.
   //
   // 2026-09-15 21:43 CT, the launch's only book: 3.82.141.143, one Amazon
@@ -525,6 +535,8 @@ try {
   console.log(`      of those, ${wordListToApp} read by somebody who also ran the app — the only reason these pages exist`);
   console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} more opened the page and never ran the script)` : ""}`);
   if (pxTotal) console.log(`      of those, ${handoff} pressed "make a book"${handoff ? ` (${handoffTop} from the button beside the answer, the rest from the end of the article)` : ""} and ${handoffToBook} of those got a file   <-- whether the free utilities are a front door`);
+  console.log(`    Read the how-to guide       ${guidePages}${pxTotal ? `   (${fromGuide} pressed a button in it)   <-- the highest-intent search phrase on the site` : ""}`);
+  console.log(`    Read the comparison         ${comparePages}${pxTotal ? `   (${fromCompare} pressed a button in it)` : ""}`);
   console.log(`    Clicked Download            ${clickedDownload}${clickedDownload && !fonts ? "   (and no font was ever fetched — nothing rendered)" : ""}`);
   console.log(`    ...and a book came out      ${fonts ? `yes, ${fonts} ${fonts === 1 ? "person" : "people"} fetched fonts` : "no"}   <-- fonts embed at render time; the only proof a PDF exists`);
   console.log(`    Made a cover                ${covers}`);

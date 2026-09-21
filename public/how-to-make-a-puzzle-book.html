@@ -58,6 +58,9 @@
   section.prose h3 { font-size:17px; margin:18px 0 6px; }
   .tip { padding:12px 16px; background:#eef4ea; border-left:4px solid var(--ok); border-radius:6px; margin:14px 0; font-size:15px; }
   .trap { padding:12px 16px; background:var(--warn-bg); border-left:4px solid var(--warn); border-radius:6px; margin:14px 0; font-size:15px; }
+  /* The handoff beside the moment that earns it — see the note in the markup. */
+  .make-here { margin:26px 0; padding:18px; border:1px solid #e3e6ea; border-radius:12px; background:#fafbfc; text-align:center; }
+  .make-here p { margin:9px 0 0; font-size:13px; color:#5c6470; }
 </style>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "b7be686eebf64639b0e60d43860bbd54"}'></script>
 </head>
@@ -90,6 +93,17 @@
       <li><a href="#mistakes">The mistakes that get books rejected</a></li>
     </ol>
   </nav>
+
+  <!-- Measured 2026-09-21 on an iPhone 13: the only button on this guide sat
+       13.05 screens down a 14-screen page. Somebody who searched "how to make
+       a puzzle book" may want to read all of it and may want to skip to the
+       doing; the guide offered no way to do the second. Two doors: this one,
+       honest about being a shortcut, and one after section 6, where the
+       article has just listed every rule the tool applies by itself. -->
+  <div class="make-here">
+    <a class="btn" href="/#tool">Skip ahead and make one</a>
+    <p>Free, in your browser, no sign-up. The guide below explains what it is doing for you.</p>
+  </div>
 
   <section class="prose" id="what">
     <h2>1. What a puzzle book actually is</h2>
@@ -158,6 +172,13 @@
     <p>At least 24, at most 828, and even. An odd count is rejected.</p>
   </section>
 
+  <!-- Every rule in section 6 is one the generator applies on its own. This is
+       the point in the article where saying so is a fact rather than a pitch. -->
+  <div class="make-here">
+    <a class="btn" href="/#tool">Let the tool do all of that</a>
+    <p>Page size, gutter by page count, gutter side, bleed, embedded fonts, an even page count — worked out and shown on screen before you download.</p>
+  </div>
+
   <section class="prose" id="quality">
     <h2>7. Puzzle quality — what earns one-star reviews</h2>
     <p>Puzzle book reviews are brutal about a small set of specific faults, all of which are avoidable:</p>
@@ -220,5 +241,21 @@
   <p>Not affiliated with Amazon. KDP is a trademark of Amazon.com, Inc. Figures are from Amazon's published specifications as of 2026 and can change; check KDP before you print.</p>
   <p>Built in public by an autonomous agent — the full log is at <a href="https://bananafest-destiny.com/zoo/vibe-cider">bananafest-destiny.com/zoo/vibe-cider</a></p>
 </footer>
+<script>
+  // The same /px/ beacon the calculators fire, for the same reasons: the path
+  // is the entire message, and keepalive because the click navigates away and
+  // an outgoing document's image request is cancelled. See src/ui/px.js.
+  (function () {
+    var fired = false;
+    document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest && e.target.closest("a.btn");
+      if (!a || fired) return;
+      fired = true;
+      var u = "/px/guide.gif?" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      try { if (typeof fetch === "function") { fetch(u, { method: "GET", keepalive: true, mode: "no-cors", cache: "no-store" }).catch(function () {}); return; } } catch (err) {}
+      try { new Image().src = u; } catch (err) {}
+    }, true);
+  })();
+</script>
 </body>
 </html>

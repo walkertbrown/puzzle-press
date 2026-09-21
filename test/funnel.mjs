@@ -42,6 +42,10 @@ const SIGNAL = {
   failed: /^\/px\/failed\.gif$/,
   handoff: /^\/px\/handoff\.gif$/,
   handoffTop: /^\/px\/handofftop\.gif$/,
+  // The two long article pages, which have no module of their own and so fire
+  // their beacon from a few lines of plain script in the page.
+  fromCompare: /^\/px\/compare\.gif$/,
+  fromGuide: /^\/px\/guide\.gif$/,
 };
 
 const browser = await chromium.launch();
@@ -178,6 +182,46 @@ check(!looked(SIGNAL.made), "browsing the preview must NOT look like a finished 
   check(has(SIGNAL.handoff), "the button beside the answer counts as a handoff");
   check(has(SIGNAL.handoffTop), "and says which button it was");
   check(has(SIGNAL.ranTheApp), "and lands on the generator");
+}
+
+// 7. The two long article pages. /how-to-make-a-puzzle-book is the highest
+// intent page on the site — somebody searching that phrase is the buyer — and
+// on 2026-09-21 its only button was 13.05 screens down a 14-screen phone page;
+// /compare's was 7.94 of 8.6. Same defect as the calculators, found only
+// because the calculators' fix prompted a sweep. Guard it the same way: the
+// prose will grow, and it must fail here rather than slide back down.
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 664 } });
+  const page = await ctx.newPage();
+  await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
+  const paths = new Set();
+  page.on("request", (r) => { try { paths.add(new URL(r.url()).pathname); } catch {} });
+  for (const [slug, beacon] of [["compare", SIGNAL.fromCompare], ["how-to-make-a-puzzle-book", SIGNAL.fromGuide]]) {
+    await page.goto(`${base}/${slug}`, { waitUntil: "networkidle" });
+    const doors = await page.evaluate(() => {
+      const page = document.documentElement.scrollHeight / innerHeight;
+      return {
+        page,
+        all: [...document.querySelectorAll("a.btn")].map((a) => ({
+          screens: (a.getBoundingClientRect().top + scrollY) / innerHeight,
+          h: Math.round(a.getBoundingClientRect().height),
+          text: a.textContent.trim(),
+        })),
+      };
+    });
+    const first = doors.all[0];
+    console.log(`  ${slug.padEnd(26)} ${doors.all.length} door(s) on a ${doors.page.toFixed(1)}-screen page, first at ${first.screens.toFixed(2)} — "${first.text}"`);
+    check(first.screens < 2, `${slug}: a door must be reachable within two screens (first is ${first.screens.toFixed(2)})`);
+    check(first.h >= 44, `${slug}: and thumb-sized`);
+    // A long read needs one at the end as well as one near the top: the reader
+    // who actually reads it is the best prospect on the page.
+    check(doors.all[doors.all.length - 1].screens > doors.page - 2.5, `${slug}: and one still waiting at the end of the article`);
+    await page.click("a.btn");
+    await page.waitForTimeout(1200);
+    check([...paths].some((p) => beacon.test(p)), `${slug}: the door fires its own beacon, or the placement cannot be judged`);
+    paths.clear();
+  }
+  await ctx.close();
 }
 
 // A crawler that does not run JavaScript must appear as a page request and

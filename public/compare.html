@@ -36,6 +36,9 @@
   .cta h2 { margin:0 0 6px; font-size:20px; } .cta p { margin:0 0 14px; color:var(--muted); }
   .btn { display:inline-block; text-decoration:none; font-weight:600; padding:11px 18px; border-radius:8px; background:var(--accent); color:#fff; border:1px solid var(--accent); }
   footer { color:var(--muted); font-size:13px; text-align:center; padding:30px 24px; border-top:1px solid var(--line); background:var(--card); margin-top:30px; } footer a { color: var(--muted); }
+  /* The handoff beside the moment that earns it — see the note in the markup. */
+  .make-here { margin:26px 0; padding:18px; border:1px solid #e3e6ea; border-radius:12px; background:#fafbfc; text-align:center; }
+  .make-here p { margin:9px 0 0; font-size:13px; color:#5c6470; }
 </style>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "b7be686eebf64639b0e60d43860bbd54"}'></script>
 </head>
@@ -53,6 +56,15 @@
   <p class="lede">People arrive at puzzle books from four directions: a monthly subscription suite, a free browser generator, doing it by hand in Word or Canva, or this tool. Each is the right answer for somebody. Here is what each one actually costs and produces, so you can pick on purpose. Claims about Puzzle Press are checkable on this site; claims about the other routes are kept to what they say about themselves, quoted where it matters.</p>
   <p class="lede">The free generators have got better, and this page used to describe them as making one puzzle at a time. Several now bulk-generate a whole set with answer keys, free, with no watermark and no account — <a href="https://the-puzzle-forge.org/" rel="nofollow noopener" target="_blank">PuzzleForge</a> is the clearest example. So the line between them and this tool is not how many puzzles you get. It is whether what comes out is <em>puzzles</em> or a <em>book</em>.</p>
 
+  <!-- On a phone this table is four screens tall, so a door under it is still
+       4.8 screens down. Somebody who came here having mostly decided should not
+       have to read a comparison to act on it. Said as a shortcut, not a pitch —
+       the comparison is right below and is the reason the page exists. -->
+  <div class="make-here">
+    <a class="btn" href="/#tool">Already decided? Make one free</a>
+    <p>Opens the generator. The comparison is below if you would rather read it first.</p>
+  </div>
+
   <div class="tablewrap">
   <table>
     <tr><th></th><th>Subscription suites</th><th>Free browser generators</th><th>By hand</th><th>Puzzle Press</th></tr>
@@ -67,6 +79,16 @@
   </table>
   </div>
   <p class="fine">For scale: Book Bolt, the best-known suite, listed its Pro plan at <strong>$19.99 a month billed annually</strong> ($239.88 a year; shown as "$0.66/day") and Premium at $29.99 a month billed annually, each with a 3-day free trial, on <a href="https://bookbolt.io/pricing/" rel="noopener nofollow" target="_blank">its pricing page</a> on 12 September 2026. Puzzle, crossword and sudoku tools are listed under Pro. Prices change; check the page. Puzzle Press is $19 once — less than one month of the plan that includes puzzle tools.</p>
+
+  <!-- The door, at the moment the page earns it. Measured 2026-09-21 on an
+       iPhone 13: the only button on this page sat 7.94 screens down an 8.6
+       screen page, below four sections of prose. Somebody comparing four
+       options has decided by the end of the table. Same defect and same fix as
+       the three calculators, the same day. -->
+  <div class="make-here">
+    <a class="btn" href="/#tool">Make a book free</a>
+    <p>No sign-up, nothing to install. Free books carry a small watermark; $19 once removes it forever.</p>
+  </div>
 
   <section class="prose">
     <h2>When a subscription is the better deal</h2>
@@ -106,5 +128,21 @@
   <p>Not affiliated with Amazon or with any tool mentioned. KDP is a trademark of Amazon.com, Inc.</p>
   <p>Built in public by an autonomous agent — the full log is at <a href="https://bananafest-destiny.com/zoo/vibe-cider">bananafest-destiny.com/zoo/vibe-cider</a></p>
 </footer>
+<script>
+  // The same /px/ beacon the calculators fire, for the same reasons: the path
+  // is the entire message, and keepalive because the click navigates away and
+  // an outgoing document's image request is cancelled. See src/ui/px.js.
+  (function () {
+    var fired = false;
+    document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest && e.target.closest("a.btn");
+      if (!a || fired) return;
+      fired = true;
+      var u = "/px/compare.gif?" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      try { if (typeof fetch === "function") { fetch(u, { method: "GET", keepalive: true, mode: "no-cors", cache: "no-store" }).catch(function () {}); return; } } catch (err) {}
+      try { new Image().src = u; } catch (err) {}
+    }, true);
+  })();
+</script>
 </body>
 </html>
