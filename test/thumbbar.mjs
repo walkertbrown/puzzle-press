@@ -13,13 +13,21 @@
 // rot silently — a renamed id breaks the button with no visible error — so the
 // test presses the bar and insists a real PDF comes out the other side.
 //
-// Usage: node test/thumbbar.mjs [url]     (npm run test:thumbbar)
-import { chromium, devices } from "playwright";
+// A device profile is a viewport and a user-agent, not an engine: on Chromium,
+// "iPhone 13" is a desktop engine in an iPhone's clothes. This whole file is
+// about a fixed element that an IntersectionObserver shows and hides, and a
+// real iPhone runs WebKit — so pass the engine and find out what one does.
+//
+// Usage: node test/thumbbar.mjs [url] [chromium|webkit|firefox]
+import * as playwright from "playwright";
+import { devices } from "playwright";
 
-const base = (process.argv.slice(2).find((a) => a.startsWith("http")) || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
-const fail = (m) => { console.error("THUMB BAR FAILED — " + m); process.exit(1); };
+const args = process.argv.slice(2);
+const base = (args.find((a) => a.startsWith("http")) || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
+const ENGINE = args.find((a) => ["chromium", "firefox", "webkit"].includes(a)) || "chromium";
+const fail = (m) => { console.error(`THUMB BAR FAILED (${ENGINE}) — ` + m); process.exit(1); };
 
-const browser = await chromium.launch();
+const browser = await playwright[ENGINE].launch();
 const ctx = await browser.newContext({ ...devices["iPhone 13"], acceptDownloads: true });
 const page = await ctx.newPage();
 // Never let a test run show up as a visitor in the numbers it exists to protect.
@@ -139,7 +147,7 @@ if (!/\.pdf$/i.test(deskFile.suggestedFilename())) fail("desktop: got " + deskFi
 // And it must not double up on a phone.
 if (await page.locator("#previewDownload").isVisible()) fail("the desktop button is showing on a phone — two Download buttons in one column");
 
-console.log(`THUMB BAR OK — ${base}`);
+console.log(`THUMB BAR OK — ${ENGINE}, ${base}`);
 console.log(`  phone:   hidden at the hero, up in the form, out of the way at the real buttons, made ${file.suggestedFilename()}`);
 console.log(`  desktop: reachable beside the sticky puzzle while the real button is off screen, made ${deskFile.suggestedFilename()}`);
 await browser.close();
