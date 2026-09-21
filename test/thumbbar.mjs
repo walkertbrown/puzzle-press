@@ -56,5 +56,42 @@ await page.locator("#thumbDownload").click();
 const file = await download.catch(() => fail("pressing the bar produced no PDF — the forward to #download is broken"));
 if (!/\.pdf$/i.test(file.suggestedFilename())) fail("the bar produced " + file.suggestedFilename() + ", not a PDF");
 
-console.log(`THUMB BAR OK — ${base}: hidden at the hero, up in the form, out of the way at the real buttons, and it made ${file.suggestedFilename()}`);
+// ---- Desktop's half of the same problem.
+//
+// 1280x800: the preview is sticky so the puzzle sits at the fold, but #download
+// is 3.64 screens down the form column — you can see what you made and cannot
+// act on it. The button in the sticky preview header is the fix, and it must
+// stay desktop-only: on a phone the preview is six screens below the form and
+// the fixed bar already covers that ground.
+const desk = await browser.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true });
+const dp = await desk.newPage();
+await dp.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
+await dp.goto(base + "/", { waitUntil: "networkidle" });
+await dp.waitForTimeout(900);
+await dp.evaluate(() => document.querySelector("#tool").scrollIntoView());
+await dp.waitForTimeout(400);
+await dp.evaluate(() => window.scrollBy(0, 1200));
+await dp.waitForTimeout(600);
+
+const deskState = await dp.evaluate(() => {
+  const on = (el) => { const r = el.getBoundingClientRect(); return r.top > 0 && r.bottom < window.innerHeight; };
+  return { btn: on(document.getElementById("previewDownload")),
+           real: on(document.getElementById("download")),
+           puzzle: (() => { const r = document.getElementById("page").getBoundingClientRect(); return r.top < window.innerHeight && r.bottom > 0; })() };
+});
+if (!deskState.puzzle) fail("desktop: the preview stopped sticking — the puzzle is not on screen inside the form");
+if (deskState.real) fail("desktop: this check is meaningless, the real button is already visible here");
+if (!deskState.btn) fail("desktop: no reachable Download while scrolling the form — the 3.6-screen gap is back");
+
+const deskDownload = dp.waitForEvent("download", { timeout: 120000 });
+await dp.locator("#previewDownload").click();
+const deskFile = await deskDownload.catch(() => fail("desktop: the preview-header button produced no PDF"));
+if (!/\.pdf$/i.test(deskFile.suggestedFilename())) fail("desktop: got " + deskFile.suggestedFilename() + ", not a PDF");
+
+// And it must not double up on a phone.
+if (await page.locator("#previewDownload").isVisible()) fail("the desktop button is showing on a phone — two Download buttons in one column");
+
+console.log(`THUMB BAR OK — ${base}`);
+console.log(`  phone:   hidden at the hero, up in the form, out of the way at the real buttons, made ${file.suggestedFilename()}`);
+console.log(`  desktop: reachable beside the sticky puzzle while the real button is off screen, made ${deskFile.suggestedFilename()}`);
 await browser.close();
