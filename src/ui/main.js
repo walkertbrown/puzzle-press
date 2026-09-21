@@ -74,6 +74,42 @@ let book = null;
 let shown = 0;
 let fontsPromise = null;
 
+// ---------- what happened between landing and leaving ----------
+//
+// Every stage of the funnel in scripts/traffic.mjs is read out of Cloudflare's
+// request log, and until now every stage was a *file the browser happened to
+// fetch*: main.js for "ran the app", the idle-warmed heavy chunk for "did not
+// bounce", render.js for "clicked Download". That is honest about network
+// events and silent about people. On 2026-09-21, once the request/person bug
+// was fixed, it read: 7 people stayed, 0 downloaded — and there was no way at
+// all to tell whether they scrolled down to the generator, touched a control,
+// pressed the button and hit an error, or read the hero and left.
+//
+// This is the smallest thing that answers that: a closed, fixed set of empty
+// 1x1 GIFs under /px/, one per act, each fired at most once per page load. No
+// id, no cookie, no session, no content — the path IS the entire message, and
+// every path that exists is listed in public/px/. The site's promise is that
+// nothing you type leaves your browser, and nothing here carries anything
+// anybody typed: not a title, not a word list, not a setting, not a value, not
+// a number. test/privacy.mjs is the thing that enforces that, and it runs
+// against this.
+//
+// They are real deployed files, deliberately, not 404s. A miss would land in
+// the scanner rule in traffic.mjs — the one that files an address asking for
+// things that do not exist as an attacker — and every visitor would be
+// excluded from their own funnel.
+const pxSent = new Set();
+function px(name) {
+  if (pxSent.has(name)) return;
+  pxSent.add(name);
+  // Cloudflare logs clientRequestPath without the query string, so the cache
+  // buster costs nothing in the dashboard: it only stops the browser serving a
+  // later page view's beacon out of its own cache.
+  try {
+    new Image().src = `/px/${name}.gif?${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+  } catch {}
+}
+
 // ---------- setup ----------
 
 for (const [id, t] of Object.entries(TRIMS)) {
@@ -628,8 +664,14 @@ async function loadFonts() {
 }
 
 async function download() {
+  px("click");
   const s = settings();
-  if (s.pools.length === 0) return;
+  // A press that does nothing and says nothing. Rare — "animals" is ticked by
+  // default, so getting here means somebody deliberately cleared every theme —
+  // but it is a dead end with no message, and a dead end nobody can see is
+  // exactly the kind of thing that turns "7 stayed, 0 downloaded" into a
+  // mystery. Its own beacon, so it stops being one.
+  if (s.pools.length === 0) { px("empty"); return; }
   const lic = getLicense();
   const count = s.count;
   el.download.disabled = true;
@@ -706,9 +748,16 @@ async function download() {
     el.status.textContent =
       `Done — ${full.puzzles.length} puzzles, ${lastInterior.pages} pages, ${(blob.size / 1024).toFixed(0)} KB.` +
       (full.puzzles.length < count ? ` (${count - full.puzzles.length} could not be built — the cover will be sized for this book.)` : "");
+    // A file actually reached the disk. The font fetch already proves a PDF was
+    // rendered, but it cannot tell a finished download from one that fell over
+    // at the last step, and it is silent for a second book on cached fonts.
+    px("made");
   } catch (err) {
     console.error(err);
     el.status.textContent = `Something went wrong: ${err.message}`;
+    // The message a visitor sees and I never do. "click but no made" was
+    // previously indistinguishable from "click and gave up waiting".
+    px("failed");
   } finally {
     el.download.disabled = false;
   }
@@ -839,10 +888,36 @@ el.reshuffle.addEventListener("click", () => {
   el.seed.value = randomSeed();
   regenerate();
 });
-el.prev.addEventListener("click", () => { shown = Math.max(0, shown - 1); showPuzzle(); });
-el.next.addEventListener("click", () => { shown = Math.min(book.puzzles.length - 1, shown + 1); showPuzzle(); });
+el.prev.addEventListener("click", () => { px("browsed"); shown = Math.max(0, shown - 1); showPuzzle(); });
+el.next.addEventListener("click", () => { px("browsed"); shown = Math.min(book.puzzles.length - 1, shown + 1); showPuzzle(); });
 el.download.addEventListener("click", download);
 el.downloadCover.addEventListener("click", downloadCover);
+
+// The two beacons that are about the page rather than about a button.
+//
+// "tool": the generator itself came on screen. On a phone the hero is most of
+// a screen and the form is under it, so this is the line between "read the
+// pitch and left" and "got to the thing and did not use it". On a desktop it
+// fires immediately, which is the correct answer there.
+{
+  const main = document.getElementById("tool");
+  if (main && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) { px("tool"); io.disconnect(); }
+    }, { threshold: 0 });
+    io.observe(main);
+  } else if (main) {
+    px("tool");
+  }
+}
+// "touched": operated any control at all. Capture phase and one listener for
+// the whole form, so it cannot drift out of step as controls are added — and
+// scoped to #tool so the unlock dialog's email field is not in it.
+for (const type of ["input", "change"]) {
+  document.addEventListener(type, (e) => {
+    if (e.target?.closest?.("#tool")) px("touched");
+  }, true);
+}
 el.closeDialog.addEventListener("click", closeUnlock);
 
 // The support address is the way out of every refusal here, and on a phone a

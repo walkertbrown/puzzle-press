@@ -60,6 +60,33 @@ const offsite = requests.filter((r) => !r.url.startsWith(origin) && !r.url.start
 console.log("off-site requests:", offsite.length, offsite.map((r) => new URL(r.url).host));
 if (offsite.length) throw new Error("page contacts a third party: " + offsite.map((r) => r.url).join(", "));
 
+// The /px/ funnel beacons (src/ui/main.js, added 2026-09-21). They are the one
+// thing on this site that reports what a visitor *did*, so they are the one
+// thing most able to quietly start reporting what a visitor *typed*. Hold them
+// to the shape they were designed with rather than to a comment: a closed set
+// of known paths, a GET, and a query string that is nothing but a cache
+// buster. Adding a beacon is fine; adding a parameter to one is not.
+const PX_PATHS = new Set(["tool", "touched", "browsed", "click", "empty", "made", "failed"].map((n) => `/px/${n}.gif`));
+const px = requests.filter((r) => r.url.startsWith(origin) && new URL(r.url).pathname.startsWith("/px/"));
+console.log("funnel beacons:", px.length, px.map((r) => new URL(r.url).pathname));
+for (const r of px) {
+  const u = new URL(r.url);
+  if (r.method !== "GET") throw new Error(`beacon is not a GET: ${r.method} ${u.pathname}`);
+  if (r.body) throw new Error(`beacon carries a body: ${u.pathname}`);
+  if (!PX_PATHS.has(u.pathname)) throw new Error(`unknown beacon path: ${u.pathname} — add it here on purpose or not at all`);
+  // One opaque token, no key=value pairs: a beacon must not grow a payload.
+  if (!/^\?[a-z0-9]{1,24}$/.test(u.search)) throw new Error(`beacon query is not a bare cache buster: ${u.pathname}${u.search}`);
+}
+// Fired at most once each per page load, or the dashboard's "people" counts
+// start drifting and nobody notices. Scoped to `during` deliberately: this
+// script loads the page twice, and a beacon firing once on each load is the
+// design, not the bug.
+const dupes = during
+  .filter((r) => r.url.startsWith(origin) && new URL(r.url).pathname.startsWith("/px/"))
+  .map((r) => new URL(r.url).pathname)
+  .filter((p, i, a) => a.indexOf(p) !== i);
+if (dupes.length) throw new Error("beacon fired more than once in a page load: " + [...new Set(dupes)].join(", "));
+
 // The one request that is allowed to carry input: /api/verify, email only.
 await p.evaluate(() => localStorage.removeItem("puzzlepress.license"));
 await p.reload({ waitUntil: "networkidle" });
@@ -77,4 +104,4 @@ const sent = JSON.parse(verify[0].body || "{}");
 if (Object.keys(sent).join(",") !== "email") throw new Error("verify sends more than the email: " + Object.keys(sent));
 
 await b.close();
-console.log("PRIVACY OK — generation and download made no network calls; only the email is ever sent");
+console.log("PRIVACY OK — nothing typed ever left the browser; the funnel beacons carry a path and nothing else; only the email is ever sent");

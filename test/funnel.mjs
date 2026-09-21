@@ -30,6 +30,16 @@ const SIGNAL = {
   madeBook: /^\/js\/render-/,
   madeCover: /^\/js\/cover-/,
   fonts: /^\/fonts\//,
+  // The interaction beacons (src/ui/main.js, 2026-09-21). Unlike everything
+  // above, these are not a side effect of a bundle layout — they are fired on
+  // purpose, which makes them easy to delete by accident and impossible to
+  // notice: the dashboard would simply show zeroes and read as a quiet day.
+  sawTool: /^\/px\/tool\.gif$/,
+  touched: /^\/px\/touched\.gif$/,
+  browsed: /^\/px\/browsed\.gif$/,
+  pressed: /^\/px\/click\.gif$/,
+  made: /^\/px\/made\.gif$/,
+  failed: /^\/px\/failed\.gif$/,
 };
 
 const browser = await chromium.launch();
@@ -61,6 +71,13 @@ check(landed(SIGNAL.warmed), "a real browser that lands warms the PDF chunk");
 check(!landed(SIGNAL.madeBook), "landing must NOT look like making a book");
 check(!landed(SIGNAL.madeCover), "landing must NOT look like making a cover");
 check(!landed(SIGNAL.fonts), "landing must NOT fetch the fonts");
+// At 1280x1000 the generator is on screen the moment the page paints, so this
+// is the desktop answer and it should be immediate. What must NOT be there is
+// any beacon that claims the visitor did something: a landing is a landing.
+check(landed(SIGNAL.sawTool), "a landing on a desktop viewport sees the tool");
+check(!landed(SIGNAL.touched), "landing must NOT look like touching a control");
+check(!landed(SIGNAL.pressed), "landing must NOT look like pressing Download");
+check(!landed(SIGNAL.made), "landing must NOT look like a finished book");
 
 // 2. Made a book.
 const book = await session("made a book", async (page) => {
@@ -71,6 +88,10 @@ const book = await session("made a book", async (page) => {
 check(book(SIGNAL.madeBook), "making a book fetches the render module");
 check(book(SIGNAL.fonts), "making a book fetches the fonts");
 check(!book(SIGNAL.madeCover), "making a book must not look like making a cover");
+check(book(SIGNAL.touched), "setting the count counts as touching a control");
+check(book(SIGNAL.pressed), "pressing Download fires the press beacon");
+check(book(SIGNAL.made), "a book that downloads fires the finished beacon");
+check(!book(SIGNAL.failed), "a book that downloads must NOT fire the failure beacon");
 
 // 3. Made a cover.
 const cover = await session("made a cover", async (page) => {
@@ -79,6 +100,16 @@ const cover = await session("made a cover", async (page) => {
   await dl.path();
 });
 check(cover(SIGNAL.madeCover), "making a cover fetches the cover module");
+
+// 4. Looked at the preview and left. The whole reason the beacons exist is to
+// tell this apart from a bounce, so it gets its own session.
+const looked = await session("browsed the preview", async (page) => {
+  await page.click("#next");
+  await page.click("#next");
+});
+check(looked(SIGNAL.browsed), "paging the preview fires the browse beacon");
+check(!looked(SIGNAL.pressed), "browsing the preview must NOT look like pressing Download");
+check(!looked(SIGNAL.made), "browsing the preview must NOT look like a finished book");
 
 // A crawler that does not run JavaScript must appear as a page request and
 // nothing else — that gap is how the dashboard separates people from bots.

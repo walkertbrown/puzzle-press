@@ -358,7 +358,7 @@ try {
   // pinned on Pinterest (marketing/pins.md) invisible to this script: no way
   // to tell whether that traffic is landing at all. Listing every real
   // top-level page explicitly, since KDP.
-  const served = /^\/($|js\/|fonts\/|samples\/|gallery\/|pins\/|cards\/|video\/|word-lists\/|spine-calculator|royalty-calculator|margin-calculator|compare|how-to-make-a-puzzle-book|word-search-book-generator|sudoku-book-generator|maze-book-generator|criss-cross-book-generator|crossword-book-generator|large-print-word-search-generator|config\.js|api\/|demo\.gif|social-card|hero-book|robots|sitemap)/;
+  const served = /^\/($|px\/|js\/|fonts\/|samples\/|gallery\/|pins\/|cards\/|video\/|word-lists\/|spine-calculator|royalty-calculator|margin-calculator|compare|how-to-make-a-puzzle-book|word-search-book-generator|sudoku-book-generator|maze-book-generator|criss-cross-book-generator|crossword-book-generator|large-print-word-search-generator|config\.js|api\/|demo\.gif|social-card|hero-book|robots|sitemap)/;
   const rows = all.filter((r) => served.test(r.dimensions.clientRequestPath));
   const noise = all.filter((r) => !served.test(r.dimensions.clientRequestPath)).reduce((a, r) => a + r.count, 0);
   const hits = (re) => rows.filter((r) => re.test(r.dimensions.clientRequestPath)).reduce((a, r) => a + r.count, 0);
@@ -383,6 +383,23 @@ try {
   // so it is only reached by a browser that loaded the page and stayed put for
   // a moment. Next to "ran the app", the gap is the instant bounces.
   const stayed = people(/^\/js\/heavy-/);
+  // Between "the page loaded" and "the button was pressed" there was nothing
+  // at all — and on 2026-09-21 that gap was the whole question: 7 people
+  // stayed and 0 downloaded, with no way to tell which step lost them. These
+  // are the beacons src/ui/main.js fires, one empty 1x1 GIF per act, at most
+  // once per page load. public/px/ is the entire vocabulary; they carry no id,
+  // no session and nothing anybody typed.
+  //
+  // They only exist from the deploy that added them, so a window that reaches
+  // back before it will show fewer of these than of the file-based stages.
+  const sawTool = people(/^\/px\/tool\.gif$/);
+  const touched = people(/^\/px\/touched\.gif$/);
+  const browsed = people(/^\/px\/browsed\.gif$/);
+  const pressed = people(/^\/px\/click\.gif$/);
+  const pressedEmpty = people(/^\/px\/empty\.gif$/);
+  const made = people(/^\/px\/made\.gif$/);
+  const failed = people(/^\/px\/failed\.gif$/);
+  const pxTotal = hits(/^\/px\//);
   // "Clicked Download", not "made a book" — and the difference cost me an hour.
   //
   // 2026-09-15 21:43 CT, the launch's only book: 3.82.141.143, one Amazon
@@ -471,6 +488,15 @@ try {
   console.log(`    ...that ran the app         ${nobody ? `${ranReqs} requests (unfiltered — address lookup failed)` : `${ranTheApp} ${ranTheApp === 1 ? "person" : "people"}`}   <-- addresses, not requests; ${ranReqs} requests in total`);
   if (botAppIps.length) console.log(`      of which ${botAppIps.length} address${botAppIps.length > 1 ? "es" : ""} said "bot" in the user-agent — Googlebot runs JavaScript too`);
   console.log(`    ...and did not bounce       ${stayed}   <-- stayed long enough to idle-warm the PDF chunk`);
+  if (pxTotal) {
+    console.log(`    ...scrolled to the tool     ${sawTool}   <-- the generator came on screen (immediate on desktop)`);
+    console.log(`    ...touched a control        ${touched}   <-- operated the form at all`);
+    console.log(`    ...browsed the preview      ${browsed}   <-- pressed Previous or Next`);
+    console.log(`    ...pressed Download         ${pressed}${pressedEmpty ? `   (${pressedEmpty} of them with every theme unticked — the button does nothing)` : ""}`);
+    console.log(`    ...and the file came out    ${made}${failed ? `   (and it threw for ${failed})` : ""}`);
+  } else {
+    console.log("    (no /px/ beacons in this window — either nobody ran the app, or they are newer than the window)");
+  }
   if (ranTheApp === 0) console.log(`      nobody ran the app who was not a crawler or this machine — everything below is 0 by arithmetic, not by choice`);
   console.log(`    Opened a sample PDF         ${samples}${sampleTotal > samples ? `   (${sampleTotal - samples} more opens came from crawlers — not people)` : ""}`);
   for (const [path, count] of sampleRows) console.log(`      ${String(count).padStart(3)}  ${path.replace(/^\/samples\//, "")}`);
