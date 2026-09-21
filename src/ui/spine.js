@@ -3,6 +3,7 @@
 import { TRIMS, gutterInches, PT } from "../pdf/kdp.js";
 import { coverGeometry, spineWidthInches, PAPER, SPINE_TEXT_MIN_PAGES, BARCODE_IN } from "../pdf/cover-geometry.js";
 import { toolLink, carryNote } from "./tool-link.js";
+import { px } from "./px.js";
 
 const $ = (id) => document.getElementById(id);
 const el = {
@@ -66,4 +67,15 @@ for (const node of [el.trim, el.pages, el.paper]) {
   node.addEventListener("input", update);
   node.addEventListener("change", update);
 }
+
+// The handoff into the generator, and the one number the whole strategy rests
+// on. These three calculators are the only pages search has ever carried, and
+// the boss's ruling was distribution over content — so "somebody used a free
+// utility and then went on to make a book" is the measurement that decides
+// whether the free utilities are a front door or a dead end. It cannot be read
+// out of the request log: the handoff lands on /?trim=..&count=..#tool, and
+// Cloudflare logs the path without the query, so it is indistinguishable from
+// any other landing. One content-free beacon makes it visible. See ./px.js.
+el.make.addEventListener("click", () => px("handoff", { keep: true }));
+
 update();

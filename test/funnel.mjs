@@ -40,6 +40,7 @@ const SIGNAL = {
   pressed: /^\/px\/click\.gif$/,
   made: /^\/px\/made\.gif$/,
   failed: /^\/px\/failed\.gif$/,
+  handoff: /^\/px\/handoff\.gif$/,
 };
 
 const browser = await chromium.launch();
@@ -110,6 +111,31 @@ const looked = await session("browsed the preview", async (page) => {
 check(looked(SIGNAL.browsed), "paging the preview fires the browse beacon");
 check(!looked(SIGNAL.pressed), "browsing the preview must NOT look like pressing Download");
 check(!looked(SIGNAL.made), "browsing the preview must NOT look like a finished book");
+
+// 5. The handoff out of a calculator. This is the number the whole current
+// strategy is judged by — the calculators are the only pages search has ever
+// carried here — and it is the most fragile beacon on the site, because the
+// click navigates away and an outgoing document's <img> request is cancelled.
+// src/ui/px.js fires this one with keepalive for exactly that reason, so the
+// check that matters is that it survives the navigation at all.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 1000 } });
+  const page = await ctx.newPage();
+  await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
+  const paths = new Set();
+  page.on("request", (r) => { try { paths.add(new URL(r.url()).pathname); } catch {} });
+  await page.goto(`${base}/royalty-calculator`, { waitUntil: "networkidle" });
+  await page.fill("#pages", "120");
+  await page.click("#makeBtn");
+  await page.waitForSelector(".grid div");
+  await page.waitForTimeout(1500);
+  await ctx.close();
+  const has = (re) => [...paths].some((p) => re.test(p));
+  console.log(`  calculator handoff: ${Object.entries(SIGNAL).filter(([, re]) => has(re)).map(([k]) => k).join(", ") || "nothing"}`);
+  check(has(SIGNAL.handoff), "the calculator's make-a-book button fires the handoff beacon");
+  check(has(SIGNAL.ranTheApp), "the handoff lands on the generator");
+  check(!has(SIGNAL.made), "arriving from a calculator must NOT look like a finished book");
+}
 
 // A crawler that does not run JavaScript must appear as a page request and
 // nothing else — that gap is how the dashboard separates people from bots.

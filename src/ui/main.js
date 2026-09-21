@@ -36,6 +36,7 @@ async function loadCover() {
   if (!coverMod) coverMod = await import("../pdf/cover.js");
   return coverMod;
 }
+import { px } from "./px.js";
 import { coverGeometry, spineWidthInches, SPINE_TEXT_MIN_PAGES } from "../pdf/cover-geometry.js";
 import { royalty } from "../pdf/kdp-cost.js";
 import { pageGeometry } from "../pdf/kdp.js";
@@ -74,41 +75,8 @@ let book = null;
 let shown = 0;
 let fontsPromise = null;
 
-// ---------- what happened between landing and leaving ----------
-//
-// Every stage of the funnel in scripts/traffic.mjs is read out of Cloudflare's
-// request log, and until now every stage was a *file the browser happened to
-// fetch*: main.js for "ran the app", the idle-warmed heavy chunk for "did not
-// bounce", render.js for "clicked Download". That is honest about network
-// events and silent about people. On 2026-09-21, once the request/person bug
-// was fixed, it read: 7 people stayed, 0 downloaded — and there was no way at
-// all to tell whether they scrolled down to the generator, touched a control,
-// pressed the button and hit an error, or read the hero and left.
-//
-// This is the smallest thing that answers that: a closed, fixed set of empty
-// 1x1 GIFs under /px/, one per act, each fired at most once per page load. No
-// id, no cookie, no session, no content — the path IS the entire message, and
-// every path that exists is listed in public/px/. The site's promise is that
-// nothing you type leaves your browser, and nothing here carries anything
-// anybody typed: not a title, not a word list, not a setting, not a value, not
-// a number. test/privacy.mjs is the thing that enforces that, and it runs
-// against this.
-//
-// They are real deployed files, deliberately, not 404s. A miss would land in
-// the scanner rule in traffic.mjs — the one that files an address asking for
-// things that do not exist as an attacker — and every visitor would be
-// excluded from their own funnel.
-const pxSent = new Set();
-function px(name) {
-  if (pxSent.has(name)) return;
-  pxSent.add(name);
-  // Cloudflare logs clientRequestPath without the query string, so the cache
-  // buster costs nothing in the dashboard: it only stops the browser serving a
-  // later page view's beacon out of its own cache.
-  try {
-    new Image().src = `/px/${name}.gif?${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-  } catch {}
-}
+// What happened between landing and leaving — see src/ui/px.js for the whole
+// argument, the privacy shape, and why these have to be real files.
 
 // ---------- setup ----------
 

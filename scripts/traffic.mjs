@@ -335,6 +335,12 @@ try {
 // "unfiltered" rather than quietly print a zero it did not earn.
 const people = (re) =>
   pathsByIp.size ? [...pathsByIp.values()].filter((paths) => [...paths].some((p) => re.test(p))).length : null;
+// The same question, keeping the addresses instead of counting them — so two
+// stages can be intersected. "How many people did A" and "how many people did
+// A and then B" are different questions, and the second is the one that says
+// whether a page is a front door or a dead end.
+const whoDid = (re) =>
+  [...pathsByIp].filter(([, paths]) => [...paths].some((p) => re.test(p))).map(([ip]) => ip);
 
 try {
   const everyone = await pathCounts();
@@ -400,6 +406,15 @@ try {
   const made = people(/^\/px\/made\.gif$/);
   const failed = people(/^\/px\/failed\.gif$/);
   const pxTotal = hits(/^\/px\//);
+  // The one number the current strategy stands or falls on. The calculators
+  // are the only pages search has ever carried here, and the whole bet is that
+  // a free utility is a front door. The handoff click cannot be read out of
+  // the request log — it lands on /?trim=..&count=..#tool and Cloudflare logs
+  // the path without the query — so it is its own beacon, and the pair with
+  // "made" is the bet's actual scoreboard.
+  const handoff = people(/^\/px\/handoff\.gif$/);
+  const madeSet = new Set(whoDid(/^\/px\/made\.gif$/));
+  const handoffToBook = whoDid(/^\/px\/handoff\.gif$/).filter((ip) => madeSet.has(ip)).length;
   // "Clicked Download", not "made a book" — and the difference cost me an hour.
   //
   // 2026-09-15 21:43 CT, the launch's only book: 3.82.141.143, one Amazon
@@ -503,6 +518,7 @@ try {
   console.log(`    Visited a word-list page    ${wordLists}   <-- what the Pinterest pins point at${wordListTotal > wordLists ? `   (${wordListTotal - wordLists} more were crawlers walking the sitemap)` : ""}`);
   console.log(`      of those, ${wordListToApp} read by somebody who also ran the app — the only reason these pages exist`);
   console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} more opened the page and never ran the script)` : ""}`);
+  if (pxTotal) console.log(`      of those, ${handoff} pressed "make a book" and ${handoffToBook} of those got a file   <-- whether the free utilities are a front door`);
   console.log(`    Clicked Download            ${clickedDownload}${clickedDownload && !fonts ? "   (and no font was ever fetched — nothing rendered)" : ""}`);
   console.log(`    ...and a book came out      ${fonts ? `yes, ${fonts} ${fonts === 1 ? "person" : "people"} fetched fonts` : "no"}   <-- fonts embed at render time; the only proof a PDF exists`);
   console.log(`    Made a cover                ${covers}`);
