@@ -41,6 +41,7 @@ const SIGNAL = {
   made: /^\/px\/made\.gif$/,
   failed: /^\/px\/failed\.gif$/,
   handoff: /^\/px\/handoff\.gif$/,
+  handoffTop: /^\/px\/handofftop\.gif$/,
 };
 
 const browser = await chromium.launch();
@@ -135,6 +136,48 @@ check(!looked(SIGNAL.made), "browsing the preview must NOT look like a finished 
   check(has(SIGNAL.handoff), "the calculator's make-a-book button fires the handoff beacon");
   check(has(SIGNAL.ranTheApp), "the handoff lands on the generator");
   check(!has(SIGNAL.made), "arriving from a calculator must NOT look like a finished book");
+  check(!has(SIGNAL.handoffTop), "the end-of-article button must not claim to be the one beside the answer");
+}
+
+// 6. The same handoff from the button beside the answer, which is the one a
+// phone visitor can actually reach — the end-of-article CTA is 4.4 screens
+// down. It counts as a handoff like the other, and says so twice, so the
+// placement can be judged rather than assumed.
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 664 } });
+  const page = await ctx.newPage();
+  await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
+  const paths = new Set();
+  page.on("request", (r) => { try { paths.add(new URL(r.url()).pathname); } catch {} });
+  // The check that is the whole point of the button, on all three pages: on a
+  // phone it has to be reachable without reading the article. Under two
+  // screens of scrolling, not four and a half. An article grows, and the day
+  // somebody adds two paragraphs above the fold this should fail rather than
+  // quietly slide back down to where it started.
+  for (const calc of ["royalty-calculator", "spine-calculator", "margin-calculator"]) {
+    await page.goto(`${base}/${calc}`, { waitUntil: "networkidle" });
+    await page.fill("#pages", "120");
+    const top = await page.evaluate(() => {
+      const t = document.getElementById("makeBtnTop").getBoundingClientRect();
+      const o = document.getElementById("makeBtn").getBoundingClientRect();
+      return { screens: (t.top + scrollY) / innerHeight, old: (o.top + scrollY) / innerHeight, h: Math.round(t.height), href: document.getElementById("makeBtnTop").getAttribute("href") };
+    });
+    console.log(`  ${calc.padEnd(19)} door beside the answer ${top.screens.toFixed(2)} screens down (end of article: ${top.old.toFixed(2)})`);
+    check(top.screens < 2, `${calc}: the door beside the answer must be within two screens (is ${top.screens.toFixed(2)})`);
+    check(top.h >= 44, `${calc}: and thumb-sized`);
+    check(/^\/\?trim=.*#tool$/.test(top.href), `${calc}: and carries the book across (href was ${top.href})`);
+  }
+  await page.goto(`${base}/royalty-calculator`, { waitUntil: "networkidle" });
+  await page.fill("#pages", "120");
+  await page.click("#makeBtnTop");
+  await page.waitForSelector(".grid div");
+  await page.waitForTimeout(1500);
+  await ctx.close();
+  const has = (re) => [...paths].some((p) => re.test(p));
+  console.log(`  calculator handoff (top): ${Object.entries(SIGNAL).filter(([, re]) => has(re)).map(([k]) => k).join(", ") || "nothing"}`);
+  check(has(SIGNAL.handoff), "the button beside the answer counts as a handoff");
+  check(has(SIGNAL.handoffTop), "and says which button it was");
+  check(has(SIGNAL.ranTheApp), "and lands on the generator");
 }
 
 // A crawler that does not run JavaScript must appear as a page request and

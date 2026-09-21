@@ -52,6 +52,9 @@
   .btn { display:inline-block; text-decoration:none; font-weight:600; padding:11px 18px; border-radius:8px; background:var(--accent); color:#fff; border:1px solid var(--accent); }
   footer { color:var(--muted); font-size:13px; text-align:center; padding:30px 24px; border-top:1px solid var(--line); background:var(--card); margin-top:30px; }
   footer a { color: var(--muted); }
+  /* The handoff beside the answer — see the note in the markup. */
+  .make-here { margin-top:18px; text-align:center; }
+  .make-here p { margin:9px 0 0; font-size:13px; color:#5c6470; }
 </style>
 <style>
   .check { display:flex; align-items:center; gap:10px; font-size:14px; margin-top:22px; }
@@ -126,12 +129,27 @@
       <div class="big"><div class="k">Live area</div><div class="s" id="live" style="margin-top:6px;font-size:15px;color:var(--ink)">—</div></div>
     </div>
 
+    <!-- The door, put where the answer is. Measured 2026-09-21 on an iPhone 13:
+         the end-of-article CTA sits 4.4 screens down this page (5.4 on the
+         margin one), and somebody who arrived from a search for a KDP
+         calculator has the number they came for by the end of screen two and
+         no reason at all to keep scrolling. That day: two people used a
+         calculator, none pressed the button. Same shape as the generator thumb
+         bar and #previewDownload — a second button to the same place, so there
+         is one destination and one funnel signal. -->
+    <div class="make-here">
+      <a class="btn" id="makeBtnTop" href="/">Make this book free</a>
+      <p>Opens the generator with this exact book already set up. Nothing to re-type.</p>
+    </div>
+
     <div class="diagram">
       <svg id="diagram" role="img" aria-label="A left-hand and a right-hand page with the safe area shaded and the gutter marked"></svg>
       <p>Two facing pages, to scale. Shaded = where content may go. The gutter is the margin against the spine, and it swaps sides.</p>
     </div>
 
     <div class="sum" id="settings">—</div>
+
+
     <div class="notes">
       <div><strong>Which side:</strong> <span id="sides">—</span></div>
       <div id="bleedNote" hidden><strong>Bleed:</strong> the PDF page is 0.125" wider and 0.25" taller than the trim, and content that should bleed must extend all the way to the page edge. Margins above are measured from the PDF page edge, not the trim line.</div>

@@ -10,7 +10,7 @@ const el = {
   trim: $("trim"), pages: $("pages"), ink: $("ink"), list: $("list"),
   printing: $("printing"), earn: $("earn"), rate: $("rate"), minList: $("minList"),
   sum: $("sum"), warn: $("warn"), band: $("band"), market: $("market"), per100: $("per100"),
-  make: $("makeBtn"), carry: $("carry"),
+  make: $("makeBtn"), makeTop: $("makeBtnTop"), carry: $("carry"),
 };
 
 for (const [id, t] of Object.entries(TRIMS)) {
@@ -41,6 +41,7 @@ function update() {
   // price, and their page count converted to the puzzle count that reaches it.
   const link = toolLink({ trim, pages, ink, list: list > 0 ? list.toFixed(2) : "" });
   el.make.href = link.href;
+  el.makeTop.href = link.href;
   el.carry.textContent = carryNote(link, trim, list > 0 ? `, priced at ${money(list)}` : "");
 
   const cost = printingCost({ trim, pages, ink });
@@ -87,6 +88,14 @@ for (const node of [el.trim, el.pages, el.ink, el.list]) {
 // out of the request log: the handoff lands on /?trim=..&count=..#tool, and
 // Cloudflare logs the path without the query, so it is indistinguishable from
 // any other landing. One content-free beacon makes it visible. See ./px.js.
-el.make.addEventListener("click", () => px("handoff", { keep: true }));
+for (const [node, where] of [[el.make, "handoff"], [el.makeTop, "handofftop"]]) {
+  node.addEventListener("click", () => {
+    // Both buttons count as the handoff, so the strategic number stays one
+    // number — and the top one says so twice, so I can tell whether putting
+    // the door beside the answer is what made the difference.
+    px("handoff", { keep: true });
+    if (where !== "handoff") px(where, { keep: true });
+  });
+}
 
 update();

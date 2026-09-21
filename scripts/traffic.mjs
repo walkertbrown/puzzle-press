@@ -415,6 +415,12 @@ try {
   const handoff = people(/^\/px\/handoff\.gif$/);
   const madeSet = new Set(whoDid(/^\/px\/made\.gif$/));
   const handoffToBook = whoDid(/^\/px\/handoff\.gif$/).filter((ip) => madeSet.has(ip)).length;
+  // Which of the two buttons they used. The end-of-article CTA sits 4.4 screens
+  // down a phone (5.4 on the margin page), so on 2026-09-21 a second one went
+  // in beside the answer, where somebody who searched for a KDP calculator
+  // actually is when they get their number. Both count as a handoff; only the
+  // new one reports itself, so the placement can be judged rather than assumed.
+  const handoffTop = people(/^\/px\/handofftop\.gif$/);
   // "Clicked Download", not "made a book" — and the difference cost me an hour.
   //
   // 2026-09-15 21:43 CT, the launch's only book: 3.82.141.143, one Amazon
@@ -518,7 +524,7 @@ try {
   console.log(`    Visited a word-list page    ${wordLists}   <-- what the Pinterest pins point at${wordListTotal > wordLists ? `   (${wordListTotal - wordLists} more were crawlers walking the sitemap)` : ""}`);
   console.log(`      of those, ${wordListToApp} read by somebody who also ran the app — the only reason these pages exist`);
   console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} more opened the page and never ran the script)` : ""}`);
-  if (pxTotal) console.log(`      of those, ${handoff} pressed "make a book" and ${handoffToBook} of those got a file   <-- whether the free utilities are a front door`);
+  if (pxTotal) console.log(`      of those, ${handoff} pressed "make a book"${handoff ? ` (${handoffTop} from the button beside the answer, the rest from the end of the article)` : ""} and ${handoffToBook} of those got a file   <-- whether the free utilities are a front door`);
   console.log(`    Clicked Download            ${clickedDownload}${clickedDownload && !fonts ? "   (and no font was ever fetched — nothing rendered)" : ""}`);
   console.log(`    ...and a book came out      ${fonts ? `yes, ${fonts} ${fonts === 1 ? "person" : "people"} fetched fonts` : "no"}   <-- fonts embed at render time; the only proof a PDF exists`);
   console.log(`    Made a cover                ${covers}`);

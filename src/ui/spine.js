@@ -7,7 +7,7 @@ import { px } from "./px.js";
 
 const $ = (id) => document.getElementById(id);
 const el = {
-  make: $("makeBtn"), carry: $("carry"),
+  make: $("makeBtn"), makeTop: $("makeBtnTop"), carry: $("carry"),
   trim: $("trim"), pages: $("pages"), paper: $("paper"),
   spine: $("spine"), spineMm: $("spineMm"), cover: $("cover"), coverMm: $("coverMm"),
   gutter: $("gutter"), spineText: $("spineText"), barcode: $("barcode"), sum: $("sum"),
@@ -41,6 +41,7 @@ function update() {
   // cover it makes then has the spine width printed on this page.
   const link = toolLink({ trim, pages, paper });
   el.make.href = link.href;
+  el.makeTop.href = link.href;
   el.carry.textContent = carryNote(link, trim, ` on ${PAPER[paper].label.toLowerCase()}`);
 
   const spine = spineWidthInches(pages, paper);
@@ -76,6 +77,14 @@ for (const node of [el.trim, el.pages, el.paper]) {
 // out of the request log: the handoff lands on /?trim=..&count=..#tool, and
 // Cloudflare logs the path without the query, so it is indistinguishable from
 // any other landing. One content-free beacon makes it visible. See ./px.js.
-el.make.addEventListener("click", () => px("handoff", { keep: true }));
+for (const [node, where] of [[el.make, "handoff"], [el.makeTop, "handofftop"]]) {
+  node.addEventListener("click", () => {
+    // Both buttons count as the handoff, so the strategic number stays one
+    // number — and the top one says so twice, so I can tell whether putting
+    // the door beside the answer is what made the difference.
+    px("handoff", { keep: true });
+    if (where !== "handoff") px(where, { keep: true });
+  });
+}
 
 update();
