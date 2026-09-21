@@ -44,6 +44,7 @@
     "cards": "node scripts/cards.mjs",
     "test:typepages": "node test/typepages.mjs",
     "test:margin": "node test/margin.mjs",
+    "test:calclink": "node test/calclink.mjs",
     "test:links": "node test/links.mjs",
     "test:seo": "node test/seo.mjs",
     "test:ink": "node test/inkcheck.mjs",

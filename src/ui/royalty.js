@@ -2,12 +2,14 @@
 // quotes from, so the page and the product cannot disagree about money.
 import { TRIMS } from "../pdf/kdp.js";
 import { printingCost, royalty, INKS, MARKETPLACE, ROYALTY_THRESHOLD } from "../pdf/kdp-cost.js";
+import { toolLink, carryNote } from "./tool-link.js";
 
 const $ = (id) => document.getElementById(id);
 const el = {
   trim: $("trim"), pages: $("pages"), ink: $("ink"), list: $("list"),
   printing: $("printing"), earn: $("earn"), rate: $("rate"), minList: $("minList"),
   sum: $("sum"), warn: $("warn"), band: $("band"), market: $("market"), per100: $("per100"),
+  make: $("makeBtn"), carry: $("carry"),
 };
 
 for (const [id, t] of Object.entries(TRIMS)) {
@@ -33,6 +35,12 @@ function update() {
   const pages = Math.max(24, Math.min(828, parseInt(el.pages.value, 10) || 24));
   const ink = el.ink.value;
   const list = Math.max(0, parseFloat(el.list.value) || 0);
+
+  // Their numbers, carried into the generator: same trim, same ink, same list
+  // price, and their page count converted to the puzzle count that reaches it.
+  const link = toolLink({ trim, pages, ink, list: list > 0 ? list.toFixed(2) : "" });
+  el.make.href = link.href;
+  el.carry.textContent = carryNote(link, trim, list > 0 ? `, priced at ${money(list)}` : "");
 
   const cost = printingCost({ trim, pages, ink });
   if (cost.cost === null) {

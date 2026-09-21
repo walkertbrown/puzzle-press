@@ -1,9 +1,11 @@
 // The margin calculator page. Same functions the PDF engine lays pages out
 // with, so the figures here are the figures in the books.
 import { TRIMS, PT, MIN_PAGES, MAX_PAGES, gutterInches, pageGeometry, marginsForPage } from "../pdf/kdp.js";
+import { toolLink, carryNote } from "./tool-link.js";
 
 const $ = (id) => document.getElementById(id);
 const el = {
+  make: $("makeBtn"), carry: $("carry"),
   trim: $("trim"), pages: $("pages"), bleed: $("bleed"),
   pageSize: $("pageSize"), pageSizeMm: $("pageSizeMm"), pagePt: $("pagePt"),
   inside: $("inside"), outside: $("outside"), topBottom: $("topBottom"),
@@ -51,6 +53,14 @@ function update() {
   const trim = el.trim.value;
   const pages = Math.max(MIN_PAGES, Math.min(MAX_PAGES, parseInt(el.pages.value, 10) || MIN_PAGES));
   const bleed = el.bleed.checked;
+
+  // Carried into the generator: trim, bleed, and their page count as the
+  // puzzle count that reaches it. The interior it lays out uses exactly the
+  // margins and the gutter side drawn on this page.
+  const link = toolLink({ trim, pages, bleed: bleed ? "1" : "" });
+  el.make.href = link.href;
+  el.carry.textContent = carryNote(link, trim, bleed ? ", with bleed" : "");
+
   const geom = pageGeometry({ trim, bleed, pageCount: pages });
   const t = TRIMS[trim];
   const w = geom.width / PT, h = geom.height / PT;

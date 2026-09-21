@@ -979,6 +979,39 @@ refreshTier();
     for (const cb of el.themes.querySelectorAll("input")) cb.checked = cb.value === theme;
     if (!titleEdited) el.title.value = `${THEMES[theme].title} Word Search`;
   }
+  // The calculators link as /?trim=6x9&count=120#tool.
+  //
+  // 2026-09-21: the boss's Search Console says the only page of this site that
+  // has ever appeared in a live search is one of the calculators, and the only
+  // page bingbot fetched in a day was /royalty-calculator. Search will carry
+  // the free utilities before it carries the tool, so the calculators are the
+  // front door whether or not they were meant to be.
+  //
+  // Somebody who arrives there has just typed the two things this form asks
+  // for first — their trim size and their page count — into a different box on
+  // the same site. Making them type it again is the same defect as the hero
+  // CTA landing five screens above the Download button: the work is already
+  // done, and the page throws it away. Carry it across instead.
+  const trim = q.get("trim");
+  if (trim && [...el.trim.options].some((o) => o.value === trim)) el.trim.value = trim;
+  // Page count is not puzzle count — a book is puzzles plus solutions plus
+  // front matter — so the calculators send `count` already converted by the
+  // same planner the book uses, not the raw number from their own box.
+  const count = Number(q.get("count"));
+  if (Number.isInteger(count) && count >= 1 && count <= 200) el.count.value = String(count);
+  // The royalty page also asks for ink and a list price, and the spine page
+  // asks for paper. Every one of those is a control on this form with the same
+  // values, so carry them too — the money figures under the preview then match
+  // the ones they were just looking at, instead of quoting a different book.
+  const ink = q.get("ink");
+  if (ink && [...el.ink.options].some((o) => o.value === ink)) el.ink.value = ink;
+  const paper = q.get("paper");
+  if (paper && [...el.paper.options].some((o) => o.value === paper)) el.paper.value = paper;
+  const list = Number(q.get("list"));
+  if (Number.isFinite(list) && list > 0 && list < 1000) el.list.value = list.toFixed(2);
+  // The margin page draws the gutter with bleed on or off; arrive with the one
+  // they were looking at, not the default.
+  if (q.get("bleed")) el.bleed.checked = true;
   // The large-print landing page links as /?largePrint=1#tool: same checkbox
   // a visitor would tick by hand, just pre-ticked so the first render is
   // already the large-print preset, not the default they'd have to find.

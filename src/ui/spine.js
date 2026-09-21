@@ -2,9 +2,11 @@
 // uses, so the numbers here cannot drift away from the numbers in the PDFs.
 import { TRIMS, gutterInches, PT } from "../pdf/kdp.js";
 import { coverGeometry, spineWidthInches, PAPER, SPINE_TEXT_MIN_PAGES, BARCODE_IN } from "../pdf/cover-geometry.js";
+import { toolLink, carryNote } from "./tool-link.js";
 
 const $ = (id) => document.getElementById(id);
 const el = {
+  make: $("makeBtn"), carry: $("carry"),
   trim: $("trim"), pages: $("pages"), paper: $("paper"),
   spine: $("spine"), spineMm: $("spineMm"), cover: $("cover"), coverMm: $("coverMm"),
   gutter: $("gutter"), spineText: $("spineText"), barcode: $("barcode"), sum: $("sum"),
@@ -32,6 +34,13 @@ function update() {
   const trim = el.trim.value;
   const pages = Math.max(24, Math.min(828, parseInt(el.pages.value, 10) || 24));
   const paper = el.paper.value;
+
+  // Carried into the generator: trim, paper (the two things that set the spine
+  // width), and their page count as the puzzle count that reaches it. The
+  // cover it makes then has the spine width printed on this page.
+  const link = toolLink({ trim, pages, paper });
+  el.make.href = link.href;
+  el.carry.textContent = carryNote(link, trim, ` on ${PAPER[paper].label.toLowerCase()}`);
 
   const spine = spineWidthInches(pages, paper);
   const g = coverGeometry({ trim, pageCount: pages, paper });

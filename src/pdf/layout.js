@@ -63,6 +63,20 @@ export function planPages(puzzleCount, solutionsPerPage = 4) {
   };
 }
 
+// The inverse of planPages, for the calculators. Somebody on the royalty page
+// has typed a page count and priced a book against it; the generator asks for
+// a puzzle count instead. Hand back the most puzzles that still fit inside
+// their number, so the book they land on is no longer — and so no dearer to
+// print — than the one they just priced.
+export function puzzlesForPages(targetPages, fits, max = 200) {
+  let best = 1;
+  for (let n = 1; n <= max; n++) {
+    if (planPages(n, solutionsPerPageFor(n, fits)).total > targetPages) break;
+    best = n;
+  }
+  return best;
+}
+
 // The fewest puzzles that reach KDP's minimum without filler, for a given
 // solutions-per-page. Used to tell someone what to change.
 export function puzzlesForMinimum(fits) {
