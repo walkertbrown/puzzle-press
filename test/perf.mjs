@@ -91,16 +91,27 @@ for (const [what, sel] of [
   ["what it makes", ".lede"],
   ["the primary button", ".hero-cta .btn-primary"],
   ["the finished-book sample", ".hero-cta .btn-ghost"],
-  ["the price", ".hero-cta .note:last-of-type"],
+  // By class, not :last-of-type: the price used to be the last note and is now
+  // the first, because on a phone only one of the two notes fits.
+  ["the price", ".hero-cta .note.price"],
 ]) {
   const y = await bottom(sel);
   check(y <= FOLD, `${what} ends at ${Math.round(y)}px, below the ${FOLD}px fold`);
 }
-// The proof only has to start above the fold — a visible edge of a real
-// printed page is what tells someone there is something worth scrolling to.
-const shot = await top(".hero-shot img");
-check(shot < FOLD, `the picture of a finished page starts at ${Math.round(shot)}px, entirely below the fold`);
-console.log(`\n  First screen (390x${FOLD}): headline, what it makes, both buttons, the price, and the book image from ${Math.round(shot)}px.`);
+// The whole picture, not a visible edge of it.
+//
+// This check used to ask only that the image *start* above the fold, and it
+// passed for months on a 240px picture showing a 70px strip — and at 320x568 it
+// was 0px and the check still passed, because `top` was above the fold by a
+// hair while nothing was on screen at all. A strip of a printed page is not
+// proof of anything; it is a texture. On 2026-09-21 both of the real phone
+// visitors loaded the app, stayed, and never scrolled to the generator, with a
+// first screen made of a headline, a sentence and two buttons.
+const shotTop = await top(".hero-shot img");
+const shotBottom = await bottom(".hero-shot img");
+check(shotTop < FOLD, `the picture of a finished page starts at ${Math.round(shotTop)}px, entirely below the fold`);
+check(shotBottom <= FOLD, `only ${Math.round(FOLD - shotTop)}px of the picture is on the first screen — it ends at ${Math.round(shotBottom)}px, past the ${FOLD}px fold`);
+console.log(`\n  First screen (390x${FOLD}): headline, what it makes, both buttons, the price, and the whole book image, ${Math.round(shotTop)}px to ${Math.round(shotBottom)}px.`);
 
 await b.close();
 if (failed) { console.log(`\n${failed} check(s) failed`); process.exit(1); }

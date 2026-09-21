@@ -168,16 +168,43 @@
      where the grid collapses to one column, it puts the picture of a real
      printed page directly under the buttons instead of below eight lines of
      feature ticks — one flick from the top rather than a screen and a half. */
-  .hero-inner { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 1.15fr 1fr; gap: 40px; align-items: center; }
-  .hero-copy { grid-column: 1; }
-  .hero-shot { grid-column: 2; }
-  .hero-inner .trust { grid-column: 1 / -1; margin: 0; }
+  /* Four children now, and the rows are placed explicitly so that widening the
+     screen cannot reorder them by accident. On a wide screen this is what it
+     always was: copy over buttons in column 1, the picture beside both in
+     column 2, ticks across the bottom. The row gap is 18px because that is the
+     margin the lede used to carry on its own, and the ticks make up the rest of
+     the old 40px themselves. */
+  .hero-inner { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 1.15fr 1fr; column-gap: 40px; row-gap: 18px; align-items: center; }
+  .hero-copy { grid-column: 1; grid-row: 1; }
+  .hero-cta { grid-column: 1; grid-row: 2; }
+  .hero-shot { grid-column: 2; grid-row: 1 / span 2; }
+  .hero-inner .trust { grid-column: 1 / -1; grid-row: 3; margin: 22px 0 0; }
+  /* One column, and grid-row: auto hands the order back to the DOM — headline
+     and sentence, the picture, the buttons, the ticks. */
   @media (max-width: 860px) {
-    .hero-inner { grid-template-columns: 1fr; gap: 24px; }
-    .hero-copy, .hero-shot, .hero-inner .trust { grid-column: 1; }
+    .hero-inner { grid-template-columns: 1fr; column-gap: 0; row-gap: 20px; }
+    .hero-copy, .hero-shot, .hero-cta, .hero-inner .trust { grid-column: 1; grid-row: auto; }
+    .hero-inner .trust { margin-top: 0; }
+    /* 20px of side padding each made the two buttons 366px wide in a 342px row,
+       so they stacked and cost 60px of the first screen for 24px of air. 12px
+       fits them on one line. Nothing about the tap target changes: they keep
+       their 44px height and are still ~160px wide. */
+    .hero-cta .btn { padding-inline: 12px; }
+  }
+  /* The hero's long wording and its short stand-in, used three times: the lede,
+     the second button, and the price. 860px is the hero's own one-column
+     breakpoint, so the wording shortens at exactly the moment the picture drops
+     below the text and starts competing for the first screen. Nothing outside
+     the hero uses these — the header has its own .wide-only at 800px. */
+  .hero-sm { display: none; }
+  @media (max-width: 860px) {
+    .hero-lg { display: none; }
+    .hero-sm { display: inline; }
   }
   .hero h2 { margin: 0 0 12px; font-size: clamp(26px, 3.6vw, 40px); line-height: 1.15; letter-spacing: -0.02em; }
-  .hero .lede { margin: 0 0 18px; font-size: 17px; color: var(--muted); max-width: 60ch; }
+  /* No bottom margin any more: the buttons are a grid sibling now, so the space
+     under this sentence is the grid's row-gap and not two spacings stacked. */
+  .hero .lede { margin: 0; font-size: 17px; color: var(--muted); max-width: 60ch; }
   .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
   .hero-cta .note { font-size: 13px; color: var(--muted); }
   /* The sample links sit in a 13px note, so on a phone they are 18px tall —
@@ -289,19 +316,41 @@
   <div class="hero-inner">
     <div class="hero-copy">
       <h2>A finished KDP puzzle book, in about a minute.</h2>
-      <p class="lede">Pick word search, sudoku, mazes, criss-cross fill-ins or crosswords, and a trim size. Out comes the whole paperback — puzzles, solutions, page numbers and a matching cover — as PDFs that meet Amazon KDP's manuscript rules. No sign-up, nothing to install.</p>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="#tool">Make a book free</a>
-        <a class="btn btn-ghost" href="samples/sample-6x9.pdf" target="_blank" rel="noopener">See a finished book (PDF)</a>
-        <span class="note">More samples: <a href="samples/sample-cover-6x9.pdf" target="_blank" rel="noopener">its cover</a> · <a href="samples/sample-sudoku-6x9.pdf" target="_blank" rel="noopener">sudoku</a> · <a href="samples/sample-maze-6x9.pdf" target="_blank" rel="noopener">maze</a> · <a href="samples/sample-crisscross-6x9.pdf" target="_blank" rel="noopener">fill-in</a> · <a href="samples/sample-crossword-6x9.pdf" target="_blank" rel="noopener">crossword</a></span>
-        <span class="note">Free: a full-length book, watermarked. $19 once removes the mark.</span>
-      </div>
+      <!-- Two ledes in one paragraph. On a wide screen this reads exactly as it
+           always has; on a phone the spans marked hero-lg come out and a 20-word
+           version is left. That is not trimming for its own sake: measured on a
+           390x664 iPhone, the long lede is 0.26 screens of prose standing between
+           the headline and the only picture of the product, and it is the reason
+           the picture starts below the fold. The detail it drops is not lost —
+           the ticks below say all of it, in the format a phone reads better. -->
+      <p class="lede"><span class="hero-sm">Pick a puzzle type</span><span class="hero-lg">Pick word search, sudoku, mazes, criss-cross fill-ins or crosswords,</span> and a trim size. Out comes the whole paperback<span class="hero-lg"> — puzzles, solutions, page numbers and a matching cover —</span> as <span class="hero-lg">PDFs that meet Amazon KDP's manuscript rules. No sign-up, nothing to install.</span><span class="hero-sm">KDP-ready PDFs.</span></p>
     </div>
     <div class="hero-shot">
       <picture>
         <source srcset="hero-book.webp" type="image/webp">
         <img src="hero-book.jpg" width="1200" height="840" alt="A page from a generated word search book beside its solutions page" loading="eager" fetchpriority="high" decoding="async">
       </picture>
+    </div>
+    <!-- Out of .hero-copy and into the grid, so that on a phone — where the grid
+         is one column and DOM order is what you see — the picture lands between
+         the sentence and the buttons. Deliberately a real DOM move rather than a
+         CSS `order` swap: order would leave a keyboard or screen reader walking
+         the hero in a sequence nobody sees, and the point of the change is that
+         the claim and its proof arrive together. -->
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#tool">Make a book free</a>
+      <!-- Shorter on a phone so the two buttons share one flex line instead of
+           stacking. That is 60px, and 60px is the difference between the price
+           being on the first screen and not. -->
+      <a class="btn btn-ghost" href="samples/sample-6x9.pdf" target="_blank" rel="noopener"><span class="hero-lg">See a finished book (PDF)</span><span class="hero-sm">See a sample (PDF)</span></a>
+      <!-- Price before the extra samples, because on a phone only one of the two
+           fits on the first screen. The samples note is five links carrying 44px
+           of thumb padding each, so it wraps to several lines and pushed the
+           price to 738px on a 664px screen once the picture moved up. What it
+           costs to know is asymmetric: somebody who cannot see the price assumes
+           the worst about it, and somebody who wants a fifth sample scrolls. -->
+      <span class="note price"><span class="hero-lg">Free: a full-length book, watermarked. $19 once removes the mark.</span><span class="hero-sm">Free, watermarked. $19 removes the mark.</span></span>
+      <span class="note">More samples: <a href="samples/sample-cover-6x9.pdf" target="_blank" rel="noopener">its cover</a> · <a href="samples/sample-sudoku-6x9.pdf" target="_blank" rel="noopener">sudoku</a> · <a href="samples/sample-maze-6x9.pdf" target="_blank" rel="noopener">maze</a> · <a href="samples/sample-crisscross-6x9.pdf" target="_blank" rel="noopener">fill-in</a> · <a href="samples/sample-crossword-6x9.pdf" target="_blank" rel="noopener">crossword</a></span>
     </div>
     <ul class="trust">
         <li>Word search, sudoku, mazes, fill-ins &amp; crosswords</li>
