@@ -61,6 +61,8 @@
     "video:short": "node scripts/video.mjs --short",
     "video:types": "node scripts/video-types.mjs",
     "video:types:short": "node scripts/video-types.mjs --short",
+    "video:calc": "node scripts/video-calc.mjs",
+    "video:calc:short": "node scripts/video-calc.mjs --short",
     "test:engines": "node test/browser.mjs firefox && node test/browser.mjs webkit && node test/freecover.mjs webkit && node test/nostorage.mjs webkit && node test/paidreturn.mjs webkit"
   },
   "dependencies": {
