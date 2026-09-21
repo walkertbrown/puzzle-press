@@ -245,6 +245,13 @@ try {
 const BOT_UA = /bot|crawl|spider|slurp|Lightpanda|HeadlessChrome|python-requests|curl\//i;
 let appIps = [];
 let botAppIps = [];
+// Every address that is not a self-identified bot, whether or not it ever ran
+// the app. The word-list pages need this and appIps will not do: someone who
+// lands on /word-lists/halloween from a pin and reads it without clicking
+// through never fetches main.js, so filtering those pages by appIps would
+// report zero for a page that is working. "Not a known crawler" is the weaker
+// filter, and it is the right one for a stage keyed on an HTML page.
+let humanIps = [];
 try {
   const ran = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
     httpRequestsAdaptiveGroups(limit: 200, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%", clientRequestPath: "/js/main.js"}, orderBy: [count_DESC]) {
@@ -266,6 +273,8 @@ try {
     .filter((ip) => !myIps.includes(ip) && !scannerIps.includes(ip));
   botAppIps = seen.filter((ip) => botIps.has(ip));
   appIps = seen.filter((ip) => !botIps.has(ip));
+  humanIps = [...new Set(agents.viewer.zones[0].httpRequestsAdaptiveGroups.map((r) => r.dimensions.clientIP))]
+    .filter((ip) => !botIps.has(ip) && !myIps.includes(ip) && !scannerIps.includes(ip));
 } catch { /* fall back to reporting the raw sample count, marked as unfiltered */ }
 
 try {
@@ -367,7 +376,31 @@ try {
   const calcPages = hits(/calculator/);
   // What the Pinterest pins (marketing/pins.md) actually drive traffic to —
   // previously invisible entirely, see the `served` note above.
-  const wordLists = hits(/^\/word-lists\//);
+  //
+  // 2026-09-21: this printed 197 on a day when 14 addresses ran the app and
+  // nobody used a calculator, which reads as "the pins are working" and is the
+  // third appearance of the same defect — a stage keyed on an HTML page counts
+  // every crawler that walks the sitemap. There are 91 of these pages and one
+  // sitemap pass over them is 91 "visits". Count only addresses that never
+  // identified themselves as a bot, and print the crawler share beside it so
+  // the raw number is still visible.
+  const wordListTotal = hits(/^\/word-lists\//);
+  const wordListByHuman = humanIps.length
+    ? await pathCounts(`, clientIP_in: [${humanIps.slice(0, 250).map((ip) => JSON.stringify(ip)).join(", ")}]`)
+    : new Map();
+  const wordLists = [...wordListByHuman]
+    .filter(([path]) => /^\/word-lists\//.test(path))
+    .reduce((a, [, c]) => a + c, 0);
+  // Even that is generous — "did not say bot" is the weakest filter here, and
+  // on 2026-09-21 what survived it was Amazonbot (whose name sits past the
+  // first 55 characters of its agent string), Googlebot's bare Chrome agent,
+  // and a scatter of one-request Chrome hits. So print the number that cannot
+  // be faked by a crawler alongside it: how many of these pages were read by
+  // an address that went on to run the app. That is the only thing 91 word-list
+  // pages were built to do, and it is the number to judge them by.
+  const wordListToApp = [...(appIps.length ? sampleByApp : new Map())]
+    .filter(([path]) => /^\/word-lists\//.test(path))
+    .reduce((a, [, c]) => a + c, 0);
   const window = funnelHours >= 23.5 ? "Last 24h" : `Last ${hours}h`;
   console.log(`\n  ${window}, by what people did (a day is all the free plan keeps):`);
   console.log(`    Requests for the page       ${requested}`);
@@ -376,7 +409,8 @@ try {
   console.log(`    ...and did not bounce       ${stayed}   <-- stayed long enough to idle-warm the PDF chunk`);
   console.log(`    Opened a sample PDF         ${samples}${sampleTotal > samples ? `   (${sampleTotal - samples} more opens came from crawlers — not people)` : ""}`);
   for (const [path, count] of sampleRows) console.log(`      ${String(count).padStart(3)}  ${path.replace(/^\/samples\//, "")}`);
-  console.log(`    Visited a word-list page     ${wordLists}   <-- what the Pinterest pins point at`);
+  console.log(`    Visited a word-list page    ${wordLists}   <-- what the Pinterest pins point at${wordListTotal > wordLists ? `   (${wordListTotal - wordLists} more were crawlers walking the sitemap)` : ""}`);
+  console.log(`      of those, ${wordListToApp} read by somebody who also ran the app — the only reason these pages exist`);
   console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} fetched the page and never ran it — crawlers)` : ""}`);
   console.log(`    Clicked Download            ${clickedDownload}${clickedDownload && !fonts ? "   (and no font was ever fetched — nothing rendered)" : ""}`);
   console.log(`    ...and a book came out      ${fonts ? `yes, ${fonts} font fetches` : "no"}   <-- fonts embed at render time; the only proof a PDF exists`);

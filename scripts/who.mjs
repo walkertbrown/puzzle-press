@@ -193,8 +193,15 @@ if (scanners.length) {
 // ("only addresses that already ran the app, never a bulk dump of everyone
 // who touched the site") stays as written, and a self-declared bot UA
 // (Googlebot, bingbot both name themselves) needs no registry lookup anyway.
+// isMine, because this list is the one place in the file that looks at
+// addresses which never ran the app, and my own rotated /64 is exactly that —
+// `npm run test:links` walks all 91 word-list pages with node and fetches no
+// script. On 2026-09-21 the top two entries here were 765 and 432 requests
+// from this laptop, printed as visitors, under a list headed by the number of
+// addresses. The same rotation caught traffic.mjs out on 09-14; every other
+// list in this file is built from `strangers`, which already excludes them.
 const wordListOnly = visitors.filter(
-  ([, e]) => [...e.paths.keys()].some((p) => p.startsWith("/word-lists/")) && !did(e.paths).ranApp,
+  ([ip, e]) => !isMine(ip) && [...e.paths.keys()].some((p) => p.startsWith("/word-lists/")) && !did(e.paths).ranApp,
 );
 if (wordListOnly.length) {
   const total = wordListOnly.reduce((a, [, e]) => a + e.n, 0);
