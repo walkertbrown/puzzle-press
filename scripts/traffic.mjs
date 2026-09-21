@@ -167,7 +167,7 @@ let myIps = nowIps;
 if (myPrefixes.length) {
   try {
     const seen = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
-      httpRequestsAdaptiveGroups(limit: 500, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%"}, orderBy: [count_DESC]) {
+      httpRequestsAdaptiveGroups(limit: 5000, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%"}, orderBy: [count_DESC]) {
         count dimensions { clientIP }
       } } } }`);
     const kin = seen.viewer.zones[0].httpRequestsAdaptiveGroups
@@ -207,15 +207,37 @@ const pathCounts = async (extra = "") => {
 // clientAsn dimension is real but gated behind a paid plan on this zone,
 // checked, not assumed: "zone does not have access to the field 'clientasn'".)
 const SCANNER_404S = 3;
+// A browser asks for these on its own. Nobody typed them, and a 404 on one is
+// a fact about this site, not a sign of a probe.
+//
+// 2026-09-21: 47.152.6.103 — a Verizon iPhone on iOS 26.6.2, 36 requests,
+// landed and stayed, the most engaged visitor of the day who was not me — was
+// being thrown out of the funnel as a SCANNER. Its three "probes" were
+// /favicon.ico, /apple-touch-icon.png and /apple-touch-icon-precomposed.png:
+// exactly what iOS Safari fetches by itself, and exactly three, which is the
+// threshold. The rule was built to catch things hunting for leaked .env files
+// and it was catching iPhones instead. It has almost certainly been doing that
+// since the day it was written.
+//
+// The 404s were real, which is the other half of the story — the site shipped
+// no touch icon at all, so anyone adding Puzzle Press to a home screen got a
+// blank square. That is fixed in public/ now; this list is so the rule cannot
+// make the same mistake about the next well-known path.
+const BROWSER_ASKS_FOR = /^\/(favicon\.ico|apple-touch-icon.*\.png|browserconfig\.xml|site\.webmanifest|manifest\.json|sw\.js|\.well-known\/)/;
 let scannerIps = [];
 try {
   const probes = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
-    httpRequestsAdaptiveGroups(limit: 200, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%", edgeResponseStatus: 404}, orderBy: [count_DESC]) {
-      count dimensions { clientIP }
+    httpRequestsAdaptiveGroups(limit: 5000, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%", edgeResponseStatus: 404}, orderBy: [count_DESC]) {
+      count dimensions { clientIP clientRequestPath }
     } } } }`);
-  scannerIps = probes.viewer.zones[0].httpRequestsAdaptiveGroups
-    .filter((r) => r.count >= SCANNER_404S)
-    .map((r) => r.dimensions.clientIP)
+  const probeCount = new Map();
+  for (const r of probes.viewer.zones[0].httpRequestsAdaptiveGroups) {
+    if (BROWSER_ASKS_FOR.test(r.dimensions.clientRequestPath)) continue;
+    probeCount.set(r.dimensions.clientIP, (probeCount.get(r.dimensions.clientIP) ?? 0) + r.count);
+  }
+  scannerIps = [...probeCount]
+    .filter(([, n]) => n >= SCANNER_404S)
+    .map(([ip]) => ip)
     .filter((ip) => !myIps.includes(ip));
 } catch { /* no scanner split rather than no dashboard */ }
 
@@ -252,6 +274,22 @@ let botAppIps = [];
 // report zero for a page that is working. "Not a known crawler" is the weaker
 // filter, and it is the right one for a stage keyed on an HTML page.
 let humanIps = [];
+// Every stranger's address and the set of paths it asked for. This exists
+// because on 2026-09-21 this script reported "...that ran the app 15" for a
+// day in which who.mjs found five addresses fetching main.js — three of them
+// not this machine, and two of those three Googlebot. One real person.
+//
+// The cause was not which path I keyed on. It was the unit. `hits()` sums
+// `r.count`, so every funnel line below was a count of *requests* wearing a
+// label that says people, and one visitor reloading four times reads exactly
+// like four visitors. That is the fifth appearance of this family of bug and
+// the first one that was not about crawler-reachable URLs at all — I had
+// fixed the path four times and never once looked at what I was adding up.
+//
+// So: stages are counted in addresses, from this map, with the request count
+// kept beside them. A person is an address, and a number with no denominator
+// is not a number.
+let pathsByIp = new Map();
 try {
   const ran = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
     httpRequestsAdaptiveGroups(limit: 200, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%", clientRequestPath: "/js/main.js"}, orderBy: [count_DESC]) {
@@ -263,7 +301,7 @@ try {
   // fetched main.js under the bare one, so a per-row test let it through as a
   // person. One agent saying "bot" anywhere condemns the whole address.
   const agents = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
-    httpRequestsAdaptiveGroups(limit: 500, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%"}, orderBy: [count_DESC]) {
+    httpRequestsAdaptiveGroups(limit: 5000, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%"}, orderBy: [count_DESC]) {
       count dimensions { clientIP userAgent }
     } } } }`);
   const botIps = new Set(agents.viewer.zones[0].httpRequestsAdaptiveGroups
@@ -275,7 +313,28 @@ try {
   appIps = seen.filter((ip) => !botIps.has(ip));
   humanIps = [...new Set(agents.viewer.zones[0].httpRequestsAdaptiveGroups.map((r) => r.dimensions.clientIP))]
     .filter((ip) => !botIps.has(ip) && !myIps.includes(ip) && !scannerIps.includes(ip));
+
+  // address -> paths it asked for, strangers only. Self-identified bots stay
+  // out here, unlike humanIps: every stage below this point is keyed on a
+  // script, and a crawler that runs the script has run the app — but it is
+  // still not a person, and these lines are read as people.
+  const perPath = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
+    httpRequestsAdaptiveGroups(limit: 5000, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%"}, orderBy: [count_DESC]) {
+      count dimensions { clientIP clientRequestPath }
+    } } } }`);
+  for (const r of perPath.viewer.zones[0].httpRequestsAdaptiveGroups) {
+    const ip = r.dimensions.clientIP;
+    if (botIps.has(ip) || myIps.includes(ip) || scannerIps.includes(ip)) continue;
+    if (!pathsByIp.has(ip)) pathsByIp.set(ip, new Set());
+    pathsByIp.get(ip).add(r.dimensions.clientRequestPath);
+  }
 } catch { /* fall back to reporting the raw sample count, marked as unfiltered */ }
+
+// How many *addresses* did a thing — the honest denominator for a funnel.
+// Returns null when the address query failed, so the printer can say
+// "unfiltered" rather than quietly print a zero it did not earn.
+const people = (re) =>
+  pathsByIp.size ? [...pathsByIp.values()].filter((paths) => [...paths].some((p) => re.test(p))).length : null;
 
 try {
   const everyone = await pathCounts();
@@ -315,11 +374,15 @@ try {
   // fetches just by landing. It reported people making books who had done
   // nothing but open the page.
   const requested = hits(/^\/$/);
-  const ranTheApp = hits(/^\/js\/main\.js$/);
+  // Addresses, not requests — see the pathsByIp note above. `hits` is kept for
+  // each stage so the request count can be printed beside the person count:
+  // "1 person, 15 requests" is a true sentence and "15" was not.
+  const ranTheApp = people(/^\/js\/main\.js$/);
+  const ranReqs = hits(/^\/js\/main\.js$/);
   // Warming the PDF chunk happens on an idle callback after the first render,
   // so it is only reached by a browser that loaded the page and stayed put for
   // a moment. Next to "ran the app", the gap is the instant bounces.
-  const stayed = hits(/^\/js\/heavy-/);
+  const stayed = people(/^\/js\/heavy-/);
   // "Clicked Download", not "made a book" — and the difference cost me an hour.
   //
   // 2026-09-15 21:43 CT, the launch's only book: 3.82.141.143, one Amazon
@@ -337,15 +400,15 @@ try {
   // calculator HTML counted crawlers as users, and now the render module counts
   // clicks as books. Every time, the thing I keyed on sat one step upstream of
   // the act I was claiming.
-  const clickedDownload = hits(/^\/js\/render-/);
+  const clickedDownload = people(/^\/js\/render-/);
   // .ttf only: /fonts/ also holds LICENSE.txt now, and a crawler fetching a
   // licence file is not a person making a book.
   //
   // Undercounts by design: a second book in the same session re-uses cached
   // fonts. So fonts>0 proves a PDF was built, fonts==0 alongside a click proves
   // one was not, and the count itself is a floor rather than a tally of books.
-  const fonts = hits(/^\/fonts\/.*\.ttf$/);
-  const covers = hits(/^\/js\/cover-/);
+  const fonts = people(/^\/fonts\/.*\.ttf$/);
+  const covers = people(/^\/js\/cover-/);
   // Samples, counted only for addresses that ran the app — see the note above
   // the appIps query. The crawler total is kept and printed beside it, because
   // "0 people and 6 robots" is a different sentence from "0".
@@ -372,8 +435,8 @@ try {
   // The old line was `hits(/calculator/)`, which also matched the HTML page,
   // so every crawler that fetched the page scored a use. Same error as
   // "ran the app" counting anything under /js/ — see the note above.
-  const calc = hits(/^\/(spine|royalty|margin)\.js$/);
-  const calcPages = hits(/calculator/);
+  const calc = people(/^\/(spine|royalty|margin)\.js$/);
+  const calcPages = people(/calculator/);
   // What the Pinterest pins (marketing/pins.md) actually drive traffic to —
   // previously invisible entirely, see the `served` note above.
   //
@@ -404,16 +467,18 @@ try {
   const window = funnelHours >= 23.5 ? "Last 24h" : `Last ${hours}h`;
   console.log(`\n  ${window}, by what people did (a day is all the free plan keeps):`);
   console.log(`    Requests for the page       ${requested}`);
-  console.log(`    ...that ran the app         ${ranTheApp}   <-- a real browser; the rest are crawlers`);
+  const nobody = ranTheApp === null;
+  console.log(`    ...that ran the app         ${nobody ? `${ranReqs} requests (unfiltered — address lookup failed)` : `${ranTheApp} ${ranTheApp === 1 ? "person" : "people"}`}   <-- addresses, not requests; ${ranReqs} requests in total`);
   if (botAppIps.length) console.log(`      of which ${botAppIps.length} address${botAppIps.length > 1 ? "es" : ""} said "bot" in the user-agent — Googlebot runs JavaScript too`);
   console.log(`    ...and did not bounce       ${stayed}   <-- stayed long enough to idle-warm the PDF chunk`);
+  if (ranTheApp === 0) console.log(`      nobody ran the app who was not a crawler or this machine — everything below is 0 by arithmetic, not by choice`);
   console.log(`    Opened a sample PDF         ${samples}${sampleTotal > samples ? `   (${sampleTotal - samples} more opens came from crawlers — not people)` : ""}`);
   for (const [path, count] of sampleRows) console.log(`      ${String(count).padStart(3)}  ${path.replace(/^\/samples\//, "")}`);
   console.log(`    Visited a word-list page    ${wordLists}   <-- what the Pinterest pins point at${wordListTotal > wordLists ? `   (${wordListTotal - wordLists} more were crawlers walking the sitemap)` : ""}`);
   console.log(`      of those, ${wordListToApp} read by somebody who also ran the app — the only reason these pages exist`);
-  console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} fetched the page and never ran it — crawlers)` : ""}`);
+  console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} more opened the page and never ran the script)` : ""}`);
   console.log(`    Clicked Download            ${clickedDownload}${clickedDownload && !fonts ? "   (and no font was ever fetched — nothing rendered)" : ""}`);
-  console.log(`    ...and a book came out      ${fonts ? `yes, ${fonts} font fetches` : "no"}   <-- fonts embed at render time; the only proof a PDF exists`);
+  console.log(`    ...and a book came out      ${fonts ? `yes, ${fonts} ${fonts === 1 ? "person" : "people"} fetched fonts` : "no"}   <-- fonts embed at render time; the only proof a PDF exists`);
   console.log(`    Made a cover                ${covers}`);
   console.log(`    (scanner/bot noise ignored: ${noise} requests to paths that do not exist)`);
   if (scannerIps.length) console.log(`    (whole scanners ignored:    ${scannerIps.length} address${scannerIps.length > 1 ? "es" : ""}, ${scanPaths} requests — each asked for ${SCANNER_404S}+ things that do not exist, then read the site like a browser)`);

@@ -62,12 +62,29 @@ const graphql = async (query) => {
   return d.data;
 };
 
+// 2026-09-21: this was `limit: 500`, and it was quietly lying. The rows are
+// grouped by address x path x status x agent and ordered by count descending,
+// and this machine alone puts thousands of requests across dozens of paths and
+// six user-agents at the top of that list. Every stranger who asked for one
+// page once sits in the tail, and the tail was being cut off. The visible
+// result: this script reported "5 loaded main.js" on a day when seventeen
+// addresses did, and I trusted it over the dashboard because it counts
+// addresses and the dashboard was counting requests. Both were wrong. The
+// dashboard was wrong about the unit; this was wrong about the sample.
+//
+// A truncated answer must say so rather than read as a small number, so the
+// cap is checked below and printed if it is hit.
+const CAP = 5000;
 const rows = (
   await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
-    httpRequestsAdaptiveGroups(limit: 500, filter: {datetime_geq: "${since}", clientRequestHTTPHost_like: "%puzzle%"}, orderBy: [count_DESC]) {
+    httpRequestsAdaptiveGroups(limit: ${CAP}, filter: {datetime_geq: "${since}", clientRequestHTTPHost_like: "%puzzle%"}, orderBy: [count_DESC]) {
       count dimensions { clientIP clientRequestPath edgeResponseStatus userAgent }
     } } } }`)
 ).viewer.zones[0].httpRequestsAdaptiveGroups;
+if (rows.length >= CAP) {
+  console.log(`\n  !! ${rows.length} rows came back and the cap is ${CAP} — this is a PARTIAL picture.`);
+  console.log("     Counts below are floors, not totals. Narrow the window and run again.");
+}
 
 // Group the raw rows by address. Everything below is a question about a
 // visitor, not about a request.
@@ -79,7 +96,10 @@ for (const r of rows) {
   e.n += r.count;
   e.paths.set(path, (e.paths.get(path) ?? 0) + r.count);
   e.uas.add(ua);
-  if (status === 404) e.s404 += r.count;
+  // A 404 on a path the browser asked for by itself is not a probe — see the
+  // BROWSER_ASKS_FOR note in traffic.mjs. iOS asks for three touch icons
+  // unprompted, which is exactly the scanner threshold.
+  if (status === 404 && !/^\/(favicon\.ico|apple-touch-icon.*\.png|browserconfig\.xml|site\.webmanifest|manifest\.json|sw\.js|\.well-known\/)/.test(path)) e.s404 += r.count;
 }
 
 // The same four fingerprints traffic.mjs keys the funnel on, so this file and
