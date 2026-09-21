@@ -39,6 +39,40 @@ const atHero = await state();
 if (!atHero) fail("#thumbBar is not in the page at all");
 if (atHero.onScreen) fail("the bar covers the hero — it must stay down until the form is on screen");
 
+// ---- Walk down the page the way a thumb does.
+//
+// This section exists because the test passed green for a day on a bar that
+// no human could ever see. The visibility rule was written as "is #tool
+// intersecting AND is its top above the midline", read inside the observer
+// callback. But an IntersectionObserver fires on a *crossing*, not on
+// scrolling: #tool is 4998px tall, so on a 664px phone it crosses in exactly
+// once, at the moment its top touches the bottom edge — where top is ~664 and
+// never below the 332 midline — and then stays intersecting forever, so no
+// callback ever runs again. data-show was stuck at 0 at every scroll depth.
+//
+// Every check below this one jumped: a hash link, scrollIntoViewIfNeeded, a
+// scrollTo. A jump is one crossing sampled at the destination, which is the
+// one place the broken condition was true. A person is sampled at the entry
+// edge, which is the one place it was false. So the jumps all passed and the
+// feature was invisible to every real visitor for its entire life.
+//
+// The rule is now declarative — rootMargin shrinks the root to the top half,
+// so isIntersecting *is* "above the midline" and re-fires in both directions.
+// This walk is what proves it, and no jump can stand in for it.
+const walk = [];
+const step = (await page.evaluate(() => window.innerHeight)) * 0.25;
+for (let s = 0.25; s <= 4; s += 0.25) {
+  await page.evaluate((y) => window.scrollBy(0, y), step);
+  await page.waitForTimeout(150);
+  walk.push({ at: s, on: (await state()).onScreen });
+}
+if (walk[0].on) fail("the bar is up a quarter-screen into the hero — it must wait for the form");
+const firstUp = walk.find((w) => w.on);
+if (!firstUp) fail("scrolling gradually to 4 screens never brought the bar up — the observer only reacts to jumps, which no person makes");
+if (firstUp.at > 3) fail(`the bar waits until ${firstUp.at} screens — the first control is at 2.9 and the download is 5 screens past it`);
+
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.waitForTimeout(500);
 await page.getByRole("link", { name: /make a book free/i }).first().click();
 await page.waitForTimeout(1200);
 if (!(await state()).onScreen) fail("the bar did not appear after the hero CTA — the 5.4-screen scroll is back");

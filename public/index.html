@@ -739,10 +739,31 @@ cherry"></textarea>
     function sync() { bar.setAttribute("data-show", inTool && !realVisible ? "1" : "0"); }
     new IntersectionObserver(function (es) {
       // Only once the form is genuinely the thing on screen, so the bar never
-      // rides over the hero.
-      inTool = es[0].isIntersecting && es[0].boundingClientRect.top < window.innerHeight * 0.5;
+      // rides over the hero — expressed as a shrunken root rather than as a
+      // position read inside the callback.
+      //
+      // 2026-09-21: it was `isIntersecting && boundingClientRect.top <
+      // innerHeight * 0.5`, and that made this bar invisible to every human
+      // being who ever used the site. An observer fires on a *crossing*, not
+      // on scrolling. `main` is 4998px tall, so it crosses into view exactly
+      // once — at the moment its top is at the bottom of the screen, which is
+      // never less than half a screen — the callback set inTool=false, and
+      // because main then stayed intersecting no callback ever ran again. The
+      // bar sat 7px below the bottom of a 664px iPhone viewport at every
+      // scroll depth, for the whole life of the feature.
+      //
+      // It passed its own test for two days because a test jumps: scrollTo()
+      // from the hero to the middle of the form is one crossing, sampled at
+      // the destination, where top is far above the midline. A person scrolls
+      // gradually, is sampled at the entry edge, and gets nothing.
+      //
+      // rootMargin does the same comparison declaratively: the bottom edge of
+      // the root is pulled up by half the viewport, so `isIntersecting` IS
+      // "main's top is above the midline", and it re-fires on every crossing
+      // in both directions, however slowly you scroll.
+      inTool = es[0].isIntersecting;
       sync();
-    }, { threshold: 0 }).observe(main);
+    }, { threshold: 0, rootMargin: "0px 0px -50% 0px" }).observe(main);
     new IntersectionObserver(function (es) {
       realVisible = es[0].isIntersecting;
       sync();
