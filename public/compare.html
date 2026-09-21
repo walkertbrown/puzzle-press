@@ -38,6 +38,23 @@
   footer { color:var(--muted); font-size:13px; text-align:center; padding:30px 24px; border-top:1px solid var(--line); background:var(--card); margin-top:30px; } footer a { color: var(--muted); }
   /* The handoff beside the moment that earns it — see the note in the markup. */
   .make-here { margin:26px 0; padding:18px; border:1px solid #e3e6ea; border-radius:12px; background:#fafbfc; text-align:center; }
+
+  /* The door travels with the reader.
+     Measured 2026-09-21 on an iPhone 13: this page is 14.2 screens and its ways
+     into the tool sit at 1.22, 7.92 and 13.34 screens — so somebody who reads
+     three screens and stops has passed exactly one, and it was below the fold
+     when they arrived. Five real people read this page that day and none
+     pressed anything. Reordering the article to hoist a button would have cost
+     the argument its shape; a bar that follows costs it nothing.
+     Phone only: on a desktop the column is narrower than the window and the
+     next door is rarely more than a screen away, so a fixed bar there takes
+     reading room it has not earned. */
+  .read-bar { position:fixed; left:0; right:0; bottom:0; z-index:40; display:none;
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom)); background:rgba(255,255,255,0.97);
+    border-top:1px solid #e3e6ea; box-shadow:0 -4px 16px rgba(20,30,50,0.10); text-align:center; }
+  .read-bar .btn { display:block; width:100%; }
+  .read-bar small { display:block; margin-top:6px; font-size:12px; color:#5c6470; }
+  @media (max-width:860px) { .read-bar[data-show="1"] { display:block; } }
   .make-here p { margin:9px 0 0; font-size:13px; color:#5c6470; }
 </style>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "b7be686eebf64639b0e60d43860bbd54"}'></script>
@@ -128,6 +145,16 @@
   <p>Not affiliated with Amazon or with any tool mentioned. KDP is a trademark of Amazon.com, Inc.</p>
   <p>Built in public by an autonomous agent — the full log is at <a href="https://bananafest-destiny.com/zoo/vibe-cider">bananafest-destiny.com/zoo/vibe-cider</a></p>
 </footer>
+<!-- Shown once the reader is past the first screen and hidden again when the
+     closing .cta block arrives, so there are never two identical buttons on
+     screen at once — the same rule as the generator's thumb bar. It carries
+     class="btn", so the delegated listener below counts a press on it exactly
+     like a press on any door in the article. -->
+<div class="read-bar" id="readBar" data-show="0" aria-hidden="true">
+  <a class="btn" href="/#tool">Make a book free</a>
+  <small>Free, watermarked. $19 removes the mark.</small>
+</div>
+
 <script>
   // The same /px/ beacon the calculators fire, for the same reasons: the path
   // is the entire message, and keepalive because the click navigates away and
@@ -143,6 +170,28 @@
       try { new Image().src = u; } catch (err) {}
     }, true);
   })();
+
+  // A plain scroll listener, deliberately, not an IntersectionObserver. On
+  // 2026-09-21 an observer doing this job on the home page turned out to be
+  // sampling a crossing rather than a position, and the thing it controlled was
+  // invisible to every real visitor for a day while its test stayed green.
+  // There is nothing here an observer would save.
+  (function () {
+    var bar = document.getElementById("readBar");
+    var end = document.querySelector(".cta");
+    if (!bar) return;
+    function update() {
+      var past = window.scrollY > window.innerHeight * 0.9;
+      var nearEnd = end ? end.getBoundingClientRect().top < window.innerHeight : false;
+      var show = past && !nearEnd;
+      bar.setAttribute("data-show", show ? "1" : "0");
+      bar.setAttribute("aria-hidden", show ? "false" : "true");
+    }
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+  })();
 </script>
+
 </body>
 </html>
