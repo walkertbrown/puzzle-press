@@ -53,6 +53,7 @@
     "test:bigbook": "node test/bigbook.mjs",
     "test:nostorage": "node test/nostorage.mjs",
     "test:mobile": "node test/mobile.mjs webkit \"iPhone 13\" && node test/mobile.mjs webkit \"iPhone SE\" && node test/mobile.mjs chromium \"Pixel 7\"",
+    "test:thumbbar": "node test/thumbbar.mjs",
     "test:cold": "node test/coldvisitor.mjs webkit \"iPhone 13\" && node test/coldvisitor.mjs chromium \"Pixel 7\" && node test/coldjourney.mjs webkit \"iPhone 13\" && node test/coldjourney.mjs chromium",
     "video": "node scripts/video.mjs",
     "video:short": "node scripts/video.mjs --short",

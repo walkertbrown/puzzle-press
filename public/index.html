@@ -157,6 +157,43 @@
   @media (pointer: coarse) {
     .hero-cta .note a { display: inline-block; padding-block: 13px; margin-block: -13px; }
   }
+  /* The gap between "Make a book free" and the button that actually makes one.
+     Measured on an iPhone 13 against production, 2026-09-20 21:1x CT, the night
+     the r/KDP post brought the first real humans to the site: tapping the hero
+     CTA lands you at the top of the form, and #download sits 3,592px further
+     down — 5.4 full phone screens of scrolling. Every field is pre-filled
+     (Animal Word Search, 50 puzzles, 6x9), so the book is already finished the
+     moment you arrive; the only thing missing is any way to know that. The
+     dashboard that night read "ran the app 4, did not bounce 2, Clicked
+     Download 0", which is exactly the shape of people scrolling a form looking
+     for a payoff and giving up before they reach it.
+
+     So this does not restructure the form — it carries the existing primary
+     action with you. Phones only: on a desktop the preview already sticks and
+     the button is one short scroll away. */
+  .thumb-bar { display: none; }
+  @media (pointer: coarse) and (max-width: 800px) {
+    .thumb-bar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      background: var(--card); border-top: 1px solid var(--line);
+      box-shadow: 0 -4px 16px rgba(20,30,50,0.10);
+      /* Off-screen until you are actually in the tool, so it never covers the
+         hero, and transform rather than display so it animates and so the
+         button keeps its layout box for tests. */
+      transform: translateY(110%); transition: transform 0.18s ease-out;
+    }
+    .thumb-bar[data-show="1"] { transform: none; }
+    .thumb-bar button {
+      flex: 1; font: inherit; font-weight: 600; padding: 14px 18px;
+      border-radius: 8px; border: 1px solid var(--accent);
+      background: var(--accent); color: var(--accent-ink);
+    }
+    .thumb-bar .note { font-size: 12px; color: var(--muted); max-width: 9em; line-height: 1.3; }
+    /* Nothing at the end of the page should hide behind the bar. */
+    body { padding-bottom: 76px; }
+  }
   .btn { display: inline-block; text-decoration: none; font: inherit; font-weight: 600; padding: 12px 20px; border-radius: 8px; border: 1px solid var(--accent); }
   .btn-primary { background: var(--accent); color: var(--accent-ink); }
   .btn-ghost { background: transparent; color: var(--accent); }
@@ -338,7 +375,7 @@ cherry"></textarea>
       </div>
     </fieldset>
 
-    <div class="actions">
+    <div class="actions" id="actions">
       <button class="primary" id="download">Download interior PDF</button>
       <button id="downloadCover">Download cover</button>
       <button id="reshuffle">Reshuffle</button>
@@ -618,7 +655,50 @@ cherry"></textarea>
   </div>
 </dialog>
 
+<!-- Carries the primary action down the form on a phone. See .thumb-bar above
+     for why: the real button is 5.4 phone screens below the hero CTA. This is
+     not a second download path — it forwards the click to the same #download
+     button, so there is one handler, one funnel signal, and nothing new to
+     keep in sync. -->
+<div class="thumb-bar" id="thumbBar">
+  <button type="button" id="thumbDownload">Download interior PDF</button>
+  <span class="note">Free — watermarked.</span>
+</div>
+
 <script src="config.js"></script>
 <script type="module" src="js/main.js"></script>
+<script>
+  // Plain script, not the module: it touches no app state and should work even
+  // if the bundle is still arriving. IntersectionObserver is in every browser
+  // this site supports; if it is missing the bar simply never shows, which is
+  // today's behaviour.
+  (function () {
+    var bar = document.getElementById("thumbBar");
+    var real = document.getElementById("download");
+    var actions = document.getElementById("actions");
+    var main = document.querySelector("main");
+    if (!bar || !real || !actions || !main || !("IntersectionObserver" in window)) return;
+
+    document.getElementById("thumbDownload").addEventListener("click", function () {
+      real.click();
+    });
+
+    // Two conditions, each its own observer. Show the bar while the tool column
+    // is on screen, but not while the real buttons already are — two identical
+    // Download buttons visible at once is worse than none.
+    var inTool = false, realVisible = false;
+    function sync() { bar.setAttribute("data-show", inTool && !realVisible ? "1" : "0"); }
+    new IntersectionObserver(function (es) {
+      // Only once the form is genuinely the thing on screen, so the bar never
+      // rides over the hero.
+      inTool = es[0].isIntersecting && es[0].boundingClientRect.top < window.innerHeight * 0.5;
+      sync();
+    }, { threshold: 0 }).observe(main);
+    new IntersectionObserver(function (es) {
+      realVisible = es[0].isIntersecting;
+      sync();
+    }, { threshold: 0 }).observe(actions);
+  })();
+</script>
 </body>
 </html>
