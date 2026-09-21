@@ -45,6 +45,7 @@
     "test:typepages": "node test/typepages.mjs",
     "test:margin": "node test/margin.mjs",
     "test:calclink": "node test/calclink.mjs",
+    "test:themelink": "node test/themelink.mjs",
     "test:links": "node test/links.mjs",
     "test:seo": "node test/seo.mjs",
     "test:ink": "node test/inkcheck.mjs",
@@ -65,6 +66,8 @@
     "video:types:short": "node scripts/video-types.mjs --short",
     "video:calc": "node scripts/video-calc.mjs",
     "video:calc:short": "node scripts/video-calc.mjs --short",
+    "video:cover": "node scripts/video-cover.mjs",
+    "video:cover:short": "node scripts/video-cover.mjs --short",
     "test:engines": "node test/browser.mjs firefox && node test/browser.mjs webkit && node test/freecover.mjs webkit && node test/nostorage.mjs webkit && node test/paidreturn.mjs webkit"
   },
   "dependencies": {

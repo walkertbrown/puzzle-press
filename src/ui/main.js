@@ -1020,7 +1020,11 @@ refreshTier();
   const theme = q.get("theme");
   if (theme && THEMES[theme]) {
     for (const cb of el.themes.querySelectorAll("input")) cb.checked = cb.value === theme;
-    if (!titleEdited) el.title.value = `${THEMES[theme].title} Word Search`;
+    // Pin it. A title that came from the link the visitor followed is a
+    // choice, not a placeholder, and refreshKind() overwrites placeholders —
+    // so without this, typing a puzzle count turned "Halloween Word Search"
+    // back into "Animal Word Search" under their hands.
+    if (!titleEdited) { el.title.value = `${THEMES[theme].title} Word Search`; titleEdited = true; }
   }
   // The calculators link as /?trim=6x9&count=120#tool.
   //
@@ -1062,6 +1066,17 @@ refreshTier();
     el.largePrint.checked = true;
     el.largePrint.dispatchEvent(new Event("change"));
   }
+  // Everything above sets control values straight, which fires no input event,
+  // so the defaults that are computed from those controls never caught up.
+  //
+  // Found on camera on 2026-09-21 while filming the spine calculator: arriving
+  // from a calculator with count=96 produced a cover whose back reads "96 word
+  // search puzzles" and whose front reads "50 relaxing puzzles with solutions"
+  // — the subtitle default still carrying the 50 nobody chose. Typing in the
+  // count box had always fixed itself, because that path fires `input`; the
+  // calculator handoff, which is the one route search traffic actually takes,
+  // did not. Recompute once, after every carried value is in place.
+  refreshKind();
 }
 regenerate();
 

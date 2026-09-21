@@ -77,6 +77,16 @@ for (const c of cases) {
   if (c.path === "/margin-calculator") {
     check(await page.isChecked("#bleed"), "margin → tool: bleed came across");
   }
+  // The cover and the title page print the subtitle, and its default counts
+  // the puzzles. Carrying a count in sets the box straight, which fires no
+  // input event, so the default used to stay on the 50 nobody chose: a 96
+  // puzzle book whose back cover said 96 and whose front cover said 50. It is
+  // one string on a printed cover, which is the worst place to be wrong.
+  const subtitle = await page.$eval("#subtitle", (el) => el.value);
+  check(
+    subtitle.includes(String(count)),
+    `${c.path} → tool: the subtitle reads "${subtitle}" on a ${count}-puzzle book`,
+  );
   // The page count the calculator promised is the page count the tool builds.
   await page.waitForTimeout(800);
   const promised = Number(carry.match(/(\d+) pages/)?.[1]);
