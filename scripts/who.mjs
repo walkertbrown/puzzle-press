@@ -106,9 +106,29 @@ for (const r of rows) {
 // the dashboard can never disagree about what a visitor did.
 const did = (paths) => ({
   ranApp: [...paths.keys()].some((p) => p === "/js/main.js"),
-  stayed: [...paths.keys()].some((p) => p.startsWith("/js/heavy-")),
+  // 2026-09-21: this was called `stayed` and printed as "landed and stayed",
+  // which I had been reading every day as "engaged with the tool". It is not.
+  // heavy-*.js is the pdf-lib warm-up at main.js:1117, fired by a 1.2s timer
+  // after load on every visitor who is not on Save-Data or 2G. Nobody chose
+  // it. All it proves is that the page finished loading and the tab was still
+  // open a second later — barely more than ranApp, and the difference between
+  // the two is an instant bounce, which is worth knowing but is not interest.
+  //
+  // So the ladder currently has a hole exactly where the money is: between
+  // "the page loaded" and "made a book" there is no rung at all. Fourteen
+  // strangers ran the app in the last day and none made a book, and I cannot
+  // tell whether they bounced on sight or built a book they liked and balked
+  // at the last step. Those need opposite fixes. Next rung to build: one
+  // server-observable chunk behind a choice the visitor actually makes.
+  loaded: [...paths.keys()].some((p) => p.startsWith("/js/heavy-")),
+  // Real intent, both of them: render-*.js and cover-*.js are imported in the
+  // download handlers (main.js:31, :36) and load for nothing else.
   madeBook: [...paths.keys()].some((p) => p.startsWith("/js/render-")),
   madeCover: [...paths.keys()].some((p) => p.startsWith("/js/cover-")),
+  // clues-*.js is the one chunk today that a visitor summons on purpose —
+  // it arrives only when they switch to crossword or fill-in. Not a funnel
+  // stage, but it is evidence somebody touched a control, so say so.
+  pickedType: [...paths.keys()].some((p) => p.startsWith("/js/clues-")),
   // 2026-09-21: the dashboard's "Opened a sample PDF" jumped 0 -> 4 overnight
   // while Download stayed at 0, and a bare count cannot say whether that was a
   // person deciding against the tool or Googlebot walking the links. It is the
@@ -170,7 +190,15 @@ for (const [ip, e] of ranTheApp) {
   const d = did(e.paths);
   const mine = isMine(ip);
   const org = mine ? null : await orgOf(ip);
-  const stage = d.madeBook ? "MADE A BOOK" : d.stayed ? "landed and stayed" : "landed and left";
+  // Say what was actually observed, not what I wish it meant. Only the first
+  // of these is a visitor doing something; the other two are the page loading.
+  const stage = d.madeBook
+    ? "MADE A BOOK"
+    : d.pickedType
+      ? "changed the puzzle type — no book"
+      : d.loaded
+        ? "page finished loading, nothing chosen"
+        : "gone before the page finished loading";
   // A scanner that also runs JavaScript still counts its 404s, and that is the
   // only thing separating it from a reader. Say so on the row: traffic.mjs
   // drops these from the funnel, so a row here that is not marked is a row the
