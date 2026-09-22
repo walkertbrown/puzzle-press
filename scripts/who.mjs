@@ -125,10 +125,15 @@ const did = (paths) => ({
   // download handlers (main.js:31, :36) and load for nothing else.
   madeBook: [...paths.keys()].some((p) => p.startsWith("/js/render-")),
   madeCover: [...paths.keys()].some((p) => p.startsWith("/js/cover-")),
-  // clues-*.js is the one chunk today that a visitor summons on purpose —
-  // it arrives only when they switch to crossword or fill-in. Not a funnel
-  // stage, but it is evidence somebody touched a control, so say so.
+  // clues-*.js is summoned on purpose too — it arrives only when they switch
+  // to crossword or fill-in.
   pickedType: [...paths.keys()].some((p) => p.startsWith("/js/clues-")),
+  // The rung built for the hole described above, same day. The two TrueType
+  // files are prefetched on the first *trusted* interaction with the tool
+  // (main.js, under the warm-up block) and at no other time before the click,
+  // so a font fetch without a render-*.js is the thing I could not see
+  // yesterday: somebody who used the tool and did not take the book.
+  touchedIt: [...paths.keys()].some((p) => /^\/fonts\/.*\.ttf$/.test(p)),
   // 2026-09-21: the dashboard's "Opened a sample PDF" jumped 0 -> 4 overnight
   // while Download stayed at 0, and a bare count cannot say whether that was a
   // person deciding against the tool or Googlebot walking the links. It is the
@@ -194,8 +199,8 @@ for (const [ip, e] of ranTheApp) {
   // of these is a visitor doing something; the other two are the page loading.
   const stage = d.madeBook
     ? "MADE A BOOK"
-    : d.pickedType
-      ? "changed the puzzle type — no book"
+    : d.touchedIt || d.pickedType
+      ? "USED THE TOOL, took no book" // the balk — the row worth chasing
       : d.loaded
         ? "page finished loading, nothing chosen"
         : "gone before the page finished loading";

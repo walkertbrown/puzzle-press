@@ -46,6 +46,7 @@
     "test:margin": "node test/margin.mjs",
     "test:calclink": "node test/calclink.mjs",
     "test:themelink": "node test/themelink.mjs",
+    "test:fontwarm": "node test/fontwarm.mjs && node test/fontwarm.mjs webkit",
     "test:links": "node test/links.mjs",
     "test:seo": "node test/seo.mjs",
     "test:ink": "node test/inkcheck.mjs",

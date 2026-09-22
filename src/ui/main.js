@@ -1123,5 +1123,44 @@ if (new URLSearchParams(location.search).get("paid") && !getLicense()) {
         : setTimeout(warm, 1200);
     if (document.readyState === "complete") schedule();
     else addEventListener("load", schedule, { once: true });
+
+    // The fonts, once — and only once somebody has actually used a control.
+    //
+    // The paragraph above is still right that warming these on a timer is
+    // spending 825 KB on a visitor who may never press anything. But a person
+    // who has just changed the trim size or ticked a theme is not a guess, and
+    // they are the only people who ever reach the click. So the two TrueType
+    // files move off the critical path for exactly the visitors who will pay
+    // the wait, and stay off it for everyone else.
+    //
+    // `isTrusted` is doing real work here. Every value the calculator and
+    // word-list handoffs carry in is assigned straight to `.value`, which
+    // fires nothing — but the carry-in block also dispatches a synthetic
+    // `change` for large print, and refreshKind() runs on arrival. A synthetic
+    // event has isTrusted false, so none of that counts as a person.
+    //
+    // It is also the rung the funnel was missing. who.mjs reads stages out of
+    // request paths, and until now there was nothing observable between "the
+    // page finished loading" (a 1.2s timer, which nobody chose) and
+    // "render-*.js" (made a book). On 2026-09-21 that gap hid the only number
+    // that mattered: fourteen strangers ran the app, none made a book, and I
+    // could not tell whether they bounced on sight or built something and
+    // balked at the download. A font fetch is a real fetch for a real reason,
+    // and it answers that question as a side effect.
+    // Not `{ once: true }`: that would spend itself on the first event of the
+    // type whether or not a person caused it, so the synthetic `change` the
+    // carry-in dispatches would disarm the listener and a real interaction a
+    // minute later would warm nothing. Unhook on the trusted one instead.
+    const tool = document.getElementById("tool");
+    if (tool) {
+      const touched = (e) => {
+        if (!e.isTrusted) return;
+        for (const type of ["change", "input"]) tool.removeEventListener(type, touched, true);
+        loadFonts().catch(() => {});
+      };
+      for (const type of ["change", "input"]) {
+        tool.addEventListener(type, touched, { capture: true, passive: true });
+      }
+    }
   }
 }
