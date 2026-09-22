@@ -1153,14 +1153,30 @@ if (new URLSearchParams(location.search).get("paid") && !getLicense()) {
     // minute later would warm nothing. Unhook on the trusted one instead.
     const tool = document.getElementById("tool");
     if (tool) {
-      const touched = (e) => {
-        if (!e.isTrusted) return;
-        for (const type of ["change", "input"]) tool.removeEventListener(type, touched, true);
+      let done = false;
+      const engaged = (e) => {
+        if (done || !e.isTrusted) return;
+        done = true;
+        for (const type of ["change", "input"]) tool.removeEventListener(type, engaged, true);
+        removeEventListener("click", cta, true);
         loadFonts().catch(() => {});
       };
+      // Pressing "Make a book free" counts, and counts for more than a control
+      // does. The landing page is nineteen screens tall and the tool is not on
+      // the first one: a visitor reaches the controls by pressing that button,
+      // which lives outside #tool and so fires neither change nor input. Left
+      // out, somebody who opened the tool, read it and left would be filed
+      // under "nothing chosen" alongside somebody who never scrolled at all —
+      // which is the exact ambiguity this whole rung exists to kill. It is
+      // also the earliest honest moment to start the fetch, so the fonts come
+      // down while they are still scrolling to the controls.
+      const cta = (e) => {
+        if (e.target?.closest?.('a[href="#tool"]')) engaged(e);
+      };
       for (const type of ["change", "input"]) {
-        tool.addEventListener(type, touched, { capture: true, passive: true });
+        tool.addEventListener(type, engaged, { capture: true, passive: true });
       }
+      addEventListener("click", cta, { capture: true, passive: true });
     }
   }
 }

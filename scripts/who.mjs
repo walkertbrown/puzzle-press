@@ -129,11 +129,16 @@ const did = (paths) => ({
   // to crossword or fill-in.
   pickedType: [...paths.keys()].some((p) => p.startsWith("/js/clues-")),
   // The rung built for the hole described above, same day. The two TrueType
-  // files are prefetched on the first *trusted* interaction with the tool
-  // (main.js, under the warm-up block) and at no other time before the click,
-  // so a font fetch without a render-*.js is the thing I could not see
-  // yesterday: somebody who used the tool and did not take the book.
-  touchedIt: [...paths.keys()].some((p) => /^\/fonts\/.*\.ttf$/.test(p)),
+  // files are prefetched on the first *trusted* sign of intent — pressing
+  // "Make a book free", or changing any control — and at no other time before
+  // the click (main.js, under the warm-up block). So a font fetch with no
+  // render-*.js after it is the thing I could not see yesterday: somebody who
+  // got to the tool and did not take the book.
+  //
+  // Deliberately not called "used the tool": the CTA press only proves they
+  // asked to see the controls. Reached is what is observed, so reached is what
+  // the row says.
+  reachedTool: [...paths.keys()].some((p) => /^\/fonts\/.*\.ttf$/.test(p)),
   // 2026-09-21: the dashboard's "Opened a sample PDF" jumped 0 -> 4 overnight
   // while Download stayed at 0, and a bare count cannot say whether that was a
   // person deciding against the tool or Googlebot walking the links. It is the
@@ -199,8 +204,10 @@ for (const [ip, e] of ranTheApp) {
   // of these is a visitor doing something; the other two are the page loading.
   const stage = d.madeBook
     ? "MADE A BOOK"
-    : d.touchedIt || d.pickedType
-      ? "USED THE TOOL, took no book" // the balk — the row worth chasing
+    : d.pickedType
+      ? "CHANGED THE PUZZLE TYPE, took no book" // furthest anyone got short of a book
+      : d.reachedTool
+        ? "REACHED THE TOOL, took no book" // the balk — the row worth chasing
       : d.loaded
         ? "page finished loading, nothing chosen"
         : "gone before the page finished loading";

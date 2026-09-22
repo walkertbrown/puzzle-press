@@ -76,8 +76,17 @@ check(warm.fonts.length === 2, `a real interaction fetched ${JSON.stringify(warm
 check(warm.errors.length === 0, `page errors: ${warm.errors.join("; ")}`);
 console.log(`  ticked a theme                 → ${warm.fonts.length} font requests (${warm.fonts.join(", ")})`);
 
+// 3b. Pressing "Make a book free" counts too, and it is the commonest way in:
+//     the tool is not on the first screen, so this is how people reach it.
+const cta = await watch(base, async (page) => {
+  await page.click('a[href="#tool"]');
+});
+check(cta.fonts.length === 2, `pressing the main CTA fetched ${JSON.stringify(cta.fonts)}, want both fonts`);
+console.log(`  pressed "Make a book free"     → ${cta.fonts.length} font requests`);
+
 // 4. And only once, however much more they fiddle.
-const again = await watch(`${base}/#tool`, async (page) => {
+const again = await watch(base, async (page) => {
+  await page.click('a[href="#tool"]');
   await page.click("#themes input[value='halloween']");
   await page.fill("#count", "24");
   await page.fill("#title", "Autumn");
