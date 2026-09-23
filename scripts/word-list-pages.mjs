@@ -25,6 +25,38 @@ const cap = (w) => w.charAt(0).toUpperCase() + w.slice(1);
 // dictionary: every theme title here is a place, a season or a plain noun.
 const an = (s) => (/^[aeiou]/i.test(s) ? "an" : "a");
 
+// Related lists, added 2026-09-23. Until now these 90 pages were 90 leaves
+// hanging off one index and nothing else: not one of them linked to another.
+// Googlebot had fetched 5 of the 91 URLs in seven days, and a flat estate is
+// the reason — it walks the index, samples a few, and finds no path onward.
+//
+// Two rules, and the second is the one that matters:
+//   1. up to 8 lists that share words with this one, best overlap first. That
+//      is the useful relation for a book maker as well as a crawler: shared
+//      words are why two themes ticked together produce fewer distinct puzzles
+//      than their word counts suggest.
+//   2. the 2 ids either side of this one in sorted order, wrapping. This is
+//      not decoration — it makes the 90 pages a closed ring, so a crawler
+//      entering at any single page can reach every other one by following
+//      links. Overlap alone does not guarantee that; a ring does.
+const ALL_IDS = Object.keys(THEMES).sort();
+const WORDSET = new Map(
+  ALL_IDS.map((id) => [id, new Set(THEMES[id].words.map((w) => w.toLowerCase().replace(/[^a-z]/g, "")))]),
+);
+const related = (id) => {
+  const mine = WORDSET.get(id);
+  const overlap = ALL_IDS.filter((x) => x !== id)
+    .map((x) => [x, [...WORDSET.get(x)].filter((w) => mine.has(w)).length])
+    .filter(([, shared]) => shared > 0)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 8)
+    .map(([x]) => x);
+  const i = ALL_IDS.indexOf(id);
+  const n = ALL_IDS.length;
+  const ring = [-2, -1, 1, 2].map((d) => ALL_IDS[(i + d + n * 2) % n]);
+  return [...new Set([...overlap, ...ring])].filter((x) => x !== id);
+};
+
 const favicon = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d3557'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-weight='700' font-size='18' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E`;
 const css = `
   :root { --ink:#1a1a1a; --muted:#5c6470; --line:#d9dde3; --bg:#f6f7f9; --card:#fff; --accent:#1d3557; }
@@ -205,8 +237,15 @@ const themePage = (id, t) => {
   <div class="cta">
     <h2>Turn it into a book</h2>
     <p>Puzzle Press makes the whole paperback for Amazon KDP — word search or <a href="/criss-cross-book-generator">criss-cross fill-in</a>, this theme or several mixed, graded easy to hard if you like, solutions at the back, margins and page count to KDP's rules — then the cover. Free to use; free books carry one small line in the page footer and a cover marked PREVIEW, and $19 once removes both.</p>
-    <a class="btn" href="/?theme=${id}#tool">Make a ${esc(t.title)} word search book free</a>
-  </div>`;
+    <a class="btn" href="/?theme=${id}#tool">Make ${an(t.title)} ${esc(t.title)} word search book free</a>
+  </div>
+
+  <h2>More word lists</h2>
+  <p class="fine">All free the same way. The theme picker is checkboxes — tick more than one and the generator draws from the combined list.</p>
+  <ul class="all">
+    ${related(id).map((x) => `<li><a href="/word-lists/${x}">${esc(THEMES[x].title)}</a> <span class="fine">(${THEMES[x].words.length})</span></li>`).join("\n    ")}
+  </ul>
+  <p class="fine"><a href="/word-lists/">See all ${Object.keys(THEMES).length} lists</a></p>`;
   const jsonld = {
     "@context": "https://schema.org",
     "@type": "WebPage",
