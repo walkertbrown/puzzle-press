@@ -183,6 +183,14 @@
       <tr><td>701–828</td><td>0.875"</td></tr>
     </table>
     <p>The gutter swaps sides: left on right-hand (odd) pages, right on left-hand (even) pages. Get this backwards and every puzzle sits too close to the binding. The <a href="/margin-calculator">margin calculator</a> gives all four figures and the page size for any trim, page count and bleed setting.</p>
+    <!-- 2026-09-23: the table above has been here since the guide was written and
+         it is the correct table, but it is inert — it tells you the rule and not
+         where you are standing in it. These thresholds are computed by running
+         planPages() over every trim, so they are what the shipped code actually
+         produces rather than an estimate. This is the paragraph a person came
+         for: the round number they were about to choose is one page over. -->
+    <p><strong>Where that line falls, for a one-puzzle-per-page book.</strong> The table is easy to read and easy to be caught by, because you set the margins before you know the page count. At 6&times;9, 5.5&times;8.5, 7&times;10, 8&times;10 and 8.5&times;11 the solutions pack six to a page, so <strong>122 puzzles is a 150-page book and 123 puzzles is a 152-page book</strong> — one more puzzle, and every page in the book needs a gutter an eighth of an inch wider. At 5&times;8 the solutions pack four to a page and the line arrives sooner, at <strong>115 puzzles</strong>. In the other direction, 13 puzzles is the fewest that reaches KDP's 24-page minimum at any trim.</p>
+    <p>It is the round-number instinct that walks you over: &ldquo;100 word searches&rdquo; is about 126 pages and comfortably inside the first band, &ldquo;120 puzzles&rdquo; is 149, and making it a neat 125 puts you in the second. Being generous does not fix it either — 0.5&quot; on a 40-page book is not <em>safe</em>, it is a narrower text block than you are entitled to, and in a puzzle book the text block <em>is</em> the grid. There is no gutter that is right at every page count, only the one that matches the book you actually made. Decide the puzzle count, get the page count, then set the margins — and check again if the count moves.</p>
     <h3>Fonts</h3>
     <p>Every font must be <em>embedded</em> in the PDF. An un-embedded font is one of the most common rejections, and the error message does not make it obvious. Most design software embeds by default when exporting to PDF; Word does not always.</p>
     <h3>Page count</h3>
