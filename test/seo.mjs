@@ -10,7 +10,13 @@ const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } 
 const sitemap = await (await fetch(`${base}/sitemap.xml`)).text();
 const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 check(locs.length > 0, "sitemap has entries");
-const pages = locs.filter((u) => !u.endsWith(".pdf"));
+// The sitemap is a list of URLs, not a list of HTML pages: the 12 sample PDFs
+// have always been in it, and /llms.txt joined them on 2026-09-23 so the
+// assistants that fetch the sitemap sixty times a week can find it. None of
+// them has a title, a canonical or an h1, and demanding one produced eight
+// failures the moment llms.txt was listed. Check the fundamentals on the
+// things that have fundamentals. test/discoverable.mjs covers llms.txt.
+const pages = locs.filter((u) => !/\.(pdf|txt|xml|json)$/.test(u));
 
 const tag = (html, re) => (html.match(re) || [])[1]?.trim();
 const seen = { title: new Map(), desc: new Map(), canonical: new Map() };
