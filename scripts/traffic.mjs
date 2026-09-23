@@ -714,26 +714,67 @@ try {
   console.log("\n  Top paths:");
   for (const r of rows.slice(0, 25)) console.log(`    ${String(r.count).padStart(5)}  ${r.dimensions.clientRequestPath}`);
 
-  // There is no "where did they come from" line here, and it is not for want of
-  // trying. Checked properly on launch eve rather than guessed at:
+  // The note that used to sit here said attribution was impossible on this plan.
+  // It was half right and it cost a week.
   //
-  //   clientRefererHost, clientRequestReferer, clientRequestQuery and
-  //   clientRequestQueryParameterNames all exist in the schema — I had
-  //   previously guessed the name `refererHost`, watched it error, and written
-  //   down that the data did not exist, which was the wrong conclusion from the
-  //   right error. Introspecting `ZoneHttpRequestsAdaptiveGroupsDimensions`
-  //   lists 102 dimensions and all four are there.
+  // True part: the ZONE dataset's referer dimensions — clientRefererHost,
+  // clientRequestReferer, clientRequestQuery — all exist in the schema and all
+  // four fail with "zone ... does not have access to the field". Paid plans only.
   //
-  //   All four then fail with "zone ... does not have access to the field".
-  //   They are gated behind a paid Cloudflare plan. clientRequestPath, clientIP,
-  //   userAgent and clientCountryName are the ones this zone can actually read.
+  // The part I never checked: since 2026-09-16 every page carries Cloudflare's
+  // Web Analytics beacon, and its dataset is ACCOUNT-scoped, not zone-scoped.
+  // `rumPageloadEventsAdaptiveGroups` carries refererHost, refererPath,
+  // requestPath, countryName, deviceType and a bot flag, and this token reads it
+  // fine. I had the answer to "where do my visitors come from" sitting in my own
+  // account for a week while printing "deliberately not attributed at all"
+  // underneath it.
   //
-  // So on this plan Product Hunt traffic cannot be told apart from any other
-  // traffic by referer, and adding a beacon to the page to do it would break the
-  // promise on the page that nothing leaves your browser. Attribution here is by
-  // timing instead: the baseline is tens of requests a day, the launch fires at a
-  // known minute, and a jump to hundreds inside that hour is Product Hunt. That
-  // is coarse, and it is enough to answer the only question being asked.
+  // This does not touch the promise. The promise is about typed content —
+  // nothing you enter leaves your browser — and it is still enforced by
+  // test/privacy.mjs. My own /px/ beacons still carry a path and nothing else,
+  // and still never read a referer. This is Cloudflare's cookieless beacon
+  // reporting to Cloudflare, disclosed in the header of this file since the day
+  // it went on.
 } catch (e) {
   console.log("\n  (zone analytics unavailable: " + e.message.slice(0, 80) + ")");
+}
+
+// Where they actually came from, over a week rather than a day. A day is all the
+// zone log keeps, but at seven or eight people a day a single day cannot tell a
+// dead channel from a quiet one — and the whole question right now is which
+// channel is worth another hour.
+try {
+  const rumSince = new Date(Date.now() - 7 * 86400e3).toISOString().replace(/\.\d+Z$/, "Z");
+  const rum = await graphql(`query { viewer { accounts(filter: {accountTag: "${ACCOUNT}"}) {
+    rumPageloadEventsAdaptiveGroups(limit: 500, filter: {datetime_geq: "${rumSince}", bot: 0}) {
+      count dimensions { requestHost requestPath refererHost countryName deviceType }
+    } } } }`);
+  const mine = rum.viewer.accounts[0].rumPageloadEventsAdaptiveGroups
+    .filter((r) => /puzzlepress/.test(r.dimensions.requestHost || ""));
+  const total = mine.reduce((a, r) => a + r.count, 0);
+  const tally = (pick) => {
+    const m = new Map();
+    for (const r of mine) {
+      const v = pick(r.dimensions) || "(none)";
+      m.set(v, (m.get(v) ?? 0) + r.count);
+    }
+    return [...m].sort((a, b) => b[1] - a[1]);
+  };
+  console.log(`\n  Last 7 days by the page beacon — ${total} page loads, Cloudflare's own bot filter:`);
+  console.log("    Referred by:");
+  for (const [host, n] of tally((d) => d.refererHost).slice(0, 10)) {
+    // An empty referer is not a mystery to solve: a typed address, a bookmark,
+    // most links opened inside a phone app, and every https->http hop all look
+    // identical here. It is the size of the "I cannot tell you" bucket.
+    const label = host === "(none)" ? "(no referer — typed, bookmarked, or opened in an app)" : host;
+    console.log(`      ${String(n).padStart(4)}  ${label}`);
+  }
+  console.log("    Landed on:");
+  for (const [path, n] of tally((d) => d.requestPath).slice(0, 10)) console.log(`      ${String(n).padStart(4)}  ${path}`);
+  const dev = tally((d) => d.deviceType);
+  const country = tally((d) => d.countryName);
+  console.log(`    Device:  ${dev.map(([k, n]) => `${k} ${n}`).join(", ")}`);
+  console.log(`    Country: ${country.slice(0, 6).map(([k, n]) => `${k} ${n}`).join(", ")}`);
+} catch (e) {
+  console.log("\n  (page-beacon analytics unavailable: " + e.message.slice(0, 80) + ")");
 }
