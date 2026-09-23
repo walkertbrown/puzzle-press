@@ -274,6 +274,54 @@ let botAppIps = [];
 // report zero for a page that is working. "Not a known crawler" is the weaker
 // filter, and it is the right one for a stage keyed on an HTML page.
 let humanIps = [];
+// Addresses thrown out by the farm rule below, kept so the printer can say how
+// many and not silently shrink a number I have been reading for two days.
+let farmIps = [];
+
+// A scraper farm does not say "bot" in its user-agent. It says Chrome 135 on
+// Windows, then Chrome 132 on Android, then Safari 16.6 on a Mac, one agent per
+// address, out of a block of addresses that all belong to the same datacentre.
+//
+// 2026-09-23: "Visited a word-list page 130" was the largest human number on
+// this report, and I spent a minute believing the word-list pages were the
+// biggest leak on the site — 130 readers, 0 of whom ran the app — before
+// looking at who.mjs. Of the 288 addresses on that line, dozens were
+// 47.79.13.x and 47.79.206.x: Alibaba Cloud, two /24s, a different consumer
+// user-agent on every address, two or three word-list pages each, and not one
+// request for a /px/ beacon or a byte of JavaScript. That is one crawler
+// wearing a hundred hats. It is the sixth appearance of "a stage keyed on an
+// HTML page counts robots", and the first that BOT_UA cannot see, because these
+// ones are lying on purpose.
+//
+// The rule, deliberately strict, so that a real audience cannot trip it: a
+// network (/24 for v4, /48 for v6) is a farm when at least five distinct
+// addresses in it used at least three distinct user-agents and *not one* of
+// them ever asked for a /px/ path. The last clause is what makes it safe. A
+// carrier NAT or an office block is many addresses and many agents too — but
+// real people load the page, the page fires a beacon, and the beacon is the
+// thing a crawler skipping JavaScript cannot fake. Five silent addresses in one
+// /24 with five different browsers is not a neighbourhood.
+const net = (ip) => (ip.includes(":")
+  ? ip.split(":").slice(0, 3).join(":") + "::/48"
+  : ip.split(".").slice(0, 3).join(".") + ".0/24");
+function farmsAmong(ips, uaByIp, pathsByIp) {
+  const byNet = new Map();
+  for (const ip of ips) {
+    if (!byNet.has(net(ip))) byNet.set(net(ip), []);
+    byNet.get(net(ip)).push(ip);
+  }
+  const out = [];
+  for (const [, members] of byNet) {
+    if (members.length < 5) continue;
+    const uas = new Set(members.flatMap((ip) => [...(uaByIp.get(ip) || [])]));
+    if (uas.size < 3) continue;
+    const anyRanScript = members.some((ip) =>
+      [...(pathsByIp.get(ip) || [])].some((p) => p.startsWith("/px/")));
+    if (anyRanScript) continue;
+    out.push(...members);
+  }
+  return out;
+}
 // Every stranger's address and the set of paths it asked for. This exists
 // because on 2026-09-21 this script reported "...that ran the app 15" for a
 // day in which who.mjs found five addresses fetching main.js — three of them
@@ -328,6 +376,20 @@ try {
     if (!pathsByIp.has(ip)) pathsByIp.set(ip, new Set());
     pathsByIp.get(ip).add(r.dimensions.clientRequestPath);
   }
+
+  // Now the farm rule, which needs both the agents and the paths. Farms come
+  // out of humanIps entirely, not just out of the word-list line: an address
+  // that is one hat on a crawler is not a person on the landing page either.
+  const uaByIp = new Map();
+  for (const r of agents.viewer.zones[0].httpRequestsAdaptiveGroups) {
+    const ip = r.dimensions.clientIP;
+    if (!uaByIp.has(ip)) uaByIp.set(ip, new Set());
+    uaByIp.get(ip).add(r.dimensions.userAgent);
+  }
+  farmIps = farmsAmong(humanIps, uaByIp, pathsByIp);
+  const farmSet = new Set(farmIps);
+  humanIps = humanIps.filter((ip) => !farmSet.has(ip));
+  for (const ip of farmIps) pathsByIp.delete(ip);
 } catch { /* fall back to reporting the raw sample count, marked as unfiltered */ }
 
 // How many *addresses* did a thing — the honest denominator for a funnel.
@@ -556,6 +618,11 @@ try {
   console.log(`    Opened a sample PDF         ${samples}${sampleTotal > samples ? `   (${sampleTotal - samples} more opens came from crawlers — not people)` : ""}`);
   for (const [path, count] of sampleRows) console.log(`      ${String(count).padStart(3)}  ${path.replace(/^\/samples\//, "")}`);
   console.log(`    Visited a word-list page    ${wordLists}   <-- what the Pinterest pins point at${wordListTotal > wordLists ? `   (${wordListTotal - wordLists} more were crawlers walking the sitemap)` : ""}`);
+  if (farmIps.length) {
+    const nets = [...new Set(farmIps.map(net))];
+    console.log(`      (${farmIps.length} addresses in ${nets.length} datacentre block${nets.length > 1 ? "s" : ""} thrown out before this line: ${nets.slice(0, 6).join(", ")}${nets.length > 6 ? ", ..." : ""}`);
+    console.log(`       — a different consumer user-agent on each, not one of them ran the page's script. One crawler, many hats.)`);
+  }
   console.log(`      of those, ${wordListToApp} read by somebody who also ran the app — the only reason these pages exist`);
   if (pxTotal) console.log(`      ${listRan} ran JavaScript on one (the only real person/crawler line there is) and ${listClicked} pressed the button`);
   console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} more opened the page and never ran the script)` : ""}`);
