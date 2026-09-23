@@ -195,8 +195,11 @@ const did = (paths) => ({
   // These are exact, not inferred: /px/tool.gif is an IntersectionObserver on
   // the generator, /px/touched.gif a click inside it, /px/click.gif the
   // Download press, /px/made.gif a finished PDF and /px/failed.gif one that
-  // threw. Prefer them; keep the chunk fingerprints, because a beacon can be
-  // blocked by an ad blocker and a chunk cannot.
+  // threw. /px/pay.gif, /px/checkout.gif and /px/unlock.gif were added
+  // 2026-09-23 for the three acts on the money side. Prefer them; keep the
+  // chunk fingerprints, because a beacon can be blocked by an ad blocker and a
+  // chunk cannot — and note that an ad blocker is likeliest to eat a beacon
+  // called "checkout", so a quiet top rung is not proof of a quiet top rung.
   px: new Set([...paths.keys()].filter((p) => p.startsWith("/px/")).map((p) => p.slice(4).replace(".gif", ""))),
   // 2026-09-21: the dashboard's "Opened a sample PDF" jumped 0 -> 4 overnight
   // while Download stayed at 0, and a bare count cannot say whether that was a
@@ -262,23 +265,40 @@ for (const [ip, e] of ranTheApp) {
   // Say what was actually observed, not what I wish it meant. Only the first
   // of these is a visitor doing something; the other two are the page loading.
   //
-  // Ordered by how much it proves, most first. The two alarm rungs are in the
-  // middle deliberately: somebody who pressed Download and got no PDF is a bug
-  // report, not a funnel stage, and must never be filed under a softer label
-  // just because the render chunk did not load.
-  const stage = d.madeBook || d.px.has("made")
-    ? "MADE A BOOK"
-    : d.px.has("failed")
-      ? "!! PRESSED DOWNLOAD AND IT FAILED"
-      : d.px.has("click")
-        ? "!! PRESSED DOWNLOAD, no PDF came out"
-        : d.px.has("touched") || d.pickedType
-          ? "touched a control, took no book" // the balk, and the row worth chasing
-          : d.px.has("tool") || d.reachedTool
-            ? "saw the generator, touched nothing"
-            : d.loaded
-              ? "page loaded, never scrolled to the generator"
-              : "gone before the page finished loading";
+  // Ordered by what the act cost the visitor, dearest first. The two alarm
+  // rungs sit in the middle deliberately: somebody who pressed Download and got
+  // no PDF is a bug report, not a funnel stage, and must never be filed under a
+  // softer label just because the render chunk did not load.
+  //
+  // 2026-09-23: the top three rungs are new, and they are the only ones with
+  // money on them. Every rung below them describes somebody getting closer to a
+  // *free* book; until tonight nothing at all described somebody trying to pay,
+  // so "nobody bought" and "nobody ever opened the price" arrived here as the
+  // same row — which is the difference between a pricing problem and never
+  // having been asked the question. `unlock` is a person who has already paid
+  // and is back asking to be let in: a support row, the loudest thing that can
+  // appear on this dashboard. `checkout` left the page for Stripe. `pay` opened
+  // the price and read it. All three outrank MADE A BOOK, because taking the
+  // free book is the cheapest act on the list.
+  const stage = d.px.has("unlock")
+    ? "!! ALREADY PAID — asking to be let back in"
+    : d.px.has("checkout")
+      ? "$$ WENT TO STRIPE CHECKOUT"
+      : d.px.has("pay")
+        ? "$  opened the price"
+        : d.madeBook || d.px.has("made")
+          ? "MADE A BOOK"
+          : d.px.has("failed")
+            ? "!! PRESSED DOWNLOAD AND IT FAILED"
+            : d.px.has("click")
+              ? "!! PRESSED DOWNLOAD, no PDF came out"
+              : d.px.has("touched") || d.pickedType
+                ? "touched a control, took no book" // the balk, and the row worth chasing
+                : d.px.has("tool") || d.reachedTool
+                  ? "saw the generator, touched nothing"
+                  : d.loaded
+                    ? "page loaded, never scrolled to the generator"
+                    : "gone before the page finished loading";
   // A scanner that also runs JavaScript still counts its 404s, and that is the
   // only thing separating it from a reader. Say so on the row: traffic.mjs
   // drops these from the funnel, so a row here that is not marked is a row the

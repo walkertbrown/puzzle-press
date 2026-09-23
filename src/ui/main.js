@@ -569,11 +569,23 @@ function stopAutoRetry() {
 // link should not be stuck.
 function openUnlock({ justPaid = false, intent = "buy" } = {}) {
   const buying = !justPaid && intent === "buy" && !!PAY_URL;
+  // The rungs with money on them, and until 2026-09-23 the only dark ones left.
+  // Every beacon I had described somebody getting closer to a free book; not one
+  // described somebody trying to pay. "Nobody bought" and "nobody ever opened
+  // the price" are completely different problems and I could not tell them
+  // apart. `pay` is asking what it costs; `unlock` is a returning buyer, which
+  // is a support signal rather than a sales one.
+  if (!justPaid) px(buying ? "pay" : "unlock");
   el.unlockErr.textContent = "";
   el.dialogTitle.textContent = justPaid
     ? "Thanks — one last step"
     : buying
-      ? "Remove the watermark"
+      // "Remove the watermark" survived the 2026-09-22 sweep that took that
+      // word out of the hero and the thumb bar, because I only looked at the
+      // landing page. It was still here, on the dialog where the money is,
+      // promising to remove a stamp across the artwork that does not exist.
+      // The lede underneath had said "no line in the footer" the whole time.
+      ? "Remove the footer line and PREVIEW"
       : "Enter the email you paid with";
   el.dialogLede.textContent = justPaid
     ? "Enter the email you used at checkout and everything unlocks on this device."
@@ -591,6 +603,14 @@ function openUnlock({ justPaid = false, intent = "buy" } = {}) {
     el.buyLine.innerHTML = buying
       ? `<a class="buybtn" href="${escapeHtml(PAY_URL)}" target="_blank" rel="noopener">Buy now — ${PRICE_LABEL}</a><span class="fine">Opens Stripe checkout in a new tab. This page keeps your book.</span>`
       : `<a href="${escapeHtml(PAY_URL)}" target="_blank" rel="noopener"><b>Buy now — ${PRICE_LABEL}</b></a> (opens Stripe checkout)`;
+    // The last act before Stripe, and the one that was hardest to live without:
+    // a Stripe session that never completes is invisible to me from this side,
+    // so "went to checkout and did not pay" read exactly like "never went".
+    // keepalive because this is a navigation, even into a new tab — the
+    // `keep` path in px.js uses fetch() so the beacon is not cancelled.
+    el.buyLine.querySelector("a")?.addEventListener("click", (e) => {
+      if (e.isTrusted) px("checkout", { keep: true });
+    });
   } else {
     el.buyLine.textContent = "Checkout is not available yet.";
   }

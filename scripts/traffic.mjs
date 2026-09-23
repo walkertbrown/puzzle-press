@@ -405,6 +405,15 @@ try {
   const pressedEmpty = people(/^\/px\/empty\.gif$/);
   const made = people(/^\/px\/made\.gif$/);
   const failed = people(/^\/px\/failed\.gif$/);
+  // The money side, added 2026-09-23. Every stage above this line describes
+  // somebody getting closer to the *free* book, which is the whole funnel this
+  // dashboard has ever been able to draw. A Stripe session that is opened and
+  // abandoned is invisible from this side — Stripe only tells me about the ones
+  // that complete — so before these three, "nobody bought" and "nobody ever
+  // opened the price" printed as the same silence.
+  const openedPrice = people(/^\/px\/pay\.gif$/);
+  const toCheckout = people(/^\/px\/checkout\.gif$/);
+  const returning = people(/^\/px\/unlock\.gif$/);
   const pxTotal = hits(/^\/px\//);
   // The one number the current strategy stands or falls on. The calculators
   // are the only pages search has ever carried here, and the whole bet is that
@@ -534,6 +543,12 @@ try {
     console.log(`    ...browsed the preview      ${browsed}   <-- pressed Previous or Next`);
     console.log(`    ...pressed Download         ${pressed}${pressedEmpty ? `   (${pressedEmpty} of them with every theme unticked — the button does nothing)` : ""}`);
     console.log(`    ...and the file came out    ${made}${failed ? `   (and it threw for ${failed})` : ""}`);
+    // Not a continuation of the rungs above — the price can be opened without
+    // ever making a book — so it is printed as its own short ladder rather than
+    // indented under "the file came out".
+    console.log(`    ...opened the price         ${openedPrice}   <-- pressed "$19 one-time" and read the dialog`);
+    console.log(`    ...went to Stripe           ${toCheckout}   <-- left this page for checkout; Stripe reports the ones that pay`);
+    if (returning) console.log(`    ...already paid, locked out ${returning}   <-- a customer asking to be let back in. Read the mail.`);
   } else {
     console.log("    (no /px/ beacons in this window — either nobody ran the app, or they are newer than the window)");
   }
