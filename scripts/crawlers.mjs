@@ -74,6 +74,44 @@ if (rest.length) {
   }
 }
 
+// Coverage: how much of what we published has each engine actually looked at.
+//
+// 2026-09-23. The tally above says Googlebot made 112 requests in a week, which
+// reads like attention. It touched 26 distinct paths. The sitemap offers 115.
+// Those are very different facts and only one of them is about the estate.
+//
+// It matters because almost everything built for search is a page nobody has
+// confirmed an engine has ever fetched: 91 word-list pages, 6 type pages, 3
+// calculators, 2 articles. "The word lists are not working" and "the word lists
+// have not been crawled" are the same zero on a dashboard and opposite
+// instructions about what to do next — the same confusion as a silent beacon,
+// one layer further out. Grouped, because 91 individual lines is not a finding.
+const sitemapPaths = [...readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8")
+  .matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
+const GROUPS = [
+  ["the landing page", (p) => p === "/"],
+  ["the 3 calculators", (p) => /-calculator$/.test(p)],
+  ["the 2 articles", (p) => p === "/how-to-make-a-puzzle-book" || p === "/compare"],
+  ["the 6 type pages", (p) => /-generator$/.test(p)],
+  ["the 91 word lists", (p) => p.startsWith("/word-lists/")],
+  ["the 12 sample PDFs", (p) => p.startsWith("/samples/")],
+];
+console.log("  How much of the sitemap each one has actually fetched:\n");
+console.log(`  ${"".padEnd(22)}${WANTED.filter((w) => tally.has(w)).map((w) => w.slice(0, 9).padStart(10)).join("")}`);
+const live = WANTED.filter((w) => tally.has(w));
+for (const [label, test] of GROUPS) {
+  const want = sitemapPaths.filter(test);
+  if (!want.length) continue;
+  const cells = live.map((w) => {
+    const seen = want.filter((p) => tally.get(w).paths.has(p)).length;
+    return `${seen}/${want.length}`.padStart(10);
+  });
+  console.log(`  ${label.padEnd(22)}${cells.join("")}`);
+}
+const unseen = sitemapPaths.filter((p) => !live.some((w) => tally.get(w).paths.has(p)));
+console.log(`\n  ${sitemapPaths.length - unseen.length} of ${sitemapPaths.length} published URLs have been fetched by at least one search engine in ${hours}h.`);
+if (unseen.length) console.log(`  ${unseen.length} have not been looked at by any of them. A page no engine has fetched cannot be failing at search yet.`);
+
 // A crawl is not an index entry, and this script deliberately does not pretend
 // otherwise. Confirming a page is *in* Bing needs Bing Webmaster Tools, which
 // is the boss's account to open. What this can say without anyone's password is
