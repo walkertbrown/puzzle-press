@@ -41,6 +41,7 @@
     "test:buyrung": "node test/buyrung.mjs && node test/buyrung.mjs webkit",
     "test:marks": "node test/marks.mjs",
     "test:listbeacon": "node test/listbeacon.mjs && node test/listbeacon.mjs webkit",
+    "test:articlebeacon": "node test/articlebeacon.mjs && node test/articlebeacon.mjs webkit",
     "look": "node test/lookat.mjs",
     "test:unlock": "node test/unlock.mjs",
     "test:support": "node test/supportlookup.mjs",

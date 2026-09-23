@@ -500,8 +500,27 @@ try {
   // that a crawler can also produce.
   const guidePages = people(/^\/how-to-make-a-puzzle-book/);
   const comparePages = people(/^\/compare/);
-  const fromGuide = people(/^\/px\/guide\.gif$/);
-  const fromCompare = people(/^\/px\/compare\.gif$/);
+  // As of 2026-09-23 "guide" and "compare" fire on load, not on the button —
+  // "guideclick" and "compareclick" are the button. Same shape as list/listclick.
+  const guideRan = people(/^\/px\/guide\.gif$/);
+  const compareRan = people(/^\/px\/compare\.gif$/);
+  const fromGuide = people(/^\/px\/guideclick\.gif$/);
+  const fromCompare = people(/^\/px\/compareclick\.gif$/);
+  // 2026-09-23. Both lines above are raw path counts, and neither page loads
+  // main.js or fires a beacon on arrival — /px/guide and /px/compare fire only
+  // on a button press. So a crawler that renders nothing and presses nothing is
+  // indistinguishable from a reader who read the whole thing and left, and both
+  // land in "Read the how-to guide". That is how 130 word-list readers turned
+  // out to be one Alibaba scraper farm, and I do not want to learn it twice.
+  //
+  // realSet is the same union the REAL PEOPLE line is drawn on: fired any /px/
+  // beacon, or fetched main.js. Intersecting with it answers the question the
+  // raw count only looks like it answers — how many of today's actual people
+  // opened this page.
+  const realSet = new Set(whoDid(/^\/px\/|^\/js\/main\.js$/));
+  const ofReal = (re) => (pathsByIp.size ? whoDid(re).filter((ip) => realSet.has(ip)).length : null);
+  const guideReal = ofReal(/^\/how-to-make-a-puzzle-book/);
+  const compareReal = ofReal(/^\/compare/);
   // The word-list pages, added 2026-09-21. The "Visited a word-list page"
   // number below is filtered only by "did not say bot in the user-agent", and
   // the note beside it already admits Amazonbot and Googlebot's bare Chrome
@@ -646,8 +665,12 @@ try {
   if (pxTotal) console.log(`      ${listRan} ran JavaScript on one (the only real person/crawler line there is) and ${listClicked} pressed the button`);
   console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} more opened the page and never ran the script)` : ""}`);
   if (pxTotal) console.log(`      of those, ${handoff} pressed "make a book"${handoff ? ` (${handoffTop} from the button beside the answer, the rest from the end of the article)` : ""} and ${handoffToBook} of those got a file   <-- whether the free utilities are a front door`);
-  console.log(`    Read the how-to guide       ${guidePages}${pxTotal ? `   (${fromGuide} pressed a button in it)   <-- the highest-intent search phrase on the site` : ""}`);
-  console.log(`    Read the comparison         ${comparePages}${pxTotal ? `   (${fromCompare} pressed a button in it)` : ""}`);
+  console.log(`    Read the how-to guide       ${guidePages} fetched the HTML${pxTotal ? `, ${guideRan} ran its script, ${fromGuide} pressed a button   <-- the highest-intent search phrase on the site` : ""}`);
+  console.log(`    Read the comparison         ${comparePages} fetched the HTML${pxTotal ? `, ${compareRan} ran its script, ${fromCompare} pressed a button` : ""}`);
+  if (guidePages && guideReal === 0 && compareReal === 0) {
+    console.log(`      — and not one address that opened either page ran a line of JavaScript anywhere on this site today.`);
+    console.log(`        Read both left-hand numbers as crawlers until the middle one moves.`);
+  }
   console.log(`    Clicked Download            ${clickedDownload}${clickedDownload && !fonts ? "   (and no font was ever fetched — nothing rendered)" : ""}`);
   console.log(`    ...and a book came out      ${fonts ? `yes, ${fonts} ${fonts === 1 ? "person" : "people"} fetched fonts` : "no"}   <-- fonts embed at render time; the only proof a PDF exists`);
   console.log(`    Made a cover                ${covers}`);

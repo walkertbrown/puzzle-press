@@ -272,15 +272,29 @@
   // The same /px/ beacon the calculators fire, for the same reasons: the path
   // is the entire message, and keepalive because the click navigates away and
   // an outgoing document's image request is cancelled. See src/ui/px.js.
+  //
+  // 2026-09-23: "guide" moved from the click to the load, and the click became
+  // "guideclick" — the shape the word-list pages have had since they were
+  // built. Until today this page fired nothing on arrival, so the dashboard's
+  // "Read the how-to guide 6" was counted out of request paths alone, and when
+  // I intersected it with the addresses that ran any JavaScript today the
+  // answer was zero: six crawlers. A reader who arrives from search, reads the
+  // whole thing and leaves without pressing was indistinguishable from a bot
+  // fetching HTML. This is the highest-intent phrase on the site and it was
+  // the one page I could say nothing true about.
   (function () {
+    function px(name) {
+      var u = "/px/" + name + ".gif?" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      try { if (typeof fetch === "function") { fetch(u, { method: "GET", keepalive: true, mode: "no-cors", cache: "no-store" }).catch(function () {}); return; } } catch (err) {}
+      try { new Image().src = u; } catch (err) {}
+    }
+    px("guide");
     var fired = false;
     document.addEventListener("click", function (e) {
       var a = e.target && e.target.closest && e.target.closest("a.btn");
       if (!a || fired) return;
       fired = true;
-      var u = "/px/guide.gif?" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      try { if (typeof fetch === "function") { fetch(u, { method: "GET", keepalive: true, mode: "no-cors", cache: "no-store" }).catch(function () {}); return; } } catch (err) {}
-      try { new Image().src = u; } catch (err) {}
+      px("guideclick");
     }, true);
   })();
 

@@ -159,15 +159,26 @@
   // The same /px/ beacon the calculators fire, for the same reasons: the path
   // is the entire message, and keepalive because the click navigates away and
   // an outgoing document's image request is cancelled. See src/ui/px.js.
+  //
+  // 2026-09-23: "compare" moved from the click to the load, and the click
+  // became "compareclick" — see the same change in
+  // how-to-make-a-puzzle-book.html for why. Three addresses "read the
+  // comparison" today and none of them ran a line of JavaScript anywhere on
+  // this site. Without a load beacon there is no way to tell that from three
+  // readers who were not convinced.
   (function () {
+    function px(name) {
+      var u = "/px/" + name + ".gif?" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      try { if (typeof fetch === "function") { fetch(u, { method: "GET", keepalive: true, mode: "no-cors", cache: "no-store" }).catch(function () {}); return; } } catch (err) {}
+      try { new Image().src = u; } catch (err) {}
+    }
+    px("compare");
     var fired = false;
     document.addEventListener("click", function (e) {
       var a = e.target && e.target.closest && e.target.closest("a.btn");
       if (!a || fired) return;
       fired = true;
-      var u = "/px/compare.gif?" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      try { if (typeof fetch === "function") { fetch(u, { method: "GET", keepalive: true, mode: "no-cors", cache: "no-store" }).catch(function () {}); return; } } catch (err) {}
-      try { new Image().src = u; } catch (err) {}
+      px("compareclick");
     }, true);
   })();
 
