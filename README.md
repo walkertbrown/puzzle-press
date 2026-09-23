@@ -10,8 +10,9 @@ clued crosswords. Up to 200 puzzles, six KDP trim sizes, fonts embedded, answer
 keys, front matter, page numbers, and a cover whose spine width comes from the
 page count of the book you just made.
 
-Free to use, and it makes the entire book — watermarked with a footer line and
-`PREVIEW` across the cover. $19 once removes both. No account, no subscription.
+Free to use, and it makes the entire book. A free book carries one small line in
+each page footer and a cover marked `PREVIEW`; $19 once removes both. No
+account, no subscription.
 
 A [Bananafest Destiny](https://bananafest-destiny.com) app.
 

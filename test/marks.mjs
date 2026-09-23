@@ -36,6 +36,9 @@ const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "pu
 const ABOUT_SOMEBODY_ELSE = [
   "bulk-make fifty puzzles with answer keys, no account and no watermark",
   "bulk-generate a whole set with answer keys, free, with no watermark and no account",
+  // Engineering prose in the README about a test that used to be unfalsifiable.
+  // It names the suite, it does not describe the product to a buyer.
+  "The watermark test used to grep the PDF bytes for the words",
 ];
 
 const files = [];
@@ -48,6 +51,15 @@ const files = [];
     if (/\.(html|txt|json|xml|webmanifest)$/.test(e.name)) files.push(f);
   }
 })(PUBLIC);
+
+// 2026-09-23: README.md is a published surface and this suite did not scan it.
+// A search for this product's own name returns the GitHub mirror *first* — above
+// the site — so its README is, in practice, the landing page for anybody who
+// looks the product up by name. It still said the free book was "watermarked"
+// three weeks after that word was swept out of every page under public/. The
+// lesson from the first sweep was "grep the whole repo, not the page you noticed
+// it on"; the repo includes the file that ranks highest.
+files.push(path.join(PUBLIC, "..", "README.md"));
 
 const bad = [];
 for (const f of files) {
@@ -64,7 +76,7 @@ for (const f of files) {
   });
 }
 
-console.log(`scanned ${files.length} published files under public/`);
+console.log(`scanned ${files.length} published files — everything under public/, plus README.md`);
 if (bad.length) {
   console.log(`\n${bad.length} line(s) call this product's free tier watermarked:\n`);
   for (const b of bad) console.log("  " + b);
