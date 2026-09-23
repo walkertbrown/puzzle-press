@@ -40,7 +40,7 @@ const pages = {
     title: "Word Search Book Generator for Amazon KDP — Print-Ready PDF, Free",
     description: `Make a whole word search puzzle book for KDP in your browser: ${themeNames.length} themes or your own word list, graded easy to hard, solutions included, laid out to KDP's rules. Free to use.`,
     h1: "Word search book generator for Amazon KDP",
-    lede: `Paste a word list or pick from ${themeNames.length} themes, choose how many puzzles, and download a paperback interior that meets KDP's manuscript rules — then the matching cover. Free to use; the free book is watermarked.`,
+    lede: `Paste a word list or pick from ${themeNames.length} themes, choose how many puzzles, and download a paperback interior that meets KDP's manuscript rules — then the matching cover. Free to use; free books carry one small line in the page footer and a cover marked PREVIEW.`,
     kind: "wordsearch",
     sample: "/samples/sample-6x9.pdf",
     cover: "/samples/sample-cover-6x9.pdf",
@@ -86,7 +86,7 @@ const pages = {
     title: "Sudoku Book Generator for KDP — Every Puzzle Has One Solution",
     description: `Generate a graded sudoku puzzle book for Amazon KDP: ${Object.values(SUDOKU_DIFFICULTY).map((d) => d.givens).join("/")} clues from easy to expert, plus 6×6 and 4×4 grids for children's books, every puzzle verified to have exactly one solution, solutions included, print-ready PDF. Free to use.`,
     h1: "Sudoku book generator for Amazon KDP",
-    lede: "A complete sudoku paperback — graded easy to expert, every puzzle verified to have exactly one solution, answers at the back — as a print-ready interior PDF and a matching cover. Free to use; the free book is watermarked.",
+    lede: "A complete sudoku paperback — graded easy to expert, every puzzle verified to have exactly one solution, answers at the back — as a print-ready interior PDF and a matching cover. Free to use; free books carry one small line in the page footer and a cover marked PREVIEW.",
     kind: "sudoku",
     sample: "/samples/sample-sudoku-6x9.pdf",
     cover: "/samples/sample-sudoku-cover-6x9.pdf",
@@ -125,7 +125,7 @@ const pages = {
     title: "Maze Book Generator for KDP — Perfect Mazes, Solutions Included",
     description: `Make a maze puzzle book for Amazon KDP: perfect mazes from ${MAZE_DIFFICULTY.easy.w}×${MAZE_DIFFICULTY.easy.h} to ${MAZE_DIFFICULTY.expert.w}×${MAZE_DIFFICULTY.expert.h}, one route through each, solutions at the back, print-ready PDF and cover. Free to use.`,
     h1: "Maze book generator for Amazon KDP",
-    lede: `A complete maze paperback — perfect mazes from ${MAZE_DIFFICULTY.easy.w}×${MAZE_DIFFICULTY.easy.h} up to ${MAZE_DIFFICULTY.expert.w}×${MAZE_DIFFICULTY.expert.h}, one route through each, solutions drawn at the back — as a print-ready interior PDF and a matching cover. Free to use; the free book is watermarked.`,
+    lede: `A complete maze paperback — perfect mazes from ${MAZE_DIFFICULTY.easy.w}×${MAZE_DIFFICULTY.easy.h} up to ${MAZE_DIFFICULTY.expert.w}×${MAZE_DIFFICULTY.expert.h}, one route through each, solutions drawn at the back — as a print-ready interior PDF and a matching cover. Free to use; free books carry one small line in the page footer and a cover marked PREVIEW.`,
     kind: "maze",
     sample: "/samples/sample-maze-6x9.pdf",
     cover: "/samples/sample-maze-cover-6x9.pdf",
@@ -167,7 +167,7 @@ pages["large-print-word-search-generator"] = {
   title: "Large Print Word Search Generator for Seniors — KDP-Ready, Free",
   description: "Make a large print word search book for seniors: 8.5 × 11 pages, automatic grid sizing, 14 words a puzzle, letters measured at 18–25pt. Free print-ready PDF for Amazon KDP.",
   h1: "Large print word search generator for seniors",
-  lede: "The single most dependable puzzle-book category on KDP, and the most common way it's bought is as a gift: an adult child picking a book for a parent whose eyes have changed. One checkbox switches the whole book to 8.5 × 11 pages with a grid sized for big letters — no separate settings to hunt for. Free to use; the free book is watermarked.",
+  lede: "The single most dependable puzzle-book category on KDP, and the most common way it's bought is as a gift: an adult child picking a book for a parent whose eyes have changed. One checkbox switches the whole book to 8.5 × 11 pages with a grid sized for big letters — no separate settings to hunt for. Free to use; free books carry one small line in the page footer and a cover marked PREVIEW.",
   kind: "wordsearch",
   extraQuery: "&largePrint=1",
   sample: "/samples/sample-large-print-8.5x11.pdf",
@@ -201,7 +201,7 @@ pages["criss-cross-book-generator"] = {
   title: "Criss-Cross (Word Fill-In) Book Generator for KDP",
   description: `Make a criss-cross / word fill-in puzzle book for Amazon KDP: crossword-shaped grids with the word list given, ${CRISSCROSS_DIFFICULTY.easy.words} to ${CRISSCROSS_DIFFICULTY.expert.words} words, every puzzle verified to have exactly one fill, solutions included, print-ready PDF and cover. Free to use.`,
   h1: "Criss-cross (word fill-in) book generator for Amazon KDP",
-  lede: "Fill-in puzzles — the crossword grid with the word list printed instead of clues — as a complete paperback: graded easy to expert, every grid verified to have exactly one way to fill it, solutions at the back, plus the matching cover. Free to use; the free book is watermarked.",
+  lede: "Fill-in puzzles — the crossword grid with the word list printed instead of clues — as a complete paperback: graded easy to expert, every grid verified to have exactly one way to fill it, solutions at the back, plus the matching cover. Free to use; free books carry one small line in the page footer and a cover marked PREVIEW.",
   kind: "crisscross",
   sample: "/samples/sample-crisscross-6x9.pdf",
   cover: "/samples/sample-crisscross-cover-6x9.pdf",
@@ -234,7 +234,7 @@ pages["crossword-book-generator"] = {
   title: "Crossword Puzzle Book Generator for KDP — Themed, Clued, Print-Ready",
   description: `Make a themed crossword puzzle book for Amazon KDP: clued crosswords from ${themeNames.length} themes (${Object.keys(CLUES).length.toLocaleString()} plain-language clues) or your own word — clue lines, graded easy to expert, solutions included, print-ready PDF and cover. Free to use.`,
   h1: "Crossword book generator for Amazon KDP",
-  lede: "Themed crosswords with clues — the sparse, friendly grids that fill KDP's crossword books — as a complete paperback: graded easy to expert, numbered grids, Across and Down clue lists, solutions at the back, plus the matching cover. Free to use; the free book is watermarked.",
+  lede: "Themed crosswords with clues — the sparse, friendly grids that fill KDP's crossword books — as a complete paperback: graded easy to expert, numbered grids, Across and Down clue lists, solutions at the back, plus the matching cover. Free to use; free books carry one small line in the page footer and a cover marked PREVIEW.",
   kind: "crossword",
   sample: "/samples/sample-crossword-6x9.pdf",
   cover: "/samples/sample-crossword-cover-6x9.pdf",
@@ -357,7 +357,7 @@ ${p.body}
 
   <div class="cta">
     <h2>Make one now</h2>
-    <p>Choose the settings, watch the preview, download the interior and then the cover — the spine already sized from the page count of the book you just made. Free to use; $19 once removes the watermark, and the price is on the page before you click anything.</p>
+    <p>Choose the settings, watch the preview, download the interior and then the cover — the spine already sized from the page count of the book you just made. Free to use; $19 once removes the footer line and the PREVIEW cover mark, and the price is on the page before you click anything.</p>
     <a class="btn" href="/?kind=${p.kind}${p.extraQuery || ""}#tool">Make a ${p.kind === "wordsearch" ? "word search" : p.kind === "crisscross" ? "criss-cross" : p.kind} book free</a>
   </div>
 </main>

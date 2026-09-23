@@ -180,7 +180,7 @@ const themePage = (id, t) => {
     <a href="/?kind=crossword&amp;theme=${id}#tool">…or a crossword book</a>
     <a href="/word-lists/">All ${Object.keys(THEMES).length} lists</a>
   </div>
-  <p class="fine">Runs in your browser — nothing you type leaves your computer. No sign-up. $19 once removes the watermark; 30-day refund, no questions.</p>
+  <p class="fine">Runs in your browser — nothing you type leaves your computer. No sign-up. $19 once removes the footer line and the PREVIEW cover mark; 30-day refund, no questions.</p>
   <p class="fine">The button opens the free generator with this theme selected. ${copy}</p>
 
   <h2>The list</h2>
@@ -204,7 +204,7 @@ const themePage = (id, t) => {
 
   <div class="cta">
     <h2>Turn it into a book</h2>
-    <p>Puzzle Press makes the whole paperback for Amazon KDP — word search or <a href="/criss-cross-book-generator">criss-cross fill-in</a>, this theme or several mixed, graded easy to hard if you like, solutions at the back, margins and page count to KDP's rules — then the cover. Free to use; the free book is watermarked and $19 once removes the mark.</p>
+    <p>Puzzle Press makes the whole paperback for Amazon KDP — word search or <a href="/criss-cross-book-generator">criss-cross fill-in</a>, this theme or several mixed, graded easy to hard if you like, solutions at the back, margins and page count to KDP's rules — then the cover. Free to use; free books carry one small line in the page footer and a cover marked PREVIEW, and $19 once removes both.</p>
     <a class="btn" href="/?theme=${id}#tool">Make a ${esc(t.title)} word search book free</a>
   </div>`;
   const jsonld = {
@@ -244,7 +244,7 @@ const index = shell({
     <h2>Any list into a book</h2>
     <p>Pick a theme, or several, or paste your own list — Puzzle Press lays out a complete word search paperback for Amazon KDP, solutions included, then the cover. Free to use.</p>
     <a class="btn" href="/?kind=wordsearch#tool">Make a word search book free</a>
-    <p class="fine">Runs in your browser — nothing you type leaves your computer. No sign-up. $19 once removes the watermark; 30-day refund, no questions.</p>
+    <p class="fine">Runs in your browser — nothing you type leaves your computer. No sign-up. $19 once removes the footer line and the PREVIEW cover mark; 30-day refund, no questions.</p>
   </div>`,
 });
 writeFileSync(`${outDir}index.html`, index);

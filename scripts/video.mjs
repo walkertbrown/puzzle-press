@@ -229,7 +229,7 @@ await page.setContent(`<!doctype html><meta charset="utf-8"><style>
   h1{font-size:${SHORT ? 88 : 64}px;margin:0 0 ${SHORT ? 20 : 0};letter-spacing:-.02em} p{font-size:${SHORT ? 40 : 28}px;margin:0;color:#c9d3e6;line-height:1.35}
   .u{margin-top:${SHORT ? 50 : 26}px;font-size:${SHORT ? 40 : 34}px;font-weight:700;background:#fff;color:#1d3557;padding:14px 30px;border-radius:14px;word-break:break-all}</style>
   <h1>Puzzle Press</h1>
-  <p>Free to use — free books carry a watermark.</p>
+  <p>Free to use — free books carry one line in the page footer.</p>
   <p>$19, once, removes it. No subscription.</p>
   <div class="u">puzzlepress.bananafest-destiny.com</div>`);
 await wait(SHORT ? 3600 : 4200);

@@ -5,7 +5,7 @@
 > paperback interior and a full-wrap cover (spine width computed from the
 > book's own page count) formatted to KDP's trim, bleed, and gutter rules.
 > Runs entirely in the browser: nothing typed leaves the page except an
-> email address at checkout. Free to use with a watermark; $19 one-time
+> email address at checkout. Free to use — free books carry one small line in the page footer and a cover marked PREVIEW; $19 one-time
 > removes it. No account required. Not affiliated with Amazon; KDP is a
 > trademark of Amazon.com, Inc.
 

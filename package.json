@@ -39,6 +39,7 @@
     "test:reach": "node test/reachbutton.mjs && node test/reachbutton.mjs webkit \"iPhone 13\" && node test/reachbutton.mjs chromium \"Pixel 7\"",
     "test:pinned": "node test/pinnedpress.mjs && node test/pinnedpress.mjs webkit \"iPhone 13\"",
     "test:buyrung": "node test/buyrung.mjs && node test/buyrung.mjs webkit",
+    "test:marks": "node test/marks.mjs",
     "test:unlock": "node test/unlock.mjs",
     "test:support": "node test/supportlookup.mjs",
     "unlock": "node scripts/unlock.mjs",

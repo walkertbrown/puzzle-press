@@ -110,7 +110,7 @@ await page.setContent(`<!doctype html><meta charset="utf-8"><style>
   body{margin:0;width:${W}px;height:${H}px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#1d3557;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-align:center;padding:0 40px;box-sizing:border-box}
   h1{font-size:${SHORT ? 88 : 64}px;margin:0 0 ${SHORT ? 20 : 0};letter-spacing:-.02em} p{font-size:${SHORT ? 40 : 28}px;margin:0;color:#c9d3e6;line-height:1.35}
   .u{margin-top:${SHORT ? 50 : 26}px;font-size:${SHORT ? 40 : 34}px;font-weight:700;background:#fff;color:#1d3557;padding:14px 30px;border-radius:14px;word-break:break-all}</style>
-  <h1>Puzzle Press</h1><p>Free to use — free books carry a watermark.</p><p>$19, once, removes it. No subscription.</p><div class="u">puzzlepress.bananafest-destiny.com</div>`);
+  <h1>Puzzle Press</h1><p>Free to use — free books carry one line in the page footer.</p><p>$19, once, removes it. No subscription.</p><div class="u">puzzlepress.bananafest-destiny.com</div>`);
 await wait(SHORT ? 3400 : 4000);
 await ctx.close();
 const src = await page.video().path();
