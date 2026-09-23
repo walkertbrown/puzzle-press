@@ -2,3 +2,6 @@ User-agent: *
 Allow: /
 
 Sitemap: https://puzzlepress.bananafest-destiny.com/sitemap.xml
+
+# LLM-readable summary of this site, in the llms.txt convention:
+# https://puzzlepress.bananafest-destiny.com/llms.txt

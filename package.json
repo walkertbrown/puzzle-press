@@ -59,6 +59,7 @@
     "test:links": "node test/links.mjs",
     "test:seo": "node test/seo.mjs",
     "test:sitemap": "node scripts/sitemap.mjs --check",
+    "test:discoverable": "node test/discoverable.mjs",
     "test:ink": "node test/inkcheck.mjs",
     "test:coverink": "node test/coverink.mjs",
     "test:crisscross": "node test/crisscross-live.mjs",
