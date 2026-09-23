@@ -35,6 +35,7 @@
     "test:dialog": "node test/dialog.mjs",
     "test:livecheckout": "node test/livecheckout.mjs",
     "test:funnel": "node test/funnel.mjs",
+    "test:press": "node test/press.mjs && node test/press.mjs webkit",
     "test:unlock": "node test/unlock.mjs",
     "test:support": "node test/supportlookup.mjs",
     "unlock": "node scripts/unlock.mjs",

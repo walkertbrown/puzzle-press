@@ -98,7 +98,20 @@ const worker = spawn(
 const workerLog = [];
 for (const s of [worker.stdout, worker.stderr]) s.on("data", (d) => workerLog.push(String(d)));
 
-const stop = () => { try { worker.kill("SIGTERM"); } catch {} stripe.close(); };
+// This used to be `kill(); stripe.close()`, and the suite would print UNLOCK OK
+// and then hang forever — measured 2026-09-23 at ten minutes and still alive.
+// A green test that never exits is worse than a red one, because nothing tells
+// you: it just stops the run it is part of. Two handles held the loop open.
+// `close()` refuses new connections but leaves established keep-alive sockets
+// alone, and section 8 fires fourteen requests down one of them; and the two
+// stdio pipes off `npx wrangler dev` are live streams in their own right.
+const stop = () => {
+  try { worker.kill("SIGTERM"); } catch {}
+  for (const s of [worker.stdout, worker.stderr]) s?.destroy();
+  try { worker.unref(); } catch {}
+  stripe.closeAllConnections?.();
+  stripe.close();
+};
 process.on("exit", stop);
 
 const ready = async () => {

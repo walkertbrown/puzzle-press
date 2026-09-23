@@ -103,7 +103,15 @@
   button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; padding: 12px 18px; font-size: 16px; }
   button:disabled { opacity: 0.5; cursor: default; }
   .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
-  .tier { margin-top: 12px; padding: 12px 14px; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 14px; }
+  /* The free tier is an offer, not a fault. This panel shipped in
+     var(--warn-bg)/var(--warn) — byte-identical to .warnings below, the amber
+     the page uses for "your book is the wrong length for KDP" — and only went
+     green once you had paid. So the two lines under the Download button told an
+     unpaid visitor, in the site's own colour language, that they were in a bad
+     state, at the exact step the 2026-09-22 beacons say everybody stops.
+     Neutral now. Amber means something is wrong with your book and nothing
+     else. */
+  .tier { margin-top: 12px; padding: 12px 14px; border-radius: 8px; background: #eef3f9; color: var(--ink); font-size: 14px; }
   .tier.licensed { background: #e9f7ec; color: var(--ok); }
   .tier b { font-weight: 600; }
   .warnings { margin: 12px 0 0; padding: 10px 12px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; font-size: 13px; white-space: pre-line; }

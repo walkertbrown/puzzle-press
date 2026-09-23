@@ -518,7 +518,14 @@ function refreshTier(note = "") {
     // month later — saw only "Remove both — $19 one-time", which reads as
     // being asked to pay a second time. The licence has always been the email
     // and nothing else, but nothing on the page said where to type it.
+    // "No sign-up" was true and lived twelve screens down, in a section below
+    // the tool. The reason a stranger does not press an unfamiliar Download
+    // button is rarely the price — it is not knowing what it will ask them for
+    // first. The claim is literal: the PDF is built in this browser and saved
+    // with createObjectURL (download(), ~line 711). Nothing is uploaded and
+    // there is no account.
     el.tier.innerHTML = `<b>Free:</b> full-length books, with one small line in the footer of every page and a cover marked PREVIEW. ` +
+      `No sign-up, no email — the PDF is made here and saves straight to this device. ` +
       `<a href="#" id="unlockLink">Remove both — ${PRICE_LABEL}</a> · ` +
       `<a href="#" id="alreadyPaid">Already paid? Unlock</a>`;
     for (const id of ["unlockLink", "alreadyPaid"]) {
