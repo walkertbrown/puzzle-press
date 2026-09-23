@@ -37,7 +37,8 @@
 // address is a visitor's, so the rule here is narrow — only addresses that
 // already ran the app, never a bulk dump of everyone who touched the site.
 //
-// Usage: node scripts/who.mjs [hoursBack]     (npm run who)
+// Usage: node scripts/who.mjs [hoursBack]           (npm run who)
+//        node scripts/who.mjs --trail <ip> [hours]  one visitor, in order
 import { readFileSync } from "node:fs";
 import { execFile } from "node:child_process";
 
@@ -45,7 +46,9 @@ import { execFile } from "node:child_process";
 // loses that race every time — the query is built, then a few hundred
 // microseconds pass, and the span is 1d584ms. traffic.mjs already clamps to
 // 23.5 for the same reason; this is the same clamp, not a new idea.
-const hours = Math.min(Number(process.argv[2] || 24), 23.5);
+const argv = process.argv.slice(2);
+const trailIp = argv[0] === "--trail" ? argv[1] : null;
+const hours = Math.min(Number((trailIp ? argv[2] : argv[0]) || 24), 23.5);
 const creds = readFileSync(new URL("../../.git-credentials", import.meta.url), "utf8");
 const CF = (creds.match(/^CLOUDFLARE_API_TOKEN=(.*)$/m) || [])[1]?.trim();
 const ZONE = "4169ea6b92a0920d72f9ebc5f7653e9d";
@@ -61,6 +64,48 @@ const graphql = async (query) => {
   if (d.errors) throw new Error(d.errors.map((e) => e.message).join("; "));
   return d.data;
 };
+
+// --trail: one address, in the order it happened.
+//
+// The main report groups by address x path and throws the clock away, which is
+// the right shape for "how many people, how far did they get" and the wrong
+// shape for the only question a row like REACHED THE TOOL, TOOK NO BOOK raises:
+// what did they do, in what order, and where did they come in from? A landing
+// path of /go/<channel> names the channel that sent them; a word-list page
+// names the query; bare / means they arrived some other way entirely. Grouping
+// cannot answer that — arrival is a position, not a count.
+//
+// No referer column: clientRequestReferer is a paid field on this zone, which
+// is the whole reason /go/<channel> exists. The landing path is the referer.
+//
+// Deliberately NOT filtered to the puzzlepress host, unlike the report below.
+// The zone also serves the boss's zoo — the build logs for this experiment —
+// and the first trail I ran turned out to be somebody who read three days of
+// those logs and then clicked through to the app. Filtering that out would
+// have hidden the only thing the trail had to say. Non-puzzlepress hosts are
+// prefixed [host] so the two are never confused.
+//
+// Same privacy scope as the rest of the file, narrowed further: one address
+// that already appeared in the report above, asked for by hand.
+if (trailIp) {
+  const t = (
+    await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
+      httpRequestsAdaptiveGroups(limit: 2000, filter: {datetime_geq: "${since}", clientIP: "${trailIp}"}, orderBy: [datetimeMinute_ASC]) {
+        count dimensions { datetimeMinute clientRequestPath edgeResponseStatus clientRequestHTTPHost }
+      } } } }`)
+  ).viewer.zones[0].httpRequestsAdaptiveGroups;
+  if (!t.length) { console.log(`\nNothing from ${trailIp} in the last ${hours}h.\n`); process.exit(0); }
+  console.log(`\nTrail for ${trailIp} — last ${hours}h, ${t.reduce((a, r) => a + r.count, 0)} requests\n`);
+  let lastMin = null;
+  for (const r of t) {
+    const { datetimeMinute: m, clientRequestPath: p, edgeResponseStatus: s, clientRequestHTTPHost: h } = r.dimensions;
+    const hhmm = m.slice(11, 16);
+    console.log(`  ${hhmm === lastMin ? "     " : hhmm} ${String(s).padStart(3)} ${(h.split(".")[0] === "puzzlepress" ? "" : `[${h.split(".")[0]}] `)}${p}${r.count > 1 ? ` x${r.count}` : ""}`);
+    lastMin = hhmm;
+  }
+  console.log("");
+  process.exit(0);
+}
 
 // 2026-09-21: this was `limit: 500`, and it was quietly lying. The rows are
 // grouped by address x path x status x agent and ordered by count descending,
@@ -139,6 +184,20 @@ const did = (paths) => ({
   // asked to see the controls. Reached is what is observed, so reached is what
   // the row says.
   reachedTool: [...paths.keys()].some((p) => /^\/fonts\/.*\.ttf$/.test(p)),
+  // 2026-09-23: everything above infers intent from a file the browser
+  // happened to fetch. src/ui/px.js has been firing named beacons for the acts
+  // themselves since 2026-09-21 — traffic.mjs reads them and this file did not,
+  // so the two disagreed about the same visitors and the more careful one lost.
+  // Three addresses last night were filed here as "nothing chosen" when they
+  // had all scrolled the generator into view; the evidence was already in the
+  // log and this script was not looking at it.
+  //
+  // These are exact, not inferred: /px/tool.gif is an IntersectionObserver on
+  // the generator, /px/touched.gif a click inside it, /px/click.gif the
+  // Download press, /px/made.gif a finished PDF and /px/failed.gif one that
+  // threw. Prefer them; keep the chunk fingerprints, because a beacon can be
+  // blocked by an ad blocker and a chunk cannot.
+  px: new Set([...paths.keys()].filter((p) => p.startsWith("/px/")).map((p) => p.slice(4).replace(".gif", ""))),
   // 2026-09-21: the dashboard's "Opened a sample PDF" jumped 0 -> 4 overnight
   // while Download stayed at 0, and a bare count cannot say whether that was a
   // person deciding against the tool or Googlebot walking the links. It is the
@@ -202,15 +261,24 @@ for (const [ip, e] of ranTheApp) {
   const org = mine ? null : await orgOf(ip);
   // Say what was actually observed, not what I wish it meant. Only the first
   // of these is a visitor doing something; the other two are the page loading.
-  const stage = d.madeBook
+  //
+  // Ordered by how much it proves, most first. The two alarm rungs are in the
+  // middle deliberately: somebody who pressed Download and got no PDF is a bug
+  // report, not a funnel stage, and must never be filed under a softer label
+  // just because the render chunk did not load.
+  const stage = d.madeBook || d.px.has("made")
     ? "MADE A BOOK"
-    : d.pickedType
-      ? "CHANGED THE PUZZLE TYPE, took no book" // furthest anyone got short of a book
-      : d.reachedTool
-        ? "REACHED THE TOOL, took no book" // the balk — the row worth chasing
-      : d.loaded
-        ? "page finished loading, nothing chosen"
-        : "gone before the page finished loading";
+    : d.px.has("failed")
+      ? "!! PRESSED DOWNLOAD AND IT FAILED"
+      : d.px.has("click")
+        ? "!! PRESSED DOWNLOAD, no PDF came out"
+        : d.px.has("touched") || d.pickedType
+          ? "touched a control, took no book" // the balk, and the row worth chasing
+          : d.px.has("tool") || d.reachedTool
+            ? "saw the generator, touched nothing"
+            : d.loaded
+              ? "page loaded, never scrolled to the generator"
+              : "gone before the page finished loading";
   // A scanner that also runs JavaScript still counts its 404s, and that is the
   // only thing separating it from a reader. Say so on the row: traffic.mjs
   // drops these from the funnel, so a row here that is not marked is a row the
@@ -219,7 +287,10 @@ for (const [ip, e] of ranTheApp) {
   console.log(`  ${ip}${mine ? "   <-- THIS MACHINE, not a visitor" : scanner ? `   <-- SCANNER (${e.s404} 404s), excluded from the funnel` : ""}`);
   if (!mine) console.log(`    owner       ${org ?? "unknown (RDAP had no answer — do not assume person)"}`);
   for (const ua of e.uas) console.log(`    agent       ${ua.slice(0, 100)}`);
-  console.log(`    did         ${stage}${d.madeCover ? " + made a cover" : ""}   (${e.n} requests${e.s404 ? `, ${e.s404} were 404s` : ""})`);
+  const also = [d.madeCover && "made a cover", d.pickedType && "changed the puzzle type"].filter(Boolean);
+  console.log(`    did         ${stage}${also.length ? ` + ${also.join(", ")}` : ""}   (${e.n} requests${e.s404 ? `, ${e.s404} were 404s` : ""})`);
+  // The raw acts, unsummarised, so a wrong label above can be caught by eye.
+  if (d.px.size) console.log(`    beacons     ${[...d.px].sort().join(" ")}`);
   if (d.samples.length) console.log(`    opened      ${d.samples.join(", ")}`);
   console.log("");
 }

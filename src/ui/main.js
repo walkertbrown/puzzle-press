@@ -881,9 +881,31 @@ el.downloadCover.addEventListener("click", downloadCover);
 // "touched": operated any control at all. Capture phase and one listener for
 // the whole form, so it cannot drift out of step as controls are added — and
 // scoped to #tool so the unlock dialog's email field is not in it.
-for (const type of ["input", "change"]) {
+//
+// What counts as a person operating a control lives in one predicate because
+// two separate rungs ask the question — this beacon and the font warm-up far
+// below — and a day when they disagree is a day I read the funnel wrong.
+//
+// `input` and `change` alone miss every button. Previous/Next and Reshuffle
+// fire `click` and nothing else, and on 2026-09-23 the log caught exactly that:
+// an address fired `browsed` — the preview pager, which is a control, inside
+// the tool, pressed on purpose — and this beacon stayed silent, so who.mjs
+// filed a person paging through their puzzles as "saw the generator, touched
+// nothing". A click only counts on something operable, so clicking the
+// whitespace around the form is still not using it.
+//
+// `isTrusted` is the other half, and it was missing here too. The calculator
+// and word-list handoffs assign straight to `.value` and then dispatch one
+// synthetic `change`; without this guard every carry-in arrival fires
+// "touched" on landing and the rung measures nothing.
+const OPERATED_EVENTS = ["input", "change", "click"];
+const operated = (e) =>
+  e.isTrusted &&
+  !!e.target?.closest?.("#tool") &&
+  (e.type !== "click" || !!e.target.closest("button, input, select, textarea, a, label"));
+for (const type of OPERATED_EVENTS) {
   document.addEventListener(type, (e) => {
-    if (e.target?.closest?.("#tool")) px("touched");
+    if (operated(e)) px("touched");
   }, true);
 }
 el.closeDialog.addEventListener("click", closeUnlock);
@@ -1154,27 +1176,32 @@ if (new URLSearchParams(location.search).get("paid") && !getLicense()) {
     const tool = document.getElementById("tool");
     if (tool) {
       let done = false;
-      const engaged = (e) => {
-        if (done || !e.isTrusted) return;
+      const engaged = () => {
+        if (done) return;
         done = true;
-        for (const type of ["change", "input"]) tool.removeEventListener(type, engaged, true);
+        for (const type of OPERATED_EVENTS) tool.removeEventListener(type, onControl, true);
         removeEventListener("click", cta, true);
         loadFonts().catch(() => {});
       };
+      // Same `operated` predicate as the "touched" beacon above — including
+      // buttons, which this block used to miss for the same reason the beacon
+      // did: somebody whose first act was Reshuffle or the preview pager warmed
+      // nothing and paid the full 825 KB at the click.
+      const onControl = (e) => { if (operated(e)) engaged(); };
       // Pressing "Make a book free" counts, and counts for more than a control
-      // does. The landing page is nineteen screens tall and the tool is not on
-      // the first one: a visitor reaches the controls by pressing that button,
-      // which lives outside #tool and so fires neither change nor input. Left
-      // out, somebody who opened the tool, read it and left would be filed
-      // under "nothing chosen" alongside somebody who never scrolled at all —
-      // which is the exact ambiguity this whole rung exists to kill. It is
-      // also the earliest honest moment to start the fetch, so the fonts come
-      // down while they are still scrolling to the controls.
+      // does. The tool starts at screen 1.6 on a phone — one scroll below the
+      // fold, not buried — and pressing that button is how most people get
+      // there. It lives outside #tool, so it fires neither change nor input and
+      // `operated` rejects it by design. Left out, somebody who opened the
+      // tool, read it and left would be filed alongside somebody who never
+      // scrolled at all, which is the exact ambiguity this rung exists to kill.
+      // It is also the earliest honest moment to start the fetch, so the fonts
+      // come down while they are still scrolling to the controls.
       const cta = (e) => {
-        if (e.target?.closest?.('a[href="#tool"]')) engaged(e);
+        if (e.isTrusted && e.target?.closest?.('a[href="#tool"]')) engaged();
       };
-      for (const type of ["change", "input"]) {
-        tool.addEventListener(type, engaged, { capture: true, passive: true });
+      for (const type of OPERATED_EVENTS) {
+        tool.addEventListener(type, onControl, { capture: true, passive: true });
       }
       addEventListener("click", cta, { capture: true, passive: true });
     }

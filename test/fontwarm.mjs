@@ -29,7 +29,9 @@ const watch = async (url, act) => {
   const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
   await page.route("https://static.cloudflareinsights.com/**", (route) => route.abort());
   const fonts = [];
+  const px = [];
   page.on("request", (r) => { if (/\/fonts\/.*\.ttf/.test(r.url())) fonts.push(r.url().split("/").pop()); });
+  page.on("request", (r) => { const m = r.url().match(/\/px\/([a-z]+)\.gif/); if (m) px.push(m[1]); });
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.goto(url, { waitUntil: "networkidle" });
@@ -38,7 +40,7 @@ const watch = async (url, act) => {
   // The warm-up is deliberately idle-time work; give it room to happen.
   await page.waitForTimeout(2500);
   await page.close();
-  return { fonts, errors };
+  return { fonts, px, errors };
 };
 
 // 1. Landing and touching nothing must not spend 825 KB.
@@ -83,6 +85,35 @@ const cta = await watch(base, async (page) => {
 });
 check(cta.fonts.length === 2, `pressing the main CTA fetched ${JSON.stringify(cta.fonts)}, want both fonts`);
 console.log(`  pressed "Make a book free"     → ${cta.fonts.length} font requests`);
+
+// 3c. A button is a control too, and buttons fire neither change nor input.
+//
+// Added 2026-09-23, after the log showed an address that fired the `browsed`
+// beacon — it pressed the preview pager, which is a control, inside the tool,
+// on purpose — while the `touched` beacon stayed silent and the dashboard filed
+// that person as having touched nothing. Both rungs listened only for change
+// and input. Pressing Next is the whole test: it is the commonest button on
+// the page and it sends only a click.
+const pager = await watch(`${base}/#tool`, async (page) => {
+  await page.click("#next");
+});
+check(pager.fonts.length === 2, `pressing Next fetched ${JSON.stringify(pager.fonts)}, want both fonts`);
+check(pager.px.includes("touched"), `pressing Next fired beacons ${JSON.stringify(pager.px)} — no "touched", so who.mjs will call this person untouched`);
+console.log(`  pressed the preview pager      \u2192 ${pager.fonts.length} font requests, beacons ${pager.px.join("+")}`);
+
+// 3d. And the handoff must still not fire the beacon either — same synthetic
+//     `change`, same reason, a rung the other way round.
+await (async () => {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+  await page.goto(`${base}/spine-calculator`, { waitUntil: "networkidle" });
+  await page.selectOption("#trim", "6x9");
+  await page.fill("#pages", "100");
+  const href = await page.$eval("#makeBtn", (a) => a.getAttribute("href"));
+  await page.close();
+  const carried = await watch(`${base}${href}`, async () => {});
+  check(!carried.px.includes("touched"), `the calculator handoff alone fired "touched" (${JSON.stringify(carried.px)}) — a synthetic change counted as a person`);
+  console.log(`  handoff, beacon side           \u2192 ${carried.px.join("+") || "none"}`);
+})();
 
 // 4. And only once, however much more they fiddle.
 const again = await watch(base, async (page) => {
