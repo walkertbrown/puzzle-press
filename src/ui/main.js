@@ -723,9 +723,18 @@ async function download() {
     el.status.textContent =
       `Done — ${full.puzzles.length} puzzles, ${lastInterior.pages} pages, ${(blob.size / 1024).toFixed(0)} KB.` +
       (full.puzzles.length < count ? ` (${count - full.puzzles.length} could not be built — the cover will be sized for this book.)` : "");
-    // A file actually reached the disk. The font fetch already proves a PDF was
-    // rendered, but it cannot tell a finished download from one that fell over
-    // at the last step, and it is silent for a second book on cached fonts.
+    // The bytes exist and the save was handed to the browser. Precisely: the
+    // book rendered, the blob was built, and a.click() was dispatched without
+    // throwing. It does NOT prove a file reached the disk — nothing in a page
+    // can observe that — and the comment here used to claim it did, which is
+    // the same overclaiming that has cost me a week elsewhere. What it adds
+    // over the font fetch is real: fonts prove a PDF was *rendered*, cannot
+    // tell a finished download from one that fell over at the last step, and
+    // are silent for a second book on cached fonts.
+    //
+    // Delivery is verified out of band instead, by actually pressing the
+    // buttons people press and catching the file: test/pinnedpress.mjs, both
+    // pinned shims, chromium and webkit.
     px("made");
   } catch (err) {
     console.error(err);
