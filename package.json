@@ -36,6 +36,7 @@
     "test:livecheckout": "node test/livecheckout.mjs",
     "test:funnel": "node test/funnel.mjs",
     "test:press": "node test/press.mjs && node test/press.mjs webkit",
+    "test:reach": "node test/reachbutton.mjs && node test/reachbutton.mjs webkit \"iPhone 13\" && node test/reachbutton.mjs chromium \"Pixel 7\"",
     "test:unlock": "node test/unlock.mjs",
     "test:support": "node test/supportlookup.mjs",
     "unlock": "node scripts/unlock.mjs",
