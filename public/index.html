@@ -349,7 +349,17 @@
            price to 738px on a 664px screen once the picture moved up. What it
            costs to know is asymmetric: somebody who cannot see the price assumes
            the worst about it, and somebody who wants a fifth sample scrolls. -->
-      <span class="note price"><span class="hero-lg">Free: a full-length book, watermarked. $19 once removes the mark.</span><span class="hero-sm">Free, watermarked. $19 removes the mark.</span></span>
+      <!-- 2026-09-23: this said "watermarked", in both lengths, and so did the
+           thumb bar. The word is true and it is the wrong word. What the free
+           book actually carries is one 7pt grey line centred in the footer of
+           each page (render.js:139) — not a stamp across the artwork, which is
+           what a KDP publisher pictures when they read "watermarked", and what
+           they would correctly refuse to spend a click on. The pricing section
+           has always said it precisely, but that is twelve screens down and the
+           decision is made here. Same failure as the dashboard calling a load
+           timer engagement: literally true, practically misleading, except this
+           one is charged to the customer. -->
+      <span class="note price"><span class="hero-lg">Free: a full-length book, one small line in each page footer. $19 once removes it.</span><span class="hero-sm">Free — one small footer line. $19 removes it.</span></span>
       <span class="note">More samples: <a href="samples/sample-cover-6x9.pdf" target="_blank" rel="noopener">its cover</a> · <a href="samples/sample-sudoku-6x9.pdf" target="_blank" rel="noopener">sudoku</a> · <a href="samples/sample-maze-6x9.pdf" target="_blank" rel="noopener">maze</a> · <a href="samples/sample-crisscross-6x9.pdf" target="_blank" rel="noopener">fill-in</a> · <a href="samples/sample-crossword-6x9.pdf" target="_blank" rel="noopener">crossword</a></span>
     </div>
     <ul class="trust">
@@ -752,7 +762,10 @@ cherry"></textarea>
      keep in sync. -->
 <div class="thumb-bar" id="thumbBar">
   <button type="button" id="thumbDownload">Download interior PDF</button>
-  <span class="note">Free — watermarked.</span>
+  <!-- Pinned to the bottom of the viewport the whole way down, so this is the
+       single most-read sentence on the site. See the hero note for why it no
+       longer says "watermarked". -->
+  <span class="note">Free — one small footer line.</span>
 </div>
 
 <script src="config.js"></script>

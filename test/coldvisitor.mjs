@@ -112,7 +112,13 @@ check(overflow.scrollW <= overflow.clientW + 1, "nothing overflows sideways");
 
 const foldText = fold.map((o) => o.t).join(" ");
 check(/\$19/.test(foldText), "the price is above the fold");
-check(/watermark/i.test(foldText), "what you get for free is above the fold");
+// What the free tier costs you has to be above the fold. This used to grep for
+// the word "watermark", which was the copy at the time and is no longer: the
+// hero now names the actual mark, one small line in each page footer, because
+// "watermarked" made a 7pt grey footer sound like a stamp across the artwork.
+// Assert the substance — that the free terms are stated up here at all — so the
+// next rewording does not have to fight the test that was guarding the idea.
+check(/free/i.test(foldText) && /(footer|watermark)/i.test(foldText), "what you get for free is above the fold");
 check(above.some((c) => /make a book free/i.test(c.t)), 'the "Make a book free" button is above the fold');
 
 await browser.close();
