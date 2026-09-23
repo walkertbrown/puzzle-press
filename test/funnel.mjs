@@ -207,22 +207,40 @@ check(!looked(SIGNAL.made), "browsing the preview must NOT look like a finished 
     await page.goto(`${base}/${slug}`, { waitUntil: "networkidle" });
     const doors = await page.evaluate(() => {
       const page = document.documentElement.scrollHeight / innerHeight;
-      return {
-        page,
-        all: [...document.querySelectorAll("a.btn")].map((a) => ({
-          screens: (a.getBoundingClientRect().top + scrollY) / innerHeight,
-          h: Math.round(a.getBoundingClientRect().height),
-          text: a.textContent.trim(),
-        })),
+      // A door pinned to the viewport has no position in the article. Its
+      // getBoundingClientRect().top + scrollY is 0 at the top of the page and
+      // stays whatever the viewport says, so measuring it as prose geometry is
+      // meaningless — and, since 0 sorts last in document order, it silently
+      // became "the last door on the page" and hid the real one.
+      const pinned = (el) => {
+        for (let n = el; n && n !== document.documentElement; n = n.parentElement) {
+          if (/fixed|sticky/.test(getComputedStyle(n).position)) return true;
+        }
+        return false;
       };
+      const map = (a) => ({
+        screens: (a.getBoundingClientRect().top + scrollY) / innerHeight,
+        h: Math.round(a.getBoundingClientRect().height),
+        text: a.textContent.trim(),
+      });
+      const all = [...document.querySelectorAll("a.btn")];
+      return { page, inFlow: all.filter((a) => !pinned(a)).map(map), pinned: all.filter(pinned).map(map) };
     });
-    const first = doors.all[0];
-    console.log(`  ${slug.padEnd(26)} ${doors.all.length} door(s) on a ${doors.page.toFixed(1)}-screen page, first at ${first.screens.toFixed(2)} — "${first.text}"`);
+    // 2026-09-23: this check read `doors.all[doors.all.length - 1]` and had been
+    // failing on both pages ever since the read-bar shipped. The pages were
+    // right the whole time — /compare's closing door is at 8.44 of 9.1 screens
+    // and the guide's at 13.61 of 14.5 — and the failure was the read-bar's
+    // pinned button reporting screen 0 and sorting last. A red test I had
+    // learned to read past, which is the worst kind: it was guarding the one
+    // thing on these pages that turns a reader into a visitor.
+    const first = doors.inFlow[0];
+    const last = doors.inFlow[doors.inFlow.length - 1];
+    console.log(`  ${slug.padEnd(26)} ${doors.inFlow.length} door(s) on a ${doors.page.toFixed(1)}-screen page, first at ${first.screens.toFixed(2)} — "${first.text}", last at ${last.screens.toFixed(2)}${doors.pinned.length ? `, plus ${doors.pinned.length} pinned to the viewport` : ""}`);
     check(first.screens < 2, `${slug}: a door must be reachable within two screens (first is ${first.screens.toFixed(2)})`);
     check(first.h >= 44, `${slug}: and thumb-sized`);
     // A long read needs one at the end as well as one near the top: the reader
     // who actually reads it is the best prospect on the page.
-    check(doors.all[doors.all.length - 1].screens > doors.page - 2.5, `${slug}: and one still waiting at the end of the article`);
+    check(last.screens > doors.page - 2.5, `${slug}: and one still waiting at the end of the article (last in-flow door is ${last.screens.toFixed(2)} of ${doors.page.toFixed(1)})`);
     await page.click("a.btn");
     await page.waitForTimeout(1200);
     check([...paths].some((p) => beacon.test(p)), `${slug}: the door fires its own beacon, or the placement cannot be judged`);
