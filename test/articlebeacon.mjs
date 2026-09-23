@@ -20,9 +20,19 @@ import * as playwright from "playwright";
 const BASE = process.env.BASE || "https://puzzlepress.bananafest-destiny.com";
 const ENGINE = process.argv[2] || "chromium";
 
+// 2026-09-23, same afternoon: the three calculators had the same hole in a
+// different shape. "Used a calculator" was keyed on a fetch of the bundle,
+// which is better than keying on the HTML and still not a person — a crawler
+// that parses <script src> fetches the bundle without running a line of it.
+// They now fire their own names from inside the module body, so the report can
+// say which of the three search actually carries. Their call to action is the
+// handoff, which already had a beacon, so only the load half is new.
 const PAGES = [
   { path: "/how-to-make-a-puzzle-book", load: "guide", click: "guideclick" },
   { path: "/compare", load: "compare", click: "compareclick" },
+  { path: "/spine-calculator", load: "spine", click: "handoff" },
+  { path: "/royalty-calculator", load: "royalty", click: "handoff" },
+  { path: "/margin-calculator", load: "margin", click: "handoff" },
 ];
 
 let failed = 0;
@@ -72,4 +82,4 @@ if (failed) {
   console.log("Until this is green, a zero on the guide or comparison line means nothing at all.");
   process.exit(1);
 }
-console.log(`\nARTICLE BEACON OK — ${ENGINE}: both articles can report a human, so their silence is evidence`);
+console.log(`\nARTICLE BEACON OK — ${ENGINE}: all ${PAGES.length} non-generator pages can report a human, so their silence is evidence`);

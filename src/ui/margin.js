@@ -108,4 +108,14 @@ for (const [node, where] of [[el.make, "handoff"], [el.makeTop, "handofftop"]]) 
   });
 }
 
+// The load beacon, added 2026-09-23 for the same reason the guide and the
+// comparison page got one that morning. "Used a calculator" was counted as a
+// fetch of this bundle, and a crawler that reads a <script src> fetches it
+// too. The guide's version of that number was six people; all six were
+// crawlers. A module body only runs in something that executes JavaScript, so
+// this line is the first honest evidence that a person is on the page — and
+// naming it per calculator answers the question the handoff cannot: which of
+// the three free utilities search actually carries.
+px("margin");
+
 update();

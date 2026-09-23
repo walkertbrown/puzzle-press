@@ -582,8 +582,25 @@ try {
   // The old line was `hits(/calculator/)`, which also matched the HTML page,
   // so every crawler that fetched the page scored a use. Same error as
   // "ran the app" counting anything under /js/ — see the note above.
-  const calc = people(/^\/(spine|royalty|margin)\.js$/);
+  //
+  // 2026-09-23: keying on the bundle is better than keying on the HTML and
+  // still not evidence of a person. A crawler that parses <script src> fetches
+  // the bundle without running a line of it, which is exactly how the guide
+  // reported six readers who were six crawlers. So each calculator now fires
+  // its own load beacon from inside its module body — code that only runs in
+  // something that executes JavaScript. The script-fetch number is kept beside
+  // it, because the gap between the two IS the crawler count.
+  const calcJs = people(/^\/(spine|royalty|margin)\.js$/);
+  const calc = people(/^\/px\/(spine|royalty|margin)\.gif$/);
   const calcPages = people(/calculator/);
+  // Which of the three search actually carries. The handoff cannot answer this
+  // — it is one name from all three pages, on purpose, so the strategic number
+  // stays one number.
+  const calcEach = [
+    ["spine", people(/^\/px\/spine\.gif$/)],
+    ["royalty", people(/^\/px\/royalty\.gif$/)],
+    ["margin", people(/^\/px\/margin\.gif$/)],
+  ].filter(([, n]) => n);
   // What the Pinterest pins (marketing/pins.md) actually drive traffic to —
   // previously invisible entirely, see the `served` note above.
   //
@@ -663,7 +680,7 @@ try {
   }
   console.log(`      of those, ${wordListToApp} read by somebody who also ran the app — the only reason these pages exist`);
   if (pxTotal) console.log(`      ${listRan} ran JavaScript on one (the only real person/crawler line there is) and ${listClicked} pressed the button`);
-  console.log(`    Used a calculator           ${calc}${calcPages > calc ? `   (${calcPages - calc} more opened the page and never ran the script)` : ""}`);
+  console.log(`    Used a calculator           ${calcPages} fetched the HTML${pxTotal ? `, ${calcJs} fetched its script, ${calc} ran it${calcEach.length ? `   (${calcEach.map(([n, c]) => `${n} ${c}`).join(", ")})` : ""}` : ""}`);
   if (pxTotal) console.log(`      of those, ${handoff} pressed "make a book"${handoff ? ` (${handoffTop} from the button beside the answer, the rest from the end of the article)` : ""} and ${handoffToBook} of those got a file   <-- whether the free utilities are a front door`);
   console.log(`    Read the how-to guide       ${guidePages} fetched the HTML${pxTotal ? `, ${guideRan} ran its script, ${fromGuide} pressed a button   <-- the highest-intent search phrase on the site` : ""}`);
   console.log(`    Read the comparison         ${comparePages} fetched the HTML${pxTotal ? `, ${compareRan} ran its script, ${fromCompare} pressed a button` : ""}`);
