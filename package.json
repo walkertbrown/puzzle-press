@@ -40,6 +40,7 @@
     "test:pinned": "node test/pinnedpress.mjs && node test/pinnedpress.mjs webkit \"iPhone 13\"",
     "test:buyrung": "node test/buyrung.mjs && node test/buyrung.mjs webkit",
     "test:marks": "node test/marks.mjs",
+    "look": "node test/lookat.mjs",
     "test:unlock": "node test/unlock.mjs",
     "test:support": "node test/supportlookup.mjs",
     "unlock": "node scripts/unlock.mjs",

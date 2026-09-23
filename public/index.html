@@ -128,13 +128,22 @@
   /* Only where the header actually sticks. On a phone the preview sits six
      screens below the form and the fixed .thumb-bar covers this ground, so a
      second button here would be dead weight the visitor scrolls past twice. */
-  #previewDownload { display: none; }
+  #previewDownload, .pd-wrap { display: none; }
   @media (min-width: 801px) {
+    .pd-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-left: auto; }
     #previewDownload {
-      display: inline-block; margin-left: auto; font: inherit; font-weight: 600;
+      display: inline-block; font: inherit; font-weight: 600;
       padding: 10px 18px; border-radius: 8px; border: 1px solid var(--accent);
       background: var(--accent); color: var(--accent-ink); cursor: pointer;
     }
+    /* 2026-09-23: the phone's thumb bar has carried "Free — one small footer
+       line" beside its button since it was built, and this one had nothing.
+       On desktop /px/tool fires at 0.00 screens — the generator and this button
+       are on screen the instant the page settles — so the pinned button most
+       desktop visitors actually press was the one place on the site that asked
+       for a click without saying what it costs. The price of a free thing is
+       exactly the question a stranger is asking. */
+    .pd-wrap .note { color: var(--muted); font-size: 12px; }
   }
   .page { background: #fff; border: 1px solid var(--line); box-shadow: 0 2px 12px rgba(0,0,0,0.06); padding: 6%; max-width: 560px; margin: 0 auto; width: 100%; }
   .page h3 { margin: 0 0 12px; font-size: 20px; display: flex; justify-content: space-between; align-items: baseline; }
@@ -500,7 +509,12 @@ cherry"></textarea>
            cannot act on it without leaving the thing that convinced them.
            This rides along in the sticky header, beside the puzzle. Forwards
            to #download like the phone bar: one handler, one funnel signal. -->
-      <button type="button" id="previewDownload">Download this book</button>
+      <div class="pd-wrap">
+        <button type="button" id="previewDownload">Download this book</button>
+        <!-- The phone bar has said what it costs since the day it was built.
+             This one asked for a click in silence. -->
+        <span class="note">Free — one small footer line.</span>
+      </div>
     </div>
     <div class="page" id="page"></div>
     <div class="nav">
