@@ -10,7 +10,12 @@
 // licence, nothing typed. It asserts nothing. It exists so that "what does a
 // visitor actually see" has an answer that is a picture.
 //
-// Usage: node test/lookat.mjs [outdir]
+// Usage: node test/lookat.mjs [outdir] [path]
+//
+// With a path other than "/" it takes the top and the fold of that page instead
+// of the generator sequence — for the hundred-odd acquisition pages, where the
+// only question is what a searcher meets and whether anything on screen tells
+// them what to do next.
 import * as playwright from "playwright";
 import { devices } from "playwright";
 import fs from "node:fs";
@@ -18,6 +23,7 @@ import path from "node:path";
 
 const BASE = process.env.BASE || "https://puzzlepress.bananafest-destiny.com";
 const OUT = process.argv[2] || "/tmp/lookat";
+const PATH = process.argv[3] || "/";
 fs.mkdirSync(OUT, { recursive: true });
 
 const SHOTS = [
@@ -30,7 +36,22 @@ for (const s of SHOTS) {
   const ctx = await browser.newContext(s.ctx);
   const page = await ctx.newPage();
   await page.route("https://static.cloudflareinsights.com/**", (r) => r.abort());
-  await page.goto(BASE, { waitUntil: "domcontentloaded" });
+  await page.goto(BASE + PATH, { waitUntil: "domcontentloaded" });
+
+  if (PATH !== "/") {
+    // A static acquisition page. Two shots: what is above the fold, and what is
+    // one screen down — the whole of the decision, for a searcher who arrived
+    // on a phrase and is deciding in about four seconds whether to stay.
+    await page.waitForTimeout(1200);
+    await page.screenshot({ path: path.join(OUT, `${s.name}-1-top.png`) });
+    await page.evaluate(() => scrollBy(0, innerHeight));
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: path.join(OUT, `${s.name}-2-fold.png`) });
+    console.log(`${s.name}: 2 shots of ${PATH}`);
+    await browser.close();
+    continue;
+  }
+
   await page.waitForSelector("#tier:not(:empty)", { timeout: 20000 });
   // Let the preview draw. It is the thing being judged.
   await page.waitForTimeout(2500);
