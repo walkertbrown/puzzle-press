@@ -594,6 +594,25 @@ try {
     .reduce((a, [, c]) => a + c, 0);
   const window = funnelHours >= 23.5 ? "Last 24h" : `Last ${hours}h`;
   console.log(`\n  ${window}, by what people did (a day is all the free plan keeps):`);
+  // The number the business lives on, and until 2026-09-23 it was nowhere on
+  // this report. Every other line here is a stage; this is the denominator.
+  // An address that fetched a /px/ beacon ran JavaScript on a page of mine —
+  // on the landing page, a word-list page, a calculator, anywhere. It is the
+  // same crawler/person line every stage below is drawn on, and it is the only
+  // honest answer to "how many people came today".
+  //
+  // It belongs at the top because of what the rest of the report looks like
+  // without it: 362 requests, 130 word-list readers, 25 hits on robots.txt. I
+  // read those numbers for two days as a business with a conversion problem.
+  // They are a business with about seven people a day and a lot of robots.
+  // Union, not just the beacons: an ad blocker eats /px/ but not main.js, and
+  // a word-list reader fires /px/list without ever fetching main.js. Either one
+  // alone undercounts, and the first draft of this line printed 6 above a "ran
+  // the app 8" — a denominator smaller than one of its own stages.
+  const realPeople = people(/^\/px\/|^\/js\/main\.js$/);
+  if (realPeople !== null) {
+    console.log(`    REAL PEOPLE (ran any page)  ${realPeople}   <-- everything else on this report is a stage of these ${realPeople}, or a robot`);
+  }
   console.log(`    Requests for the page       ${requested}`);
   const nobody = ranTheApp === null;
   console.log(`    ...that ran the app         ${nobody ? `${ranReqs} requests (unfiltered — address lookup failed)` : `${ranTheApp} ${ranTheApp === 1 ? "person" : "people"}`}   <-- addresses, not requests; ${ranReqs} requests in total`);
