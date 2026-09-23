@@ -39,6 +39,10 @@ const ABOUT_SOMEBODY_ELSE = [
   // Engineering prose in the README about a test that used to be unfalsifiable.
   // It names the suite, it does not describe the product to a buyer.
   "The watermark test used to grep the PDF bytes for the words",
+  // PuzzleBindery's free tier, described in its own terms on /compare. This is
+  // the rule working: the sentence is about somebody else's product and had to
+  // be declared to survive.
+  "free to build with a watermarked proof and a one-time payment to remove it",
 ];
 
 const files = [];
