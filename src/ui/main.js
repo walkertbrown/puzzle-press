@@ -37,7 +37,7 @@ async function loadCover() {
   return coverMod;
 }
 import { px } from "./px.js";
-import { coverGeometry, spineWidthInches, SPINE_TEXT_MIN_PAGES } from "../pdf/cover-geometry.js";
+import { coverGeometry, spineWidthInches, SPINE_TEXT_MIN_PAGES, PAPER } from "../pdf/cover-geometry.js";
 import { royalty } from "../pdf/kdp-cost.js";
 import { pageGeometry } from "../pdf/kdp.js";
 import { FREE_LIMIT, PRICE_LABEL, getLicense as storedLicense, setLicense, verifyEmail } from "./license.js";
@@ -817,7 +817,7 @@ async function downloadCover() {
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
     el.status.textContent = lic
-      ? `Cover ready — sized for ${pages} pages on ${s.paper === "cream" ? "cream" : "white"} paper.`
+      ? `Cover ready — sized for ${pages} pages, ${(PAPER[s.paper] ?? PAPER.cream).label.toLowerCase()}.`
       : `Preview cover ready — your title, your spine (${pages} pages). Unlock to get it without the PREVIEW mark.`;
     if (!lic) openUnlock();
   } catch (err) {
@@ -885,6 +885,16 @@ for (const id of ["title", "subtitle", "author", "trim", "paper", "list", "ink",
   el[id].addEventListener("input", debounced);
   el[id].addEventListener("change", debounced);
 }
+// Groundwood is one choice that lives in two selects: it is a paper (spine
+// width) and KDP prices it as its own row (printing cost). Picking it in either
+// picks it in both; leaving it in either drops back to plain black on cream.
+function syncGroundwood(from) {
+  const other = from === el.ink ? el.paper : el.ink;
+  if (from.value === "groundwood") other.value = "groundwood";
+  else if (other.value === "groundwood") other.value = other === el.ink ? "black" : "cream";
+}
+el.ink.addEventListener("change", () => syncGroundwood(el.ink));
+el.paper.addEventListener("change", () => syncGroundwood(el.paper));
 // The untouched subtitle counts the puzzles, so it has to follow the count.
 el.count.addEventListener("input", refreshKind);
 el.themes.addEventListener("change", debounced);
@@ -1112,6 +1122,8 @@ refreshTier();
   if (ink && [...el.ink.options].some((o) => o.value === ink)) el.ink.value = ink;
   const paper = q.get("paper");
   if (paper && [...el.paper.options].some((o) => o.value === paper)) el.paper.value = paper;
+  if (el.ink.value === "groundwood") syncGroundwood(el.ink);
+  else if (el.paper.value === "groundwood") syncGroundwood(el.paper);
   const list = Number(q.get("list"));
   if (Number.isFinite(list) && list > 0 && list < 1000) el.list.value = list.toFixed(2);
   // The margin page draws the gutter with bleed on or off; arrive with the one

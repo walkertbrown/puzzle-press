@@ -147,15 +147,17 @@
   </div>
 
   <section class="prose">
-    <h2>The formulas</h2>
+    <h2 id="formulas">The formulas</h2>
     <p>Spine width = page count × paper thickness. Cover width = 0.125" bleed + back cover + spine + front cover + 0.125" bleed. Cover height = 0.125" + trim height + 0.125".</p>
     <table>
       <tr><th>Paper</th><th>Thickness per page</th></tr>
       <tr><td>Black &amp; white on white</td><td>0.002252"</td></tr>
       <tr><td>Black &amp; white on cream</td><td>0.0025"</td></tr>
+      <tr><td>Black &amp; white on groundwood</td><td>0.00235"</td></tr>
       <tr><td>Premium colour</td><td>0.002347"</td></tr>
       <tr><td>Standard colour</td><td>0.002252"</td></tr>
     </table>
+    <p>KDP's help pages don't give a thickness for groundwood paper, only a warning that a cream book over 350 pages, or a white one over 525, needs a new cover if you switch. Their own cover calculator answers it: 0.235" of spine at 100 pages, 1.946" at 828, so 0.00235" a page (checked September 2026). That is thinner than cream and thicker than white. A 300-page book loses 0.045" of spine moving from cream to groundwood, and gains 0.029" moving from white.</p>
   </section>
 
   <section class="prose">

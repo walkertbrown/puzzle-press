@@ -21,6 +21,9 @@ export const BARCODE_IN = { w: 2, h: 1.2, margin: 0.25 };
 export const PAPER = {
   white: { label: "Black & white on white paper", thickness: 0.002252 },
   cream: { label: "Black & white on cream paper", thickness: 0.0025 },
+  // Not on KDP's help pages. Their cover calculator returns 0.235" of spine
+  // at 100 pages and 1.946" at 828 (checked 2026-09-24): 0.00235 a page.
+  groundwood: { label: "Black & white on groundwood paper", thickness: 0.00235 },
   premiumColor: { label: "Premium colour", thickness: 0.002347 },
   standardColor: { label: "Standard colour", thickness: 0.002252 },
 };

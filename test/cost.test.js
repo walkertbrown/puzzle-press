@@ -75,3 +75,14 @@ test("large trim premium colour: flat 4.20 from 24 to 40 pages, then 1.00 + 0.08
   assert.equal(printingCost({ trim: "8.5x11", pages: 40, ink: "premiumColor" }).cost, 4.2);
   assert.equal(printingCost({ trim: "8.5x11", pages: 42, ink: "premiumColor" }).cost, 4.36);
 });
+
+// KDP's printing cost page, Amazon.com, checked 2026-09-24: groundwood is black
+// ink only, flat to 112 pages (not 110 like white/cream), then per page.
+test("groundwood paper: flat 2.23 to 112 pages, then 1.00 + 0.0114; large trim 2.75, then 1.00 + 0.0162", () => {
+  assert.equal(printingCost({ trim: "6x9", pages: 24, ink: "groundwood" }).cost, 2.23);
+  assert.equal(printingCost({ trim: "6x9", pages: 112, ink: "groundwood" }).cost, 2.23);
+  assert.equal(printingCost({ trim: "6x9", pages: 200, ink: "groundwood" }).cost, 3.28);
+  assert.equal(printingCost({ trim: "8.5x11", pages: 112, ink: "groundwood" }).cost, 2.75);
+  assert.equal(printingCost({ trim: "8.5x11", pages: 200, ink: "groundwood" }).cost, 4.24);
+  assert.equal(printingCost({ trim: "6x9", pages: 828, ink: "groundwood" }).cost, 10.44);
+});

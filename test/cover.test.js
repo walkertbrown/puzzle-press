@@ -17,6 +17,11 @@ test("spine width is page count x paper thickness, with nothing added", () => {
   assert.equal(spineWidthInches(100, "white"), 0.2252);
   assert.equal(spineWidthInches(100, "cream"), 0.25);
   assert.ok(Math.abs(spineWidthInches(200, "premiumColor") - 0.4694) < 1e-9);
+  // Groundwood is not on the help page; KDP's cover calculator returns 0.235"
+  // at 100 pages, 0.056 at 24, 0.783 at 333 and 1.946 at 828 (checked
+  // 2026-09-24) — 0.00235 a page, thicker than white, thinner than cream.
+  assert.ok(Math.abs(spineWidthInches(100, "groundwood") - 0.235) < 1e-9);
+  assert.equal(spineWidthInches(828, "groundwood").toFixed(3), "1.946");
   // Guard against the widespread "+0.06" figure, which is a hardcover rule.
   assert.notEqual(spineWidthInches(200, "white"), 200 * PAPER.white.thickness + 0.06);
 });

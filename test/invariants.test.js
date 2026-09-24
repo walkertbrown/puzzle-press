@@ -52,7 +52,7 @@ test("every book has an even page count, and says when it is too short for KDP",
 
 test("cover width equals back + spine + front + two bleeds for every trim", () => {
   for (const trim of trims) {
-    for (const paper of ["white", "cream", "premiumColor"]) {
+    for (const paper of ["white", "cream", "groundwood", "premiumColor"]) {
       const g = coverGeometry({ trim, pageCount: 120, paper });
       const sum = 0.125 * 72 + g.panelW + g.spine + g.panelW + 0.125 * 72;
       assert.ok(Math.abs(g.width - sum) < 1e-9, `${trim}/${paper}`);

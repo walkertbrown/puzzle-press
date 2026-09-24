@@ -18,6 +18,9 @@ export const INKS = {
   black: { label: "Black ink" },
   premiumColor: { label: "Premium colour" },
   standardColor: { label: "Standard colour" },
+  // A paper, not an ink, but KDP prices it as its own row: black ink on
+  // groundwood, about 5% cheaper a page, flat to 112 pages rather than 110.
+  groundwood: { label: "Black ink, groundwood paper" },
 };
 
 // [fixed, perPage] by ink, with a flat band for short books where KDP has one.
@@ -26,11 +29,13 @@ const RATES = {
     black: { flat: { max: 110, cost: 2.3 }, fixed: 1.0, perPage: 0.012, min: 24, max: 828 },
     premiumColor: { flat: { max: 40, cost: 3.6 }, fixed: 1.0, perPage: 0.065, min: 24, max: 828 },
     standardColor: { flat: null, fixed: 1.0, perPage: 0.0255, min: 72, max: 600 },
+    groundwood: { flat: { max: 112, cost: 2.23 }, fixed: 1.0, perPage: 0.0114, min: 24, max: 828 },
   },
   large: {
     black: { flat: { max: 110, cost: 2.84 }, fixed: 1.0, perPage: 0.017, min: 24, max: 828 },
     premiumColor: { flat: { max: 40, cost: 4.2 }, fixed: 1.0, perPage: 0.08, min: 24, max: 828 },
     standardColor: { flat: null, fixed: 1.0, perPage: 0.0402, min: 72, max: 600 },
+    groundwood: { flat: { max: 112, cost: 2.75 }, fixed: 1.0, perPage: 0.0162, min: 24, max: 828 },
   },
 };
 
