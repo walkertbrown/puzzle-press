@@ -53,8 +53,43 @@ for (const f of files) {
   }
 }
 
+// The README is the other half of the same job, and the more valuable half: a
+// brand search returns this repo above everything, so it is the highest-ranked
+// asset pointing at a domain with no index entries. On 2026-09-24 it carried
+// 132 lines and exactly one product link — the bare homepage.
+//
+// Its links are checked against the sitemap rather than over the network, so
+// this stays offline and deterministic. A renamed page would otherwise sever
+// the only inbound route the site has, silently.
+const failedBeforeReadme = failed;
+const readme = readFileSync(new URL("../README.md", import.meta.url).pathname, "utf8");
+const sitemap = readFileSync(new URL("../public/sitemap.xml", import.meta.url).pathname, "utf8");
+const published = new Set(
+  [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/\/$/, "")),
+);
+
+const readmeUrls = [...new Set(
+  [...readme.matchAll(/https:\/\/puzzlepress\.bananafest-destiny\.com[a-zA-Z0-9/_.#?=-]*/g)].map((m) => m[0]),
+)];
+const readmeDeep = readmeUrls.filter((u) => u.replace(HOST, "").replace(/^\//, "") !== "");
+
+// One link is what it had. Ten is not a magic number — it is "the five puzzle
+// types, the calculators and the samples are all reachable", which is the whole
+// point of the README carrying links at all.
+if (readmeDeep.length < 10) {
+  fail(`README.md has ${readmeDeep.length} deep link(s) — the repo outranks the site, so it is the main route in`);
+}
+for (const u of readmeUrls) {
+  if (!published.has(u.replace(/\/$/, "").replace(/#.*$/, ""))) {
+    fail(`README.md links ${u}, which is not in the sitemap — renamed or mistyped`);
+  }
+}
+if (failed === failedBeforeReadme) {
+  console.log(`  ok    README.md  ${readmeDeep.length} deep links, all present in the sitemap`);
+}
+
 if (failed) {
-  console.log(`\n${failed} problem(s) — a log entry with no route into the site is a post that cannot do its one job`);
+  console.log(`\n${failed} problem(s) — a page with no route into the site cannot do its one job`);
   process.exit(1);
 }
-console.log(`\nLOG LINKS OK — ${files.length} entr${files.length === 1 ? "y" : "ies"} since ${RULE_STARTS}, each with a route into a specific page`);
+console.log(`\nLOG LINKS OK — ${files.length} entr${files.length === 1 ? "y" : "ies"} since ${RULE_STARTS} plus the README, each with a route into a specific page`);
