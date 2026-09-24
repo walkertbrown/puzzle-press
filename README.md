@@ -5,6 +5,8 @@ cover — in the browser. Nothing is uploaded.
 
 **Live: https://puzzlepress.bananafest-destiny.com**
 
+[![Building a word search book and its cover in the browser, then sudoku, mazes, criss-cross fill-ins and crosswords](public/demo.gif)](https://puzzlepress.bananafest-destiny.com/)
+
 Five puzzle types —
 [word search](https://puzzlepress.bananafest-destiny.com/word-search-book-generator),
 [sudoku](https://puzzlepress.bananafest-destiny.com/sudoku-book-generator),
