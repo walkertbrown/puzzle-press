@@ -12,27 +12,42 @@
 // `node scripts/sample.mjs` to catch a regression before it goes live.
 //
 // Run: node test/sample-promo.mjs
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { PDFDocument, PDFName } from "pdf-lib";
 
 const SITE_URL = "https://puzzlepress.bananafest-destiny.com/";
 
-// The samples index.html actually links to (grep public/index.html for
-// "samples/" if this list ever needs rechecking).
-const SHOULD_HAVE_PROMO = [
-  "sample-6x9.pdf",
-  "sample-sudoku-6x9.pdf",
-  "sample-maze-6x9.pdf",
-  "sample-crisscross-6x9.pdf",
-  "sample-crossword-6x9.pdf",
-];
+// Both lists are read off the directory, and that is the whole point.
+//
+// They used to be typed out here, with a comment telling me to re-grep
+// index.html "if this list ever needs rechecking". On 2026-09-23 this test
+// printed "5 samples carry a way back to the site" and exited 0 while
+// sample-large-print-8.5x11.pdf shipped with no link at all — it had been
+// added to scripts/sample.mjs in a later block, the addPromoPage() call was
+// left off, and it was never added to the list here either. The same omission
+// twice, and a green test on top of it.
+//
+// A hardcoded inventory can only catch regressions in the files somebody
+// remembered to add, which is the opposite of what an inventory is for. The
+// cover list was worse: it named one of the six cover files, so five were
+// unchecked. Anything dropped into public/samples/ is now checked by existing.
+const ALL = readdirSync(new URL("../public/samples/", import.meta.url).pathname)
+  .filter((f) => f.endsWith(".pdf"))
+  .sort();
 
-// The one other linked sample: a single-page KDP cover wrap. It must stay a
-// faithful, single-page cover file — no promo page appended to it.
-const SHOULD_STAY_SINGLE_PAGE = ["sample-cover-6x9.pdf"];
+// An interior is paged through to the end, so it can carry a promo page. A
+// cover is a single-page full-wrap artefact and appending to it would destroy
+// it — so the naming convention is load-bearing, and asserted below.
+const SHOULD_HAVE_PROMO = ALL.filter((f) => !f.includes("cover"));
+const SHOULD_STAY_SINGLE_PAGE = ALL.filter((f) => f.includes("cover"));
+
 
 let failed = 0;
 const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } };
+
+// An empty or miscategorised directory must not read as "everything passed".
+check(SHOULD_HAVE_PROMO.length > 0 && SHOULD_STAY_SINGLE_PAGE.length > 0,
+  `public/samples/ looks wrong: ${SHOULD_HAVE_PROMO.length} interiors, ${SHOULD_STAY_SINGLE_PAGE.length} covers`);
 
 const pub = new URL("../public/samples/", import.meta.url);
 
@@ -73,4 +88,4 @@ if (failed) {
   console.log(`${failed} problem(s)`);
   process.exit(1);
 }
-console.log(`${SHOULD_HAVE_PROMO.length} samples carry a way back to the site, ${SHOULD_STAY_SINGLE_PAGE.length} cover file stays single-page`);
+console.log(`${SHOULD_HAVE_PROMO.length} samples carry a way back to the site, ${SHOULD_STAY_SINGLE_PAGE.length} cover files stay single-page`);
