@@ -58,6 +58,7 @@
     "test:fontwarm": "node test/fontwarm.mjs && node test/fontwarm.mjs webkit",
     "test:links": "node test/links.mjs",
     "test:graph": "node test/graph.mjs",
+    "test:loglinks": "node test/loglinks.mjs",
     "test:seo": "node test/seo.mjs",
     "test:sitemap": "node scripts/sitemap.mjs --check",
     "test:discoverable": "node test/discoverable.mjs",
