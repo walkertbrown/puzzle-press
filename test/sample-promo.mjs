@@ -82,6 +82,12 @@ for (const name of SHOULD_STAY_SINGLE_PAGE) {
   const bytes = readFileSync(new URL(name, pub));
   const doc = await PDFDocument.load(bytes);
   check(doc.getPageCount() === 1, `${name} is ${doc.getPageCount()} pages — a KDP cover file must stay single-page`);
+  // 2026-09-24: of five home-ISP addresses that opened a sample directly and
+  // never loaded the site, three opened a cover — a one-page file with no way
+  // back. A cover cannot take a promo page, so it carries a small visible
+  // publisher line on the back panel instead, and that line is the link.
+  const found = await lastPageLink(name);
+  check(found !== null && found.url === SITE_URL, `${name} has no link back to ${SITE_URL} — a cover opened from search is a dead end`);
 }
 
 // Metadata is the other half of the same job (2026-09-23). A PDF's own Title

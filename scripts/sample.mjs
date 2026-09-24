@@ -5,7 +5,8 @@ import { generateBook } from "../src/generator/book.js";
 import { THEMES } from "../src/generator/wordlists.js";
 import { renderBook, planPages, solutionsThatFit } from "../src/pdf/render.js";
 import { renderCover } from "../src/pdf/cover.js";
-import { pageGeometry } from "../src/pdf/kdp.js";
+import { pageGeometry, TRIMS } from "../src/pdf/kdp.js";
+import { BARCODE_IN, BLEED_IN } from "../src/pdf/cover-geometry.js";
 const fonts = {
   regular: readFileSync(new URL("../public/fonts/LiberationSans-Regular.ttf", import.meta.url)),
   bold: readFileSync(new URL("../public/fonts/LiberationSans-Bold.ttf", import.meta.url)),
@@ -75,7 +76,38 @@ async function finishSample(bytes, meta) {
   doc.setAuthor("Puzzle Press");
   doc.setCreator("Puzzle Press — puzzlepress.bananafest-destiny.com");
   doc.setProducer("Puzzle Press — puzzlepress.bananafest-destiny.com");
-  if (meta.cover) return doc.save();
+  if (meta.cover) {
+    // A cover cannot take a promo page — it must stay one full-wrap sheet — but
+    // three of five people who opened a sample straight from search on
+    // 2026-09-24 opened a cover and had no way back. So the sample alone gets a
+    // publisher line at the foot of the back panel, left of the barcode box
+    // where a real back cover would carry an imprint, and that line is the
+    // link. Added here, never in cover.js, which customers' covers go through.
+    const page = doc.getPage(0);
+    const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+    const regular = await doc.embedFont(StandardFonts.Helvetica);
+    const PT = 72;
+    const trim = TRIMS[meta.trim];
+    const left = (BLEED_IN + BARCODE_IN.margin) * PT;
+    const right = (BLEED_IN + trim.w - BARCODE_IN.w - 2 * BARCODE_IN.margin) * PT;
+    const base = (BLEED_IN + BARCODE_IN.margin) * PT;
+    const lead = "Sample cover, made free with Puzzle Press";
+    const url = "puzzlepress.bananafest-destiny.com";
+    const urlSize = Math.min(9, (9 * (right - left)) / bold.widthOfTextAtSize(url, 9));
+    page.drawText(url, { x: left, y: base, size: urlSize, font: bold, color: rgb(0.11, 0.21, 0.34) });
+    page.drawText(lead, { x: left, y: base + urlSize + 4, size: 7.5, font: regular, color: rgb(0.4, 0.4, 0.4) });
+    const top = base + urlSize + 4 + 10;
+    const width = Math.max(bold.widthOfTextAtSize(url, urlSize), regular.widthOfTextAtSize(lead, 7.5));
+    const linkAnnot = doc.context.obj({
+      Type: "Annot",
+      Subtype: "Link",
+      Rect: [left - 4, base - 4, left + width + 4, top + 2],
+      Border: [0, 0, 0],
+      A: { Type: "Action", S: "URI", URI: PDFString.of(SITE_URL) },
+    });
+    page.node.set(PDFName.of("Annots"), doc.context.obj([doc.context.register(linkAnnot)]));
+    return doc.save();
+  }
 
   const { width: w, height: h } = doc.getPage(0).getSize();
   const page = doc.addPage([w, h]);
