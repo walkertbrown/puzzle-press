@@ -1,11 +1,11 @@
 // Every build-log entry must carry a link to a specific product page.
 //
 // Why this exists (2026-09-24): the build log is one of two channels left, and
-// the only one with evidence behind it — a domain-restricted search finds five
-// of its posts on dev.to and *nothing at all* on the product domain, which has
-// 116 published URLs and zero index entries. A new domain is discovered by
-// being linked to from pages that are already indexed, so these posts are the
-// only inbound route that exists.
+// its posts are indexed and read. I first wrote this believing the product
+// domain had zero index entries — a WebSearch domain filter said so. Search
+// Console says otherwise: the pages are indexed, they just bring nobody. The
+// rule survives the correction, because a link from something people read is
+// still a route a reader can take, and its words still describe the target.
 //
 // They were mostly not doing that job. Of the five indexed posts, four link to
 // the bare homepage and nothing else; the fifth links to /spine-calculator and
@@ -92,7 +92,7 @@ for (const f of files) {
 
 // The READMEs are the other half of the same job, and the more valuable half: a
 // brand search returns these repos above the product itself, so they are the
-// highest-ranked assets pointing at a domain with no index entries.
+// highest-ranked assets pointing at the product.
 //
 // Both were nearly empty on 2026-09-24. app/README.md had 132 lines and exactly
 // one product link, the bare homepage. The build-log README had seventeen lines
