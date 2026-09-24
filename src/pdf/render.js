@@ -26,7 +26,11 @@ import { wallSegments } from "../generator/maze.js";
 const BLACK = rgb(0, 0, 0);
 const GREY = rgb(0.45, 0.45, 0.45);
 const SHADE = rgb(0.82, 0.82, 0.82);
-const WATERMARK = "Made with Puzzle Press — free preview";
+// The address is in the line because a free book can reach Amazon, where Look
+// Inside shows interior pages. A mark that names the tool but not where to find
+// it is an advert with no phone number. Text only, no link annotation: KDP
+// interiors should carry none.
+const WATERMARK = "Made with Puzzle Press, free preview — puzzlepress.bananafest-destiny.com";
 
 export async function renderBook(book, opts = {}) {
   const {
@@ -137,7 +141,8 @@ function footer(ctx, page, box, { number = true } = {}) {
     page.drawText(text, { x, y, size, font: ctx.F.regular, color: GREY });
   }
   if (!ctx.licensed) {
-    const s = 7;
+    let s = 7;
+    while (s > 5 && ctx.F.regular.widthOfTextAtSize(WATERMARK, s) > box.w) s -= 0.25;
     const w = ctx.F.regular.widthOfTextAtSize(WATERMARK, s);
     page.drawText(WATERMARK, { x: box.x + (box.w - w) / 2, y: y + 12, size: s, font: ctx.F.regular, color: GREY });
   }

@@ -9,8 +9,8 @@
 //
 // Why it matters more than a word usually does. What the free tier does:
 //
-//   * a 7pt grey line, centred in the page footer: "Made with Puzzle Press —
-//     free preview" (src/pdf/render.js, WATERMARK / footer())
+//   * a 7pt grey line, centred in the page footer: "Made with Puzzle Press,
+//     free preview — puzzlepress.bananafest-destiny.com" (src/pdf/render.js, WATERMARK / footer())
 //   * PREVIEW across the cover
 //
 // What a KDP publisher pictures when they read "watermarked" is a diagonal
