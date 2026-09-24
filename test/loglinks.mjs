@@ -53,43 +53,57 @@ for (const f of files) {
   }
 }
 
-// The README is the other half of the same job, and the more valuable half: a
-// brand search returns this repo above everything, so it is the highest-ranked
-// asset pointing at a domain with no index entries. On 2026-09-24 it carried
-// 132 lines and exactly one product link — the bare homepage.
+// The READMEs are the other half of the same job, and the more valuable half: a
+// brand search returns these repos above the product itself, so they are the
+// highest-ranked assets pointing at a domain with no index entries.
 //
-// Its links are checked against the sitemap rather than over the network, so
-// this stays offline and deterministic. A renamed page would otherwise sever
-// the only inbound route the site has, silently.
-const failedBeforeReadme = failed;
-const readme = readFileSync(new URL("../README.md", import.meta.url).pathname, "utf8");
+// Both were nearly empty on 2026-09-24. app/README.md had 132 lines and exactly
+// one product link, the bare homepage. The build-log README had seventeen lines
+// and did not name the product at all — a reader arriving there could not have
+// learned a live app existed.
+//
+// Links are checked against the sitemap rather than over the network, so this
+// stays offline and deterministic. A renamed page would otherwise sever an
+// inbound route silently.
+//
+// The minimums are not magic numbers. Ten is "the five puzzle types, the
+// calculators and the samples are all reachable"; eight is the same list
+// without the samples, which belong in the product repo and not the log.
+const READMES = [
+  { path: "../README.md", name: "app/README.md", min: 10 },
+  { path: "../../README.md", name: "README.md (build log)", min: 8 },
+];
+
 const sitemap = readFileSync(new URL("../public/sitemap.xml", import.meta.url).pathname, "utf8");
 const published = new Set(
   [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/\/$/, "")),
 );
 
-const readmeUrls = [...new Set(
-  [...readme.matchAll(/https:\/\/puzzlepress\.bananafest-destiny\.com[a-zA-Z0-9/_.#?=-]*/g)].map((m) => m[0]),
-)];
-const readmeDeep = readmeUrls.filter((u) => u.replace(HOST, "").replace(/^\//, "") !== "");
+for (const r of READMES) {
+  const before = failed;
+  const text = readFileSync(new URL(r.path, import.meta.url).pathname, "utf8");
+  const urls = [...new Set(
+    [...text.matchAll(/https:\/\/puzzlepress\.bananafest-destiny\.com[a-zA-Z0-9/_.#?=-]*/g)].map((m) => m[0]),
+  )];
+  const deep = urls.filter((u) => u.replace(HOST, "").replace(/^\//, "") !== "");
 
-// One link is what it had. Ten is not a magic number — it is "the five puzzle
-// types, the calculators and the samples are all reachable", which is the whole
-// point of the README carrying links at all.
-if (readmeDeep.length < 10) {
-  fail(`README.md has ${readmeDeep.length} deep link(s) — the repo outranks the site, so it is the main route in`);
-}
-for (const u of readmeUrls) {
-  if (!published.has(u.replace(/\/$/, "").replace(/#.*$/, ""))) {
-    fail(`README.md links ${u}, which is not in the sitemap — renamed or mistyped`);
+  if (deep.length < r.min) {
+    fail(`${r.name} has ${deep.length} deep link(s), needs ${r.min} — `
+      + `the repo outranks the site, so it is a main route in`);
   }
-}
-if (failed === failedBeforeReadme) {
-  console.log(`  ok    README.md  ${readmeDeep.length} deep links, all present in the sitemap`);
+  for (const u of urls) {
+    if (!published.has(u.replace(/\/$/, "").replace(/#.*$/, ""))) {
+      fail(`${r.name} links ${u}, which is not in the sitemap — renamed or mistyped`);
+    }
+  }
+  // Gated on a sentinel so an ok line can never print above a FAIL it caused.
+  if (failed === before) {
+    console.log(`  ok    ${r.name}  ${deep.length} deep links, all present in the sitemap`);
+  }
 }
 
 if (failed) {
   console.log(`\n${failed} problem(s) — a page with no route into the site cannot do its one job`);
   process.exit(1);
 }
-console.log(`\nLOG LINKS OK — ${files.length} entr${files.length === 1 ? "y" : "ies"} since ${RULE_STARTS} plus the README, each with a route into a specific page`);
+console.log(`\nLOG LINKS OK — ${files.length} entr${files.length === 1 ? "y" : "ies"} since ${RULE_STARTS} plus both READMEs, each with a route into a specific page`);
