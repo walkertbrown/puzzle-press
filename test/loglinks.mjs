@@ -36,6 +36,17 @@ const files = readdirSync(dir)
 let failed = 0;
 const fail = (msg) => { failed++; console.log(`FAIL ${msg}`); };
 
+// A bare pasted URL still counts as a link, and the check above would pass on a
+// page full of them — but it tells a search engine nothing about where it
+// points. The words in a link are how the target page gets described to the
+// index, so "[free KDP royalty calculator](...)" does work that the naked URL
+// does not. Only deep links are held to this: "Live: <homepage>" is idiomatic
+// and the homepage needs no describing.
+const bareDeep = (text) =>
+  [...text.matchAll(/(\]\()?(https:\/\/puzzlepress\.bananafest-destiny\.com[a-zA-Z0-9/_.#?=-]*)/g)]
+    .filter((m) => !m[1] && m[2].replace(HOST, "").replace(/^\//, "") !== "")
+    .map((m) => m[2]);
+
 // An empty set must not read as "everything passed" — same rule as
 // test/sample-promo.mjs. If no entry is ever checked, say so and fail.
 if (files.length === 0) fail(`no actual/*.md entries dated ${RULE_STARTS} or later — nothing was checked`);
@@ -48,7 +59,11 @@ for (const f of files) {
   if (deep.length === 0) {
     fail(`${f}: ${sections} sections, ${urls.length} product link(s), none of them deep — `
       + `the homepage is the one URL that is already crawled`);
-  } else {
+  }
+  for (const u of new Set(bareDeep(text))) {
+    fail(`${f} pastes ${u} bare — a link's words are how the page gets described to the index`);
+  }
+  if (deep.length > 0 && bareDeep(text).length === 0) {
     console.log(`  ok    ${f}  ${sections} sections, ${deep.length} deep link(s): ${deep.map((u) => u.replace(HOST, "")).join(" ")}`);
   }
 }
@@ -95,6 +110,9 @@ for (const r of READMES) {
     if (!published.has(u.replace(/\/$/, "").replace(/#.*$/, ""))) {
       fail(`${r.name} links ${u}, which is not in the sitemap — renamed or mistyped`);
     }
+  }
+  for (const u of new Set(bareDeep(text))) {
+    fail(`${r.name} pastes ${u} bare — a link's words are how the page gets described to the index`);
   }
   // Gated on a sentinel so an ok line can never print above a FAIL it caused.
   if (failed === before) {
