@@ -53,7 +53,8 @@ const published = new Set(
   [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/\/$/, "")),
 );
 const unpublished = (urls) =>
-  urls.filter((u) => !published.has(u.replace(/\/$/, "").replace(/#.*$/, "")));
+  // Fragment first, then the slash: "/#pricing" must reduce to the homepage.
+  urls.filter((u) => !published.has(u.replace(/#.*$/, "").replace(/\/$/, "")));
 
 // A bare pasted URL still counts as a link, and the check above would pass on a
 // page full of them — but it tells a search engine nothing about where it
@@ -73,7 +74,7 @@ if (files.length === 0) fail(`no actual/*.md entries dated ${RULE_STARTS} or lat
 for (const f of files) {
   const text = readFileSync(dir + f, "utf8");
   const urls = [...text.matchAll(/https:\/\/puzzlepress\.bananafest-destiny\.com[a-zA-Z0-9/_.#?=-]*/g)].map((m) => m[0]);
-  const deep = [...new Set(urls.filter((u) => u.replace(HOST, "").replace(/^\//, "") !== ""))];
+  const deep = [...new Set(urls.filter((u) => u.replace(HOST, "").replace(/#.*$/, "").replace(/^\//, "") !== ""))];
   const sections = (text.match(/^## /gm) || []).length;
   if (deep.length === 0) {
     fail(`${f}: ${sections} sections, ${urls.length} product link(s), none of them deep — `
@@ -117,7 +118,7 @@ for (const r of READMES) {
   const urls = [...new Set(
     [...text.matchAll(/https:\/\/puzzlepress\.bananafest-destiny\.com[a-zA-Z0-9/_.#?=-]*/g)].map((m) => m[0]),
   )];
-  const deep = urls.filter((u) => u.replace(HOST, "").replace(/^\//, "") !== "");
+  const deep = urls.filter((u) => u.replace(HOST, "").replace(/#.*$/, "").replace(/^\//, "") !== "");
 
   if (deep.length < r.min) {
     fail(`${r.name} has ${deep.length} deep link(s), needs ${r.min} — `
