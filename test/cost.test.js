@@ -3,7 +3,7 @@
 // the site quietly quoting stale money.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { printingCost, royalty, royaltyRate, minimumListPrice, isLargeTrim } from "../src/pdf/kdp-cost.js";
+import { printingCost, royalty, royaltyRate, minimumListPrice, isLargeTrim, expandedRoyalty } from "../src/pdf/kdp-cost.js";
 
 test("large trim is more than 6.12in wide or more than 9in tall — 6x9 is regular", () => {
   assert.equal(isLargeTrim("5x8"), false);
@@ -85,4 +85,33 @@ test("groundwood paper: flat 2.23 to 112 pages, then 1.00 + 0.0114; large trim 2
   assert.equal(printingCost({ trim: "8.5x11", pages: 112, ink: "groundwood" }).cost, 2.75);
   assert.equal(printingCost({ trim: "8.5x11", pages: 200, ink: "groundwood" }).cost, 4.24);
   assert.equal(printingCost({ trim: "6x9", pages: 828, ink: "groundwood" }).cost, 10.44);
+});
+
+// KDP's own worked example on its paperback royalty page (checked 2026-09-24):
+// $15 list, 333-page regular trim black ink, $5.00 printing — $4.00 on
+// Amazon.com, $1.00 through Expanded Distribution at 40%.
+test("expanded distribution: 40% of list minus the same printing cost, KDP's worked example", () => {
+  assert.equal(royalty({ list: 15, trim: "6x9", pages: 333, ink: "black" }).royalty, 4.0);
+  const ed = expandedRoyalty({ list: 15, trim: "6x9", pages: 333, ink: "black" });
+  assert.equal(ed.royalty, 1.0);
+  assert.equal(ed.minList, 12.5, "the lowest price at which 40% covers $5.00 of printing");
+  assert.equal(expandedRoyalty({ list: 9.99, trim: "6x9", pages: 30, ink: "standardColor" }).royalty, null);
+});
+
+// Found 2026-09-24: 2.49 / 0.5 * 100 is 498.00000000000006 in floating point,
+// so ceil made it 499 and a 124-page 6x9 was told its floor was $4.99, not
+// $4.98. 218 of the book shapes the calculator offers were a cent high.
+test("minimum list price is exact to the cent, not a float rounded up", () => {
+  assert.equal(minimumListPrice(2.49), 4.98);
+  assert.equal(minimumListPrice(4.19), 8.38);
+  assert.equal(minimumListPrice(2.2), 4.4);
+  assert.equal(expandedRoyalty({ list: 9.99, trim: "6x9", pages: 110, ink: "black" }).minList, 5.75);
+  for (let c = 200; c <= 2000; c++) {
+    const p = c / 100;
+    const m = minimumListPrice(p);
+    assert.ok(Math.round(m * 100) === m * 100 || Math.abs(m * 100 - Math.round(m * 100)) < 1e-6, `${p} -> ${m}`);
+    const rate = m >= 9.99 ? 0.6 : 0.5;
+    assert.ok(rate * m >= p - 1e-9, `${p}: ${m} does not cover printing`);
+    assert.ok(rate * (m - 0.01) < p - 1e-9 || m === 9.99, `${p}: ${m} is not the lowest`);
+  }
 });

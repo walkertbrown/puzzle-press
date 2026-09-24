@@ -107,7 +107,29 @@ export function royalty({ list = 9.99, trim = "6x9", pages = 24, ink = "black" }
 // Below the threshold KDP pays 50%, so a cheap book needs a higher price to
 // break even than a naive cost/0.6 suggests. Check the low band first.
 export function minimumListPrice(printing) {
-  const low = Math.ceil((printing / 0.5) * 100) / 100;
+  const low = centsToCover(printing, 0.5);
   if (low < ROYALTY_THRESHOLD) return low;
-  return Math.max(ROYALTY_THRESHOLD, Math.ceil((printing / 0.6) * 100) / 100);
+  return Math.max(ROYALTY_THRESHOLD, centsToCover(printing, 0.6));
+}
+
+// The lowest whole-cent price at which `rate` of it covers `printing`. Done in
+// integer cents: in floats 2.49 / 0.5 * 100 is 498.00000000000006, and a ceil
+// of that told a 124-page 6x9 its floor was $4.99 instead of $4.98.
+function centsToCover(printing, rate) {
+  const cents = Math.round(printing * 100);
+  const pct = Math.round(rate * 100);
+  return Math.ceil((cents * 100) / pct) / 100;
+}
+
+// Expanded Distribution (bookstores, libraries, other retailers) pays 40% of
+// list, minus the same printing cost, at every price. KDP's worked example:
+// $15, 333 pages, $5.00 printing -> $4.00 on Amazon.com, $1.00 expanded.
+export const EXPANDED_RATE = 0.4;
+export function expandedRoyalty({ list = 9.99, trim = "6x9", pages = 24, ink = "black" } = {}) {
+  const { cost } = printingCost({ trim, pages, ink });
+  if (cost === null) return { royalty: null, minList: null };
+  return {
+    royalty: Math.round((EXPANDED_RATE * list - cost) * 100) / 100,
+    minList: centsToCover(cost, EXPANDED_RATE),
+  };
 }

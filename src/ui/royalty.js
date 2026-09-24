@@ -1,14 +1,14 @@
 // The royalty calculator page. Imports the same cost module the generator
 // quotes from, so the page and the product cannot disagree about money.
 import { TRIMS } from "../pdf/kdp.js";
-import { printingCost, royalty, INKS, MARKETPLACE, ROYALTY_THRESHOLD } from "../pdf/kdp-cost.js";
+import { printingCost, royalty, expandedRoyalty, EXPANDED_RATE, INKS, MARKETPLACE, ROYALTY_THRESHOLD } from "../pdf/kdp-cost.js";
 import { toolLink, carryNote } from "./tool-link.js";
 import { px } from "./px.js";
 
 const $ = (id) => document.getElementById(id);
 const el = {
   trim: $("trim"), pages: $("pages"), ink: $("ink"), list: $("list"),
-  printing: $("printing"), earn: $("earn"), rate: $("rate"), minList: $("minList"),
+  printing: $("printing"), earn: $("earn"), rate: $("rate"), minList: $("minList"), expanded: $("expanded"),
   sum: $("sum"), warn: $("warn"), band: $("band"), market: $("market"), per100: $("per100"),
   make: $("makeBtn"), makeTop: $("makeBtnTop"), carry: $("carry"),
 };
@@ -50,6 +50,7 @@ function update() {
     el.earn.textContent = "—";
     el.rate.textContent = "—";
     el.minList.textContent = "—";
+    el.expanded.textContent = "";
     el.band.textContent = "";
     el.per100.textContent = "";
     el.sum.textContent = "";
@@ -75,6 +76,17 @@ function update() {
   el.rate.textContent = `${Math.round(r.rate * 100)}% royalty rate — KDP pays 60% at ${money(ROYALTY_THRESHOLD)} and above, 50% below it.`
     + (better > 0 ? ` Listing at ${money(ROYALTY_THRESHOLD)} instead of ${money(list)} would earn ${money(better)} more a copy.` : "");
   el.minList.textContent = `${money(r.minList)} is the lowest list price that still covers printing.`;
+  // Expanded Distribution is a checkbox on KDP's pricing page and pays 40%.
+  // Checked 2026-09-24 on KDP's own Expanded Distribution page: "Content not
+  // currently accepted includes" puzzle books, word search, sudoku, crossword,
+  // maze and activity books, by name. So for everything this site makes, the
+  // Amazon figure above is the whole of it. Say so rather than show a second
+  // income that isn't there.
+  const ed = expandedRoyalty({ list, trim, pages, ink });
+  el.expanded.textContent =
+    `Expanded Distribution (bookstores and libraries) would pay ${EXPANDED_RATE * 100}%, `
+    + (ed.royalty >= 0 ? `${money(ed.royalty)} a copy, ` : `a loss of ${money(-ed.royalty)} a copy at this price, `)
+    + `but KDP's distributors don't currently accept puzzle books: word search, sudoku, crossword and maze are named. For a puzzle book, the Amazon figure is the whole of it.`;
   // The flat band is the most useful fact on this page and it was printed as
   // jargon. Black ink on regular trim costs $2.30 whether the book is 24 pages
   // or 110 — at 6x9 that is 13 puzzles against 88, so seventy-five puzzles are
