@@ -61,7 +61,19 @@ function update() {
   const r = royalty({ list, trim, pages, ink });
   el.printing.textContent = money(r.printing);
   el.earn.textContent = money(r.royalty);
-  el.rate.textContent = `${Math.round(r.rate * 100)}% royalty rate — KDP pays 60% at ${money(ROYALTY_THRESHOLD)} and above, 50% below it.`;
+  // The threshold, and what it is actually costing them right now. The rule
+  // itself was already on the page; the consequence was not, and the
+  // consequence is the whole point. A book at $9.98 earns $2.69 and the same
+  // book at $9.99 earns $3.69 — a dollar for a cent, because the rate steps
+  // from 50% to 60%. That is the worst price on the table and it is exactly
+  // where the just-under-the-round-number instinct puts you. The calculator
+  // knew this and said nothing, so anyone who did not already understand the
+  // threshold could read every number on the page and still price at $9.98.
+  const better = list > 0 && list < ROYALTY_THRESHOLD
+    ? royalty({ list: ROYALTY_THRESHOLD, trim, pages, ink }).royalty - r.royalty
+    : 0;
+  el.rate.textContent = `${Math.round(r.rate * 100)}% royalty rate — KDP pays 60% at ${money(ROYALTY_THRESHOLD)} and above, 50% below it.`
+    + (better > 0 ? ` Listing at ${money(ROYALTY_THRESHOLD)} instead of ${money(list)} would earn ${money(better)} more a copy.` : "");
   el.minList.textContent = `${money(r.minList)} is the lowest list price that still covers printing.`;
   el.band.textContent = `${cost.large ? "Large trim" : "Regular trim"} · ${cost.band}`;
   el.sum.textContent = `(${money(list)} × ${r.rate}) − ${money(r.printing)} = ${money(r.royalty)}`;
