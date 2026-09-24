@@ -11,7 +11,17 @@ const el = {
   trim: $("trim"), pages: $("pages"), paper: $("paper"),
   spine: $("spine"), spineMm: $("spineMm"), cover: $("cover"), coverMm: $("coverMm"),
   gutter: $("gutter"), spineText: $("spineText"), barcode: $("barcode"), sum: $("sum"),
+  coverPx: $("coverPx"), pxNote: $("pxNote"),
 };
+
+// Nobody designs a cover in inches. They open Canva or Photoshop, which ask for
+// a canvas in pixels, and the conversion needs a DPI the tool never states.
+// Checked against KDP's published guidelines 2026-09-23: images must be placed
+// at a minimum of 300 DPI, 600 is their recommended ceiling to keep the file
+// under 650MB, and a paperback cover must be CMYK and a single PDF containing
+// back, spine and front. So 300 is the number to multiply by — it is the floor
+// they enforce, not a convention I picked.
+const COVER_DPI = 300;
 
 for (const [id, t] of Object.entries(TRIMS)) {
   const o = document.createElement("option");
@@ -54,6 +64,10 @@ function update() {
   el.spineMm.textContent = mm(spine);
   el.cover.textContent = `${inch(w)} × ${inch(h)}`;
   el.coverMm.textContent = `${mm(w)} × ${mm(h)}`;
+  el.coverPx.textContent = `${Math.round(w * COVER_DPI)} × ${Math.round(h * COVER_DPI)} px`;
+  el.pxNote.textContent =
+    `The same cover at ${COVER_DPI} DPI — the canvas size to type into Canva, Photoshop or Affinity. `
+    + `${COVER_DPI} DPI is KDP's stated minimum for print images; export CMYK, and as one PDF holding back, spine and front together.`;
   el.gutter.textContent = `${inch(gutterInches(pages))} inside margin`;
   el.spineText.textContent =
     pages >= SPINE_TEXT_MIN_PAGES

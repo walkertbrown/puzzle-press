@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KDP Spine Width Calculator — Exact Cover Size for Any Page Count</title>
-<meta name="description" content="Work out the spine width and full cover size for an Amazon KDP paperback. Uses Amazon's own formula — page count × paper thickness, with nothing added. Free, no sign-up.">
+<meta name="description" content="Work out the spine width and full cover size for an Amazon KDP paperback — in inches, millimetres and pixels at 300 DPI, ready to paste into Canva or Photoshop. Uses Amazon's own formula: page count × paper thickness, with nothing added. Free, no sign-up.">
 <link rel="canonical" href="https://puzzlepress.bananafest-destiny.com/spine-calculator">
 <meta property="og:type" content="website">
 <meta property="og:title" content="KDP Spine Width Calculator">
@@ -31,6 +31,7 @@
   .out { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px; }
   @media (max-width:560px){ .out { grid-template-columns:1fr; } }
   .big { background:#f2f5fa; border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .big.wide { grid-column:1 / -1; }
   .big .k { font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
   .big .v { font-size:30px; font-weight:700; letter-spacing:-0.02em; margin-top:2px; }
   .big .s { color:var(--muted); font-size:14px; }
@@ -110,6 +111,11 @@
         <div class="k">Full cover PDF size</div>
         <div class="v" id="cover">—</div>
         <div class="s" id="coverMm">—</div>
+      </div>
+      <div class="big wide">
+        <div class="k">Design canvas at 300 DPI</div>
+        <div class="v" id="coverPx">—</div>
+        <div class="s" id="pxNote">—</div>
       </div>
     </div>
 
