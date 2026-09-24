@@ -22,8 +22,8 @@
 ## Guides and calculators
 
 - [How to make a KDP puzzle book](https://puzzlepress.bananafest-destiny.com/how-to-make-a-puzzle-book): trim sizes, gutter table, spine width, pricing, and the mistakes that get files rejected.
-- [Spine width calculator](https://puzzlepress.bananafest-destiny.com/spine-calculator): Amazon's own paperback formula — page count times paper thickness, with no hardcover markup added.
-- [Royalty calculator](https://puzzlepress.bananafest-destiny.com/royalty-calculator): KDP printing cost and royalty for any trim, page count, and price.
+- [Spine width calculator](https://puzzlepress.bananafest-destiny.com/spine-calculator): Amazon's own paperback formula — page count times paper thickness, with no hardcover markup added. Includes groundwood paper (0.00235" a page), which KDP's help pages don't state; the figure is read from KDP's own cover calculator.
+- [Royalty calculator](https://puzzlepress.bananafest-destiny.com/royalty-calculator): KDP printing cost and royalty for any trim, page count, and price, on black ink (white, cream or groundwood paper), premium colour or standard colour.
 - [Margin calculator](https://puzzlepress.bananafest-destiny.com/margin-calculator): inside, outside, top and bottom margins for any trim, page count and bleed setting, plus the PDF page size with bleed for every trim (0.125" wider and 0.25" taller than the trim, not 0.25" both ways) in inches, millimetres and 300-DPI pixels.
 - [Compared to free generators](https://puzzlepress.bananafest-destiny.com/compare): free puzzle generators, subscription suites, a direct competitor that also builds interior and cover (PuzzleBindery), and doing it by hand — including when each is the better choice.
 
