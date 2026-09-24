@@ -6,7 +6,7 @@
 > book's own page count) formatted to KDP's trim, bleed, and gutter rules.
 > Runs entirely in the browser: nothing typed leaves the page except an
 > email address at checkout. Free to use — free books carry one small line in the page footer and a cover marked PREVIEW; $19 one-time
-> removes it. No account required. Not affiliated with Amazon; KDP is a
+> removes both. No account required. Not affiliated with Amazon; KDP is a
 > trademark of Amazon.com, Inc.
 
 ## Generators
@@ -24,8 +24,8 @@
 - [How to make a KDP puzzle book](https://puzzlepress.bananafest-destiny.com/how-to-make-a-puzzle-book): trim sizes, gutter table, spine width, pricing, and the mistakes that get files rejected.
 - [Spine width calculator](https://puzzlepress.bananafest-destiny.com/spine-calculator): Amazon's own paperback formula — page count times paper thickness, with no hardcover markup added.
 - [Royalty calculator](https://puzzlepress.bananafest-destiny.com/royalty-calculator): KDP printing cost and royalty for any trim, page count, and price.
-- [Margin calculator](https://puzzlepress.bananafest-destiny.com/margin-calculator): inside-margin (gutter) sizing by page count.
-- [Compared to free generators](https://puzzlepress.bananafest-destiny.com/compare): what a browser "Save PDF" alternative does and does not produce, versus a print-ready interior plus a cover.
+- [Margin calculator](https://puzzlepress.bananafest-destiny.com/margin-calculator): inside, outside, top and bottom margins for any trim, page count and bleed setting, plus the PDF page size with bleed for every trim (0.125" wider and 0.25" taller than the trim, not 0.25" both ways) in inches, millimetres and 300-DPI pixels.
+- [Compared to free generators](https://puzzlepress.bananafest-destiny.com/compare): free puzzle generators, subscription suites, a direct competitor that also builds interior and cover (PuzzleBindery), and doing it by hand — including when each is the better choice.
 
 ## About
 
