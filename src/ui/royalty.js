@@ -75,7 +75,21 @@ function update() {
   el.rate.textContent = `${Math.round(r.rate * 100)}% royalty rate — KDP pays 60% at ${money(ROYALTY_THRESHOLD)} and above, 50% below it.`
     + (better > 0 ? ` Listing at ${money(ROYALTY_THRESHOLD)} instead of ${money(list)} would earn ${money(better)} more a copy.` : "");
   el.minList.textContent = `${money(r.minList)} is the lowest list price that still covers printing.`;
-  el.band.textContent = `${cost.large ? "Large trim" : "Regular trim"} · ${cost.band}`;
+  // The flat band is the most useful fact on this page and it was printed as
+  // jargon. Black ink on regular trim costs $2.30 whether the book is 24 pages
+  // or 110 — at 6x9 that is 13 puzzles against 88, so seventy-five puzzles are
+  // free to print. Someone padding to the 24-page minimum to keep costs down is
+  // paying the full price for a quarter of a book, and the page said "flat rate
+  // up to 110 pages" at them without ever saying what it was worth.
+  const freePages = cost.flatMax ? cost.flatMax - pages : 0;
+  el.band.textContent = `${cost.large ? "Large trim" : "Regular trim"} · ${cost.band}`
+    + (freePages > 0
+      ? ` — ${freePages} more pages would cost you nothing to print.`
+      : freePages === 0 && cost.flatMax
+        ? ` — this is the last page at the flat rate.`
+        : cost.perPage
+          ? ` — past the flat band, each extra page costs ${(cost.perPage * 100).toFixed(1)}¢.`
+          : "");
   el.sum.textContent = `(${money(list)} × ${r.rate}) − ${money(r.printing)} = ${money(r.royalty)}`;
   el.per100.textContent = r.royalty > 0 ? `${money(r.royalty * 100)} if you sell a hundred copies.` : "";
 

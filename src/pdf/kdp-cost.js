@@ -45,22 +45,31 @@ export function printingCost({ trim = "6x9", pages = 24, ink = "black" } = {}) {
   const large = isLargeTrim(trim);
   const r = RATES[large ? "large" : "regular"][ink] ?? RATES.regular.black;
 
+  // flatMax is reported so a caller can say what the flat band is *worth*.
+  // Printing is one price from r.min pages to r.flat.max, so every page under
+  // that ceiling is free to print — at 6x9 black that is $2.30 whether the
+  // book is 24 pages or 110. Callers had only the band's name to go on.
+  const flatMax = r.flat ? r.flat.max : null;
+
   if (pages < r.min || pages > r.max) {
     return {
       cost: null,
       large,
       band: null,
+      flatMax,
       note: `${INKS[ink].label} on ${large ? "large" : "regular"} trim is printed from ${r.min} to ${r.max} pages.`,
     };
   }
   if (r.flat && pages <= r.flat.max) {
-    return { cost: r.flat.cost, large, band: `flat rate up to ${r.flat.max} pages`, note: null };
+    return { cost: r.flat.cost, large, band: `flat rate up to ${r.flat.max} pages`, flatMax, note: null };
   }
   const cost = r.fixed + pages * r.perPage;
   return {
     cost: Math.round(cost * 100) / 100,
     large,
     band: `${r.fixed.toFixed(2)} + ${pages} × ${r.perPage}`,
+    flatMax,
+    perPage: r.perPage,
     note: null,
   };
 }
