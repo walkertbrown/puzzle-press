@@ -101,7 +101,7 @@ for (const name of ALL) {
   // Google truncates a result headline around 60-70 characters.
   check(title.length <= 70, `${name} Title is ${title.length} chars — it will be cut off in a result`);
   check(subject.includes(DOMAIN), `${name} Subject does not name the site: ${JSON.stringify(subject)}`);
-  check(keywords.length > 0, `${name} has no Keywords`);
+  check(keywords.includes(","), `${name} Keywords are not comma-separated, so the terms run together: ${JSON.stringify(keywords)}`);
 }
 
 if (failed) {

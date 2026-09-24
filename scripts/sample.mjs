@@ -50,7 +50,10 @@ const sampleSubject = ({ kind, count, trim, cover }) =>
     ? `A free ${trim} ${kind.toLowerCase()} book cover sample from Puzzle Press — one full wrap holding back cover, spine and front, with the spine width sized to the page count, as Amazon KDP requires. Make your own free at puzzlepress.bananafest-destiny.com.`
     : `A free ${trim} ${kind.toLowerCase()} book sample from Puzzle Press — ${count} puzzles with solutions, KDP gutter margins and embedded fonts, ready to upload. Make your own free at puzzlepress.bananafest-destiny.com.`;
 
-const sampleKeywords = ({ kind }) => [
+// pdf-lib joins a keywords array with spaces, which runs the terms together
+// into one nonsense phrase — so the commas are added here and the array holds
+// a single string.
+const sampleKeywords = ({ kind }) => [[
   `free ${kind.toLowerCase()} book`,
   `${kind.toLowerCase()} puzzle book`,
   "KDP puzzle book",
@@ -59,7 +62,7 @@ const sampleKeywords = ({ kind }) => [
   "print ready PDF",
   "puzzle book generator",
   "Puzzle Press",
-];
+].join(", ")];
 
 // Applied to every generated sample, interior and cover alike. `cover: true`
 // skips the promo page, because a KDP cover is a single-page full-wrap artefact
