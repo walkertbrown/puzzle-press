@@ -84,8 +84,28 @@ for (const name of SHOULD_STAY_SINGLE_PAGE) {
   check(doc.getPageCount() === 1, `${name} is ${doc.getPageCount()} pages — a KDP cover file must stay single-page`);
 }
 
+// Metadata is the other half of the same job (2026-09-23). A PDF's own Title
+// is what Google prints as the result headline and its Subject feeds the
+// snippet; before this, every sample's Title was a bare book title like
+// "Garden & Kitchen Word Search" and every Subject was null, so an indexed
+// sample said nothing about being a free KDP-ready file. Checked over the
+// discovered directory for the same reason the lists above are.
+const DOMAIN = "puzzlepress.bananafest-destiny.com";
+for (const name of ALL) {
+  const doc = await PDFDocument.load(readFileSync(new URL(name, pub)));
+  const title = doc.getTitle() || "";
+  const subject = doc.getSubject() || "";
+  const keywords = doc.getKeywords() || "";
+  check(title.startsWith("Free "), `${name} Title is ${JSON.stringify(title)} — a sample's headline must lead with what it is`);
+  check(title.includes("KDP"), `${name} Title omits KDP: ${JSON.stringify(title)}`);
+  // Google truncates a result headline around 60-70 characters.
+  check(title.length <= 70, `${name} Title is ${title.length} chars — it will be cut off in a result`);
+  check(subject.includes(DOMAIN), `${name} Subject does not name the site: ${JSON.stringify(subject)}`);
+  check(keywords.length > 0, `${name} has no Keywords`);
+}
+
 if (failed) {
   console.log(`${failed} problem(s)`);
   process.exit(1);
 }
-console.log(`${SHOULD_HAVE_PROMO.length} samples carry a way back to the site, ${SHOULD_STAY_SINGLE_PAGE.length} cover files stay single-page`);
+console.log(`${SHOULD_HAVE_PROMO.length} samples carry a way back to the site, ${SHOULD_STAY_SINGLE_PAGE.length} cover files stay single-page, ${ALL.length} carry findable metadata`);
