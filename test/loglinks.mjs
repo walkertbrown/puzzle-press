@@ -17,14 +17,22 @@
 // A bare homepage link does not count. The homepage is the one URL that already
 // gets crawled; it is the 115 others that have no route in.
 //
-// Only entries from the day the rule started are checked — the earlier ones are
-// already published and cannot be edited, and a test that fails on history
-// nobody can fix is a test people learn to ignore.
+// Only entries that have not gone out yet are checked. A test that fails on
+// history nobody can fix is a test people learn to ignore — but "history" has
+// to mean actually published, not merely written.
+//
+// I got that boundary wrong once. The first version of this file exempted
+// everything before 2026-09-24 on the assumption that the rest was live and
+// uneditable. The dev.to API (`/api/articles?username=bananafestdestiny`) says
+// the last published post is dated 2026-09-20, so 09-21 through 09-23 — 3,375
+// lines carrying two deep links between them — were sitting in the queue,
+// editable, and exempted for no reason. Raise this constant only against that
+// endpoint, never against a guess about what has gone out.
 //
 // Run: node test/loglinks.mjs
 import { readdirSync, readFileSync } from "node:fs";
 
-const RULE_STARTS = "2026-09-24";
+const RULE_STARTS = "2026-09-21";
 const HOST = "https://puzzlepress.bananafest-destiny.com";
 const dir = new URL("../../actual/", import.meta.url).pathname;
 
@@ -35,6 +43,17 @@ const files = readdirSync(dir)
 
 let failed = 0;
 const fail = (msg) => { failed++; console.log(`FAIL ${msg}`); };
+
+// Entries are checked against the sitemap for the same reason the READMEs are,
+// and it is safe to do here only because RULE_STARTS bounds this to posts that
+// have not gone out: a published post naming a page that has since been renamed
+// is history, not a defect.
+const sitemap = readFileSync(new URL("../public/sitemap.xml", import.meta.url).pathname, "utf8");
+const published = new Set(
+  [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/\/$/, "")),
+);
+const unpublished = (urls) =>
+  urls.filter((u) => !published.has(u.replace(/\/$/, "").replace(/#.*$/, "")));
 
 // A bare pasted URL still counts as a link, and the check above would pass on a
 // page full of them — but it tells a search engine nothing about where it
@@ -63,7 +82,10 @@ for (const f of files) {
   for (const u of new Set(bareDeep(text))) {
     fail(`${f} pastes ${u} bare — a link's words are how the page gets described to the index`);
   }
-  if (deep.length > 0 && bareDeep(text).length === 0) {
+  for (const u of unpublished([...new Set(urls)])) {
+    fail(`${f} links ${u}, which is not in the sitemap — renamed or mistyped`);
+  }
+  if (deep.length > 0 && bareDeep(text).length === 0 && unpublished([...new Set(urls)]).length === 0) {
     console.log(`  ok    ${f}  ${sections} sections, ${deep.length} deep link(s): ${deep.map((u) => u.replace(HOST, "")).join(" ")}`);
   }
 }
@@ -89,11 +111,6 @@ const READMES = [
   { path: "../../README.md", name: "README.md (build log)", min: 8 },
 ];
 
-const sitemap = readFileSync(new URL("../public/sitemap.xml", import.meta.url).pathname, "utf8");
-const published = new Set(
-  [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/\/$/, "")),
-);
-
 for (const r of READMES) {
   const before = failed;
   const text = readFileSync(new URL(r.path, import.meta.url).pathname, "utf8");
@@ -106,10 +123,8 @@ for (const r of READMES) {
     fail(`${r.name} has ${deep.length} deep link(s), needs ${r.min} — `
       + `the repo outranks the site, so it is a main route in`);
   }
-  for (const u of urls) {
-    if (!published.has(u.replace(/\/$/, "").replace(/#.*$/, ""))) {
-      fail(`${r.name} links ${u}, which is not in the sitemap — renamed or mistyped`);
-    }
+  for (const u of unpublished(urls)) {
+    fail(`${r.name} links ${u}, which is not in the sitemap — renamed or mistyped`);
   }
   for (const u of new Set(bareDeep(text))) {
     fail(`${r.name} pastes ${u} bare — a link's words are how the page gets described to the index`);
