@@ -65,3 +65,13 @@ test("a book priced below its minimum earns a negative royalty, and says so", ()
   assert.ok(r.royalty < 0, "priced below cost");
   assert.ok(r.minList > 4.99);
 });
+
+// KDP's Paperback Printing Cost page (checked 2026-09-24) prints premium colour
+// on large trim from 24 pages, flat 4.20 USD to 40 pages. This table had it
+// starting at 42 with no flat band, so a 24-40 page 8.5x11 colour book came
+// back as "not printable".
+test("large trim premium colour: flat 4.20 from 24 to 40 pages, then 1.00 + 0.08 a page", () => {
+  assert.equal(printingCost({ trim: "8.5x11", pages: 24, ink: "premiumColor" }).cost, 4.2);
+  assert.equal(printingCost({ trim: "8.5x11", pages: 40, ink: "premiumColor" }).cost, 4.2);
+  assert.equal(printingCost({ trim: "8.5x11", pages: 42, ink: "premiumColor" }).cost, 4.36);
+});

@@ -29,7 +29,7 @@ const RATES = {
   },
   large: {
     black: { flat: { max: 110, cost: 2.84 }, fixed: 1.0, perPage: 0.017, min: 24, max: 828 },
-    premiumColor: { flat: null, fixed: 1.0, perPage: 0.08, min: 42, max: 828 },
+    premiumColor: { flat: { max: 40, cost: 4.2 }, fixed: 1.0, perPage: 0.08, min: 24, max: 828 },
     standardColor: { flat: null, fixed: 1.0, perPage: 0.0402, min: 72, max: 600 },
   },
 };
