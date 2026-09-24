@@ -36,6 +36,20 @@ for (const trim of Object.keys(TRIMS)) {
     }
   }
 }
+// The bleed table (#bleed-sizes) is typed into the page for readers who never
+// touch the form — it exists because "bleed calculator print" was the one query
+// Search Console showed us. A typed table goes stale silently, so every trim the
+// engine knows must be a row, and every row must equal the engine's bleed page.
+const rows = await page.$$eval("#bleed-sizes tr", (trs) => trs.slice(1).map((tr) => [...tr.cells].map((c) => c.textContent.trim())));
+check(rows.length === Object.keys(TRIMS).length, `bleed table has ${rows.length} rows, engine has ${Object.keys(TRIMS).length} trims`);
+for (const trim of Object.keys(TRIMS)) {
+  const g = pageGeometry({ trim, bleed: true, pageCount: 24 });
+  const w = g.width / PT, h = g.height / PT;
+  const want = [`${inch(w)} × ${inch(h)}`, `${(w * 25.4).toFixed(1)} × ${(h * 25.4).toFixed(1)} mm`, `${Math.ceil(w * 300)} × ${Math.ceil(h * 300)}`];
+  const row = rows.find((r) => r[1] === want[0]);
+  check(row && row[2] === want[1] && row[3] === want[2], `bleed table row for ${trim}: want ${want.join(" | ")}, got ${row ? row.slice(1).join(" | ") : "no row"}`);
+}
+
 const links = await page.$$eval("a[href^='/']", (as) => [...new Set(as.map((a) => a.getAttribute("href").split("#")[0]).filter(Boolean))]);
 for (const href of links) {
   const r = await page.request.get(`${base}${href}`);

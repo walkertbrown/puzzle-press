@@ -174,6 +174,21 @@
     <p>These are minimums. Puzzle books usually sit at the minimum inside and a little more outside, so the grid does not crowd the edge.</p>
   </section>
 
+  <section class="prose" id="bleed-sizes">
+    <h2>Page size with bleed, for every trim</h2>
+    <p>Bleed is for artwork that runs off the edge of the page. KDP trims 0.125" from the top, bottom and outside edge, so with bleed on, the PDF page is <strong>0.125" wider and 0.25" taller</strong> than the trim. It is not wider by 0.25": the inside edge goes into the binding and is never trimmed.</p>
+    <table>
+      <tr><th>Trim</th><th>PDF page with bleed</th><th>In millimetres</th><th>Pixels at 300 DPI</th></tr>
+      <tr><td>5" × 8"</td><td>5.125" × 8.25"</td><td>130.2 × 209.5 mm</td><td>1538 × 2475</td></tr>
+      <tr><td>5.5" × 8.5"</td><td>5.625" × 8.75"</td><td>142.9 × 222.3 mm</td><td>1688 × 2625</td></tr>
+      <tr><td>6" × 9"</td><td>6.125" × 9.25"</td><td>155.6 × 234.9 mm</td><td>1838 × 2775</td></tr>
+      <tr><td>7" × 10"</td><td>7.125" × 10.25"</td><td>181.0 × 260.3 mm</td><td>2138 × 3075</td></tr>
+      <tr><td>8" × 10"</td><td>8.125" × 10.25"</td><td>206.4 × 260.3 mm</td><td>2438 × 3075</td></tr>
+      <tr><td>8.5" × 11"</td><td>8.625" × 11.25"</td><td>219.1 × 285.8 mm</td><td>2588 × 3375</td></tr>
+    </table>
+    <p>Pixel sizes are rounded up. Anything that should bleed must reach the page edge, and anything that must not be cut off stays inside the outside margin. With bleed, that is 0.5" from the PDF page edge (0.375" plus the 0.125" that is trimmed away), and the calculator above measures it the same way. The cover bleeds 0.125" on every side as well, and its width also depends on the spine. The <a href="/spine-calculator">spine calculator</a> gives the full cover size.</p>
+  </section>
+
   <section class="prose">
     <h2>Setting it up in Word, Google Docs or InDesign</h2>
     <p>Set the page size to the trim (or the trim plus bleed, if you use it). Turn on <em>mirror margins</em> (Word: Layout → Margins → Custom → Multiple pages: Mirror margins; InDesign: Facing pages). Then "inside" is the gutter figure above and "outside" is the outer figure. Export to PDF with fonts embedded — an un-embedded font is the other common rejection, and the previewer's message about it is not obvious.</p>
