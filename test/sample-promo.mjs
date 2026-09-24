@@ -51,10 +51,10 @@ check(SHOULD_HAVE_PROMO.length > 0 && SHOULD_STAY_SINGLE_PAGE.length > 0,
 
 const pub = new URL("../public/samples/", import.meta.url);
 
-async function lastPageLink(name) {
+async function lastPageLink(name, pageIndex = -1) {
   const bytes = readFileSync(new URL(name, pub));
   const doc = await PDFDocument.load(bytes);
-  const page = doc.getPage(doc.getPageCount() - 1);
+  const page = doc.getPage(pageIndex < 0 ? doc.getPageCount() + pageIndex : pageIndex);
   const annots = page.node.get(PDFName.of("Annots"));
   if (!annots || annots.size() === 0) return null;
   for (let i = 0; i < annots.size(); i++) {
@@ -76,6 +76,10 @@ for (const name of SHOULD_HAVE_PROMO) {
     const { width, height } = found.size;
     check(width > 400 && height > 400, `${name}'s promo page is ${width}x${height}pt — too small to be a full-size book page`);
   }
+  // The promo page is 33 pages in; the title page is what a reader arriving
+  // from search sees first. It must be a way back too.
+  const first = await lastPageLink(name, 0);
+  check(first?.url === SITE_URL, `${name}'s title page has no link to ${SITE_URL} — the first page seen from search is a dead end`);
 }
 
 for (const name of SHOULD_STAY_SINGLE_PAGE) {

@@ -48,6 +48,11 @@ const TEXT = new Map(
   files.map(([label, path]) => {
     let s = readFileSync(path, "utf8");
     s = s.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, " ");
+    // A sentence about a competitor quotes the competitor's numbers — their
+    // theme count, their price — and those must not be held to this code. The
+    // element is marked rather than the numbers reworded, so the exemption is
+    // visible in the page source and cannot spread past that one element.
+    s = s.replace(/<(\w+)[^>]*\bdata-copy="competitor"[^>]*>[\s\S]*?<\/\1>/g, " ");
     return [label, s];
   }),
 );

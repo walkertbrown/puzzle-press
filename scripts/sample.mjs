@@ -110,11 +110,34 @@ async function finishSample(bytes, meta) {
   }
 
   const { width: w, height: h } = doc.getPage(0).getSize();
-  const page = doc.addPage([w, h]);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const regular = await doc.embedFont(StandardFonts.Helvetica);
   const cx = w / 2;
   const center = (text, font, size) => cx - font.widthOfTextAtSize(text, size) / 2;
+
+  // The promo page below is the last page, 33 pages in. Someone who opens an
+  // interior sample from a search result sees the title page first, which said
+  // "Puzzle Press" and gave no address and no link. So the title page gets a
+  // linked publisher line at its foot, an inch up, inside every KDP margin.
+  {
+    const title = doc.getPage(0);
+    const lead = "Sample book, made free with Puzzle Press";
+    const url = "puzzlepress.bananafest-destiny.com";
+    const base = 72;
+    title.drawText(url, { x: center(url, bold, 10), y: base, size: 10, font: bold, color: rgb(0.11, 0.21, 0.34) });
+    title.drawText(lead, { x: center(lead, regular, 8), y: base + 15, size: 8, font: regular, color: rgb(0.4, 0.4, 0.4) });
+    const half = Math.max(bold.widthOfTextAtSize(url, 10), regular.widthOfTextAtSize(lead, 8)) / 2 + 6;
+    const annot = doc.context.obj({
+      Type: "Annot",
+      Subtype: "Link",
+      Rect: [cx - half, base - 6, cx + half, base + 28],
+      Border: [0, 0, 0],
+      A: { Type: "Action", S: "URI", URI: PDFString.of(SITE_URL) },
+    });
+    title.node.set(PDFName.of("Annots"), doc.context.obj([doc.context.register(annot)]));
+  }
+
+  const page = doc.addPage([w, h]);
 
   const headline = "Made with Puzzle Press";
   page.drawText(headline, { x: center(headline, bold, 22), y: h / 2 + 54, size: 22, font: bold, color: rgb(0.1, 0.1, 0.1) });
