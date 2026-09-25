@@ -37,6 +37,28 @@ const cases = [
     },
     want: { "#trim": "6x9", "#paper": "white" },
   },
+  // Groundwood is an ink and a paper at once (black ink only), so the tool
+  // must arrive with both selects on it whichever calculator sent it — a
+  // cover sized for cream on a groundwood book is 0.018" wrong at 120 pages.
+  // The royalty calculator only knows ink; the spine calculator only paper.
+  {
+    path: "/royalty-calculator",
+    set: async () => {
+      await page.selectOption("#trim", "6x9");
+      await page.fill("#pages", "120");
+      await page.selectOption("#ink", "groundwood");
+    },
+    want: { "#trim": "6x9", "#ink": "groundwood", "#paper": "groundwood" },
+  },
+  {
+    path: "/spine-calculator",
+    set: async () => {
+      await page.selectOption("#trim", "6x9");
+      await page.fill("#pages", "200");
+      await page.selectOption("#paper", "groundwood");
+    },
+    want: { "#trim": "6x9", "#paper": "groundwood", "#ink": "groundwood" },
+  },
   {
     path: "/margin-calculator",
     set: async () => {
