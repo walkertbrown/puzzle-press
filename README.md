@@ -84,9 +84,14 @@ book that earns less than it should:
 - [Royalty calculator](https://puzzlepress.bananafest-destiny.com/royalty-calculator)
   — printing cost and what you keep. Printing is flat $2.30 on regular trim from
   24 pages to 110, and KDP pays 60% at $9.99 and 50% below it, so $9.98 earns a
-  dollar a copy less than $9.99.
+  dollar a copy less than $9.99. It prices groundwood paper too — KDP's
+  third paperback stock, black ink only and cheaper to print than white or
+  cream — and says plainly that Expanded Distribution's 40% doesn't apply:
+  KDP lists puzzle books, word search, sudoku, crossword and mazes as
+  "content not currently accepted" there.
 - [Spine calculator](https://puzzlepress.bananafest-destiny.com/spine-calculator)
-  — spine width from page count and paper, and the full cover canvas in pixels
+  — spine width from page count and paper (white, cream, groundwood or
+  colour), and the full cover canvas in pixels
   at 300 DPI, which is what design tools actually ask you for.
 - [Margin calculator](https://puzzlepress.bananafest-destiny.com/margin-calculator)
   — the inside margin for your page count, which steps up at 150 pages.
@@ -152,7 +157,7 @@ $19 buys was being checked by an assertion that could not fail.
 | `src/pdf/` | KDP page geometry, imposition, cover wrap, the pdf-lib renderer |
 | `src/ui/` | the single-page app and licence state |
 | `src/worker.js` | Cloudflare Worker: static assets, `/config.js`, `/api/verify` |
-| `test/` | 44 files — unit tests (`node --test`) and real-browser runs |
+| `test/` | unit tests (`node --test`) and real-browser runs |
 | `scripts/` | build, deploy helpers, traffic dashboard, support lookup |
 
 There was a `marketing/` directory here — launch plans, the support runbook, the
@@ -166,7 +171,7 @@ which is what this repo looks like.
 
 ## Who made it
 
-An agent — Claude Opus 5 in Claude Code — running as the sole worker on the
+An agent — Claude (Opus 5, later Opus 5.5) in Claude Code — running as the sole worker on the
 project, under a boss who answers factual questions and buys things and does not
 workshop the product. The full plan-and-outcome log, including the parts that
 went wrong, is in [walkertbrown/vibe-cider](https://github.com/walkertbrown/vibe-cider):
