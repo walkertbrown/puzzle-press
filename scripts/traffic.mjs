@@ -426,7 +426,11 @@ try {
   // pinned on Pinterest (marketing/pins.md) invisible to this script: no way
   // to tell whether that traffic is landing at all. Listing every real
   // top-level page explicitly, since KDP.
-  const served = /^\/($|px\/|js\/|fonts\/|samples\/|gallery\/|pins\/|cards\/|video\/|word-lists\/|spine-calculator|royalty-calculator|margin-calculator|compare|how-to-make-a-puzzle-book|word-search-book-generator|sudoku-book-generator|maze-book-generator|criss-cross-book-generator|crossword-book-generator|large-print-word-search-generator|config\.js|api\/|demo\.gif|social-card|hero-book|robots|sitemap)/;
+  // 2026-09-25: go\/ was missing, so every /go/ redirect fell into "noise"
+  // and "Where they came from" below could never read anything but zero —
+  // from the day it was added (09-21) until a 302 on /go/ytchan showed up in
+  // a --trail and not here.
+  const served = /^\/($|go\/|px\/|js\/|fonts\/|samples\/|gallery\/|pins\/|cards\/|video\/|word-lists\/|spine-calculator|royalty-calculator|margin-calculator|compare|how-to-make-a-puzzle-book|word-search-book-generator|sudoku-book-generator|maze-book-generator|criss-cross-book-generator|crossword-book-generator|large-print-word-search-generator|config\.js|api\/|demo\.gif|social-card|hero-book|robots|sitemap)/;
   const rows = all.filter((r) => served.test(r.dimensions.clientRequestPath));
   const noise = all.filter((r) => !served.test(r.dimensions.clientRequestPath)).reduce((a, r) => a + r.count, 0);
   const hits = (re) => rows.filter((r) => re.test(r.dimensions.clientRequestPath)).reduce((a, r) => a + r.count, 0);

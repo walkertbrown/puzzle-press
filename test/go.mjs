@@ -33,6 +33,17 @@ check(dash.length > 0, "could not find GO_LABEL in scripts/traffic.mjs");
 for (const s of worker) check(dash.includes(s), `/go/${s} redirects but the dashboard has no line for it — traffic through it is invisible`);
 for (const s of dash) check(worker.includes(s), `the dashboard reports /go/${s} but the worker does not redirect it — that link 404s`);
 
+// The dashboard only counts paths its `served` pattern lets through; anything
+// else is filed as noise before GO_LABEL is consulted. /go/ was missing from
+// it from 09-21 to 09-25, so the "Where they came from" line could only read
+// zero while every other check here was green.
+const servedSrc = src("../scripts/traffic.mjs").match(/const served = (\/.*\/);/);
+check(!!servedSrc, "could not find the served pattern in scripts/traffic.mjs");
+if (servedSrc) {
+  const served = eval(servedSrc[1]);
+  for (const s of worker) check(served.test(`/go/${s}`), `the dashboard files /go/${s} as noise — arrivals through it are counted as zero`);
+}
+
 for (const slug of worker) {
   const res = await fetch(`${base}/go/${slug}`, { redirect: "manual" });
   const loc = res.headers.get("location");
