@@ -19,7 +19,7 @@ import { generateCrissCrossBook } from "../src/generator/crisscross.js";
 import { generateCrosswordBook } from "../src/generator/crossword.js";
 import { CLUES } from "../src/generator/clues.js";
 import { renderBook } from "../src/pdf/render.js";
-import { pageGeometry, marginsForPage, PT } from "../src/pdf/kdp.js";
+import { pageGeometry, marginsForPage, PT, TRIMS } from "../src/pdf/kdp.js";
 import { planPages, solutionsThatFit, solutionsPerPageFor } from "../src/pdf/layout.js";
 
 const DPI = 100;
@@ -44,13 +44,22 @@ const books = {
 // Pixels darker than this count as ink; JPEG-free PNG output makes this exact.
 const INK = 200;
 
-for (const trim of ["6x9", "8.5x11", "5x8"]) {
+// The title, subtitle and author as long as the tool's inputs allow (maxlength
+// 120 / 160 / 80): a long title is what pushed text off the cover on
+// 2026-09-24, and the interior prints all three on its title page.
+const title = "Large Print Word Search Puzzles for Seniors and Adults Volume Two: Gardens, Birds, Seasons and Other Gentle Themes!";
+const subtitle = "One hundred relaxing large print puzzles with full solutions at the back, printed big enough to read without glasses, for quiet evenings";
+const author = "Margaret Elizabeth Worthington-Smythe and Friends of the Library";
+
+// Every trim the tool offers, with and without bleed (a checkbox in the tool;
+// untested here until 2026-09-24).
+for (const trim of Object.keys(TRIMS)) for (const bleed of [false, true]) {
   for (const [name, book] of Object.entries(books)) {
     for (const licensed of [true, false]) {
-      const pdf = join(tmp, `${name.replace(/\W/g, "")}-${trim}-${licensed}.pdf`);
-      writeFileSync(pdf, await renderBook(book, { title: "Ink Check", subtitle: "margins", author: "Puzzle Press", trim, licensed, fonts }));
-      const plan = planPages(COUNT, solutionsPerPageFor(COUNT, solutionsThatFit(pageGeometry({ trim }))));
-      const geom = pageGeometry({ trim, pageCount: plan.total });
+      const pdf = join(tmp, `${name.replace(/\W/g, "")}-${trim}-${bleed}-${licensed}.pdf`);
+      writeFileSync(pdf, await renderBook(book, { title, subtitle, author, trim, bleed, licensed, fonts }));
+      const plan = planPages(COUNT, solutionsPerPageFor(COUNT, solutionsThatFit(pageGeometry({ trim, bleed }))));
+      const geom = pageGeometry({ trim, bleed, pageCount: plan.total });
 
       const prefix = join(tmp, `p${Math.random().toString(36).slice(2, 7)}`);
       execFileSync("pdftoppm", ["-r", String(DPI), "-png", "-gray", pdf, prefix]);
@@ -79,7 +88,7 @@ for (const trim of ["6x9", "8.5x11", "5x8"]) {
         }
         check(
           !worst,
-          `${name} ${trim} ${licensed ? "paid" : "free"} p${pageNo} (${m.rightHand ? "odd" : "even"}): ink in the ${worst?.where} margin at ${worst?.x},${worst?.y} — box is x ${left}..${right}, y ${top}..${bottom} of ${png.width}×${png.height}`,
+          `${name} ${trim}${bleed ? " bleed" : ""} ${licensed ? "paid" : "free"} p${pageNo} (${m.rightHand ? "odd" : "even"}): ink in the ${worst?.where} margin at ${worst?.x},${worst?.y} — box is x ${left}..${right}, y ${top}..${bottom} of ${png.width}×${png.height}`,
         );
         if (worst) break; // one report per book is enough to act on
       }
@@ -90,4 +99,4 @@ for (const trim of ["6x9", "8.5x11", "5x8"]) {
 
 rmSync(tmp, { recursive: true, force: true });
 if (failed) { console.log(`\n${failed} margin problem(s)`); process.exit(1); }
-console.log(`INK OK — ${Object.keys(books).length} book types × 3 trims × free and paid: every pixel of ink inside KDP's margins`);
+console.log(`INK OK — ${Object.keys(books).length} book types × ${Object.keys(TRIMS).length} trims × bleed on and off × free and paid, longest title: every pixel of ink inside KDP's margins`);

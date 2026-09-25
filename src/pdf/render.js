@@ -177,7 +177,13 @@ function drawTitlePage(ctx, { title, subtitle, author }) {
       y -= ss * 1.2;
     }
   }
-  if (author) centered(page, author, { x: box.x, w: box.w, y: box.y + box.h * 0.2, size: 14, font: ctx.F.regular });
+  // Shrinks to 10pt, then wraps: an 80-character author ran past the margin.
+  if (author) {
+    const as = fitSize(ctx.F.regular, author, box.w, 14, 10);
+    wrap(ctx.F.regular, author, box.w, as).forEach((line, i) => {
+      centered(page, line, { x: box.x, w: box.w, y: box.y + box.h * 0.2 - i * as * 1.2, size: as, font: ctx.F.regular });
+    });
+  }
   footer(ctx, page, box, { number: false });
 }
 
@@ -192,8 +198,10 @@ function drawCopyrightPage(ctx, { title, author, recipe = null }) {
     "No part of this book may be reproduced in any form",
     "without written permission from the author.",
   ];
+  // Each line wraps to the text box: a long title ran off both edges of the
+  // page on 7x10 (found by test:ink with the longest title, 2026-09-24).
   let y = box.y + 80;
-  for (const line of lines.reverse()) {
+  for (const line of lines.flatMap((l) => (l ? wrap(ctx.F.regular, l, box.w, 9) : [""])).reverse()) {
     if (line) centered(page, line, { x: box.x, w: box.w, y, size: 9, font: ctx.F.regular, color: GREY });
     y += 13;
   }
@@ -202,7 +210,10 @@ function drawCopyrightPage(ctx, { title, author, recipe = null }) {
   // lose the file you have lost the seed too, unless the book carries it.
   // Now it does, so a printed copy is enough to make the file again.
   if (recipe) {
-    centered(page, recipe, { x: box.x, w: box.w, y: box.y + 34, size: 6.5, font: ctx.F.regular, color: GREY });
+    const rl = wrap(ctx.F.regular, recipe, box.w, 6.5);
+    rl.forEach((line, i) => {
+      centered(page, line, { x: box.x, w: box.w, y: box.y + 34 + (rl.length - 1 - i) * 8, size: 6.5, font: ctx.F.regular, color: GREY });
+    });
   }
   void 0;
   footer(ctx, page, box, { number: false });
