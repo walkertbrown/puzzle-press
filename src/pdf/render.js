@@ -51,7 +51,7 @@ export async function renderBook(book, opts = {}) {
 
   const puzzles = book.puzzles;
   const solutionsPerPage =
-    opts.solutionsPerPage ?? solutionsPerPageFor(puzzles.length, solutionsThatFit(pageGeometry({ trim, bleed })));
+    opts.solutionsPerPage ?? solutionsPerPageFor(puzzles.length, solutionsThatFit(pageGeometry({ trim, bleed }), opts.largePrint));
   const plan = planPages(puzzles.length, solutionsPerPage);
   const geom = pageGeometry({ trim, bleed, pageCount: plan.total });
 
@@ -77,7 +77,7 @@ export async function renderBook(book, opts = {}) {
   }
   const F = { regular, bold };
 
-  const ctx = { doc, geom, F, licensed, pageNo: 0 };
+  const ctx = { doc, geom, F, licensed, largePrint: Boolean(opts.largePrint), pageNo: 0 };
 
   // 1–2: title + copyright
   drawTitlePage(ctx, { title, subtitle, author });
@@ -157,11 +157,11 @@ function centered(page, text, { x, w, y, size, font, color = BLACK }) {
 // be the buyer's own (up to 60 characters), which at 12pt runs past the
 // "Puzzle 12" and out through the left margin on every trim; it shrinks to
 // fit the space beside the number, and is cut short only past 8pt.
-function puzzleHeader(page, F, box, index, sub, headSize) {
+function puzzleHeader(page, F, box, index, sub, headSize, subMax = 12) {
   const head = `Puzzle ${index}`;
   page.drawText(head, { x: box.x, y: box.y + box.h - headSize, size: headSize, font: F.bold });
   const room = box.w - F.bold.widthOfTextAtSize(head, headSize) - 12;
-  const size = fitSize(F.regular, sub, room, 12, 8);
+  const size = fitSize(F.regular, sub, room, subMax, 8);
   let text = sub;
   while (text.length > 1 && F.regular.widthOfTextAtSize(text, size) > room) text = `${text.slice(0, -2).trimEnd()}…`;
   const w = F.regular.widthOfTextAtSize(text, size);
@@ -194,7 +194,7 @@ function drawTitlePage(ctx, { title, subtitle, author }) {
   }
   // Shrinks to 10pt, then wraps: an 80-character author ran past the margin.
   if (author) {
-    const as = fitSize(ctx.F.regular, author, box.w, 14, 10);
+    const as = fitSize(ctx.F.regular, author, box.w, ctx.largePrint ? 16 : 14, 10);
     wrap(ctx.F.regular, author, box.w, as).forEach((line, i) => {
       centered(page, line, { x: box.x, w: box.w, y: box.y + box.h * 0.2 - i * as * 1.2, size: as, font: ctx.F.regular });
     });
@@ -265,7 +265,7 @@ function drawPuzzlePage(ctx, puzzle) {
 
   // Header
   const headSize = 20;
-  puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize);
+  puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize, ctx.largePrint ? 16 : 12);
 
   // Word bank size decides how much height the grid can have.
   const words = puzzle.words;
@@ -349,7 +349,7 @@ function drawCrissCrossPage(ctx, puzzle) {
   const { page, box } = newPage(ctx);
   const F = ctx.F;
   const headSize = 20;
-  puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize);
+  puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize, ctx.largePrint ? 16 : 12);
 
   // Word list grouped by length: "5 letters", then the words. Column count
   // from the longest word, as the word search does.
@@ -428,7 +428,7 @@ function drawCrosswordPage(ctx, puzzle) {
   const { page, box } = newPage(ctx);
   const F = ctx.F;
   const headSize = 20;
-  puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize);
+  puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize, ctx.largePrint ? 16 : 12);
 
   // A buyer's own clues have no length limit, so the block can outgrow the
   // page. The type shrinks first (to 6.5pt, still readable in print), and only
@@ -494,7 +494,7 @@ function drawMazePage(ctx, maze) {
   const { page, box } = newPage(ctx);
   const F = ctx.F;
   const headSize = 20;
-  puzzleHeader(page, F, box, maze.index, maze.title, headSize);
+  puzzleHeader(page, F, box, maze.index, maze.title, headSize, ctx.largePrint ? 16 : 12);
 
   // The "start" and "end" labels hang outside the grid, so the grid has to be
   // narrower than the box by enough to hold them — otherwise the labels land
@@ -570,7 +570,7 @@ function drawSudokuPage(ctx, puzzle) {
   const { page, box } = newPage(ctx);
   const F = ctx.F;
   const headSize = 20;
-  puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize);
+  puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize, ctx.largePrint ? 16 : 12);
 
   // Centre the grid in what is left of the page rather than hanging it from
   // the header with dead space underneath.
@@ -632,21 +632,23 @@ function drawSolutionsPage(ctx, puzzles, perPage) {
   const gap = 14;
   const cellW = (box.w - gap * (cols - 1)) / cols;
   const cellH = (box.h - 28 - gap * (rows - 1)) / rows;
-  const side = Math.min(cellW, cellH - 16);
+  // One grid a page is large print, so its label is large print too.
+  const label = perPage === 1 ? 16 : 10;
+  const side = Math.min(cellW, cellH - label - 6);
   puzzles.forEach((p, i) => {
     const c = i % cols;
     const r = Math.floor(i / cols);
     const x = box.x + c * (cellW + gap) + (cellW - side) / 2;
     const top = box.y + box.h - r * (cellH + gap);
-    page.drawText(`Puzzle ${p.index}`, { x, y: top - 10, size: 10, font: F.bold });
+    page.drawText(`Puzzle ${p.index}`, { x, y: top - label, size: label, font: F.bold });
     if (p.kind === "sudoku") {
-      drawSudokuGrid(page, F, p.solution, { x, top: top - 16, side, givens: p.puzzle, small: true });
+      drawSudokuGrid(page, F, p.solution, { x, top: top - label - 6, side, givens: p.puzzle, small: true });
     } else if (p.kind === "maze") {
-      drawMaze(page, F, p, { x, top: top - 16, side, path: p.solution });
+      drawMaze(page, F, p, { x, top: top - label - 6, side, path: p.solution });
     } else if (p.kind === "crisscross" || p.kind === "crossword") {
-      drawCrissCrossGrid(page, F, p, { x, top: top - 16, side, solution: true });
+      drawCrissCrossGrid(page, F, p, { x, top: top - label - 6, side, solution: true });
     } else {
-      drawGrid(page, F, p, { x, top: top - 16, side, solution: true });
+      drawGrid(page, F, p, { x, top: top - label - 6, side, solution: true });
     }
   });
   footer(ctx, page, box);

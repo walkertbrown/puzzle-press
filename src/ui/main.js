@@ -49,7 +49,7 @@ import { FREE_LIMIT, PRICE_LABEL, getLicense as storedLicense, setLicense, verif
 // that produced it, so it is only trusted while they still apply.
 let lastInterior = null; // { key, pages, puzzles }
 const settingsKey = (s) =>
-  JSON.stringify([s.kind, s.trim, s.bleed, s.count, s.difficulty, s.wordsPerPuzzle, s.size, s.seed,
+  JSON.stringify([s.kind, s.trim, s.bleed, s.count, s.difficulty, s.wordsPerPuzzle, s.size, s.seed, s.largePrint,
     s.pools.map((p) => `${p.title}:${p.words.length}`)]);
 
 // A licence verified in this tab, kept in memory so a browser that refuses
@@ -251,7 +251,7 @@ function regenerate() {
 }
 
 function showMeta(s) {
-  const fits = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }));
+  const fits = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }), s.largePrint);
   const effective = effectiveCount(s.count);
   const plan = planPages(effective, solutionsPerPageFor(effective, fits));
   const pages = plan.total;
@@ -740,7 +740,7 @@ async function download() {
     a.download = `${slug(s.title)}-${s.trim}.pdf`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    lastInterior = { key: settingsKey(s), pages: planPages(full.puzzles.length, solutionsPerPageFor(full.puzzles.length, solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed })))).total, puzzles: full.puzzles.length };
+    lastInterior = { key: settingsKey(s), pages: planPages(full.puzzles.length, solutionsPerPageFor(full.puzzles.length, solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }), s.largePrint))).total, puzzles: full.puzzles.length };
     el.status.textContent =
       `Done — ${full.puzzles.length} puzzles, ${lastInterior.pages} pages, ${(blob.size / 1024).toFixed(0)} KB.` +
       (full.puzzles.length < count ? ` (${count - full.puzzles.length} could not be built — the cover will be sized for this book.)` : "");
@@ -783,7 +783,7 @@ async function downloadCover() {
   try {
     el.status.textContent = "Building the cover…";
     await tick();
-    const perPage = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }));
+    const perPage = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }), s.largePrint);
     // Prefer the page count of the book actually made with these settings.
     const matches = lastInterior && lastInterior.key === settingsKey(s);
     const pages = matches ? lastInterior.pages : planPages(effectiveCount(s.count), perPage).total;

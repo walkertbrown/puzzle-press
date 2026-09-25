@@ -227,10 +227,10 @@ for (const [name, book, title, subtitle, seed, kind] of [
 // 8.5x11, automatic grid size, 14 words per puzzle.
 {
   const lp = generateBook({ pools: [THEMES.garden, THEMES.birds], count: 20, wordsPerPuzzle: 14, difficulty: "easy", trim: "8.5x11", seed: "public-large-print-1" });
-  const lpBytes = await finishSample(await renderBook(lp, { title: "Large Print Garden Word Search", subtitle: "20 puzzles with solutions — sample book", author: "Puzzle Press", trim: "8.5x11", licensed: true, fonts }), { kind: "Large print word search", theme: "Garden & Birds", trim: "8.5x11", count: 20 });
+  const lpBytes = await finishSample(await renderBook(lp, { title: "Large Print Garden Word Search", subtitle: "20 puzzles with solutions — sample book", author: "Puzzle Press", trim: "8.5x11", licensed: true, largePrint: true, fonts }), { kind: "Large print word search", theme: "Garden & Birds", trim: "8.5x11", count: 20 });
   writeFileSync(new URL("../public/samples/sample-large-print-8.5x11.pdf", import.meta.url), lpBytes);
   console.log("wrote public/samples/sample-large-print-8.5x11.pdf", lpBytes.length, "bytes", lp.warnings);
-  const pc = planPages(20, solutionsThatFit(pageGeometry({ trim: "8.5x11" }))).total;
+  const pc = planPages(20, solutionsThatFit(pageGeometry({ trim: "8.5x11" }), true)).total;
   const c = await finishSample(await renderCover({
     title: "Large Print Garden Word Search", subtitle: "20 puzzles with solutions — sample book", author: "Puzzle Press",
     trim: "8.5x11", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: lp.puzzles[0], seed: "public-large-print-1", largePrint: true, fonts,

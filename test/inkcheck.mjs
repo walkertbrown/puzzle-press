@@ -73,7 +73,11 @@ const books = {
   "custom long words": generateBook({ pools: [LONG_WORDS], count: COUNT, wordsPerPuzzle: 15, difficulty: "graded", seed: "ink" }),
   "custom long criss-cross": generateCrissCrossBook({ pools: [LONG_GRID_WORDS], count: COUNT, difficulty: "graded", seed: "ink" }),
   "custom crosswords": generateCrosswordBook({ pools: [LONG_POOL], builtinClues: {}, count: COUNT, difficulty: "graded", seed: "ink" }),
+  // Large print: one answer grid a page, with bigger labels and headings. The
+  // buyer's longest list name is used so the 16pt theme label is under strain.
+  "large print": generateBook({ pools: [LONG_POOL], count: COUNT, wordsPerPuzzle: 14, difficulty: "graded", seed: "ink" }),
 };
+const LARGE_PRINT = new Set(["large print"]);
 
 // Pixels darker than this count as ink; JPEG-free PNG output makes this exact.
 const INK = 200;
@@ -91,8 +95,8 @@ for (const trim of (process.env.TRIMS?.split(",") ?? Object.keys(TRIMS))) for (c
   for (const [name, book] of Object.entries(books).filter(([n]) => !process.env.ONLY || n.startsWith(process.env.ONLY))) {
     for (const licensed of [true, false]) {
       const pdf = join(tmp, `${name.replace(/\W/g, "")}-${trim}-${bleed}-${licensed}.pdf`);
-      writeFileSync(pdf, await renderBook(book, { title, subtitle, author, trim, bleed, licensed, fonts }));
-      const plan = planPages(COUNT, solutionsPerPageFor(COUNT, solutionsThatFit(pageGeometry({ trim, bleed }))));
+      writeFileSync(pdf, await renderBook(book, { title, subtitle, author, trim, bleed, licensed, largePrint: LARGE_PRINT.has(name), fonts }));
+      const plan = planPages(COUNT, solutionsPerPageFor(COUNT, solutionsThatFit(pageGeometry({ trim, bleed }), LARGE_PRINT.has(name))));
       const geom = pageGeometry({ trim, bleed, pageCount: plan.total });
 
       const prefix = join(tmp, `p${Math.random().toString(36).slice(2, 7)}`);

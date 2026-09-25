@@ -20,7 +20,15 @@ export const FLAT_RATE_PAGES = 110;
 // least ~2.1" (a 15×15 grid at 7pt letters, the usual size in printed
 // books), otherwise two. Fewer solution pages means a cheaper print cost
 // per copy for the seller.
-export function solutionsThatFit(geom) {
+//
+// Large print is the exception: one answer grid a page. At six a page the
+// answer letters are ~8pt and at two ~12pt, under the 16pt KDP gives as what
+// large print "usually" means — a reader who bought the book for its print
+// size gets an answer key they can't read. At one a page every letter in the
+// book is 16pt or more, and on 8.5×11 a book of up to 50 puzzles still fits
+// in KDP's flat-rate 110 pages.
+export function solutionsThatFit(geom, largePrint = false) {
+  if (largePrint) return 1;
   const h = geom.height - geom.margin.top - geom.margin.bottom - 28;
   const gap = 14;
   const sideAt3 = (h - 2 * gap) / 3 - 16;
