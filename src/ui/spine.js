@@ -26,7 +26,7 @@ const COVER_DPI = 300;
 for (const [id, t] of Object.entries(TRIMS)) {
   const o = document.createElement("option");
   o.value = id;
-  o.textContent = t.label + (id === "6x9" ? " (most common)" : "");
+  o.textContent = t.label + (id === "6x9" ? " (recommended)" : "");
   if (id === "6x9") o.selected = true;
   el.trim.append(o);
 }
