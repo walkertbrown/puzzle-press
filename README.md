@@ -64,6 +64,13 @@ A PDF that meets Amazon KDP's paperback manuscript rules:
   parity so it binds correctly.
 - Title page, copyright page, one puzzle per page, a `Solutions` divider forced
   onto a right-hand page, and solutions packed 6-up (4-up on small trims).
+- **Large print (word search and sudoku) is large print on every page, answers
+  included.** KDP says
+  large-print books "usually have a font size of 16 points or higher". At 6-up
+  the answer letters are about 8pt, so a large-print book gets one answer grid
+  a page, and every word a reader reads is 16pt or more (checked by
+  `test/largeprint.test.js`, which records every size drawn). At 8.5×11 a book
+  of up to 50 puzzles still fits in KDP's flat-rate 110 pages.
 - Notes pages to reach an even page count. **They do not pad to KDP's 24-page
   minimum** — a one-puzzle book is ten pages and stays ten pages. The app warns
   you on screen when your settings produce a book KDP will reject for being too

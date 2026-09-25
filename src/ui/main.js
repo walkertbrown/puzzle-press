@@ -48,6 +48,7 @@ import { FREE_LIMIT, PRICE_LABEL, getLicense as storedLicense, setLicense, verif
 // be too wide for the book it wraps, which KDP rejects. Keyed by the settings
 // that produced it, so it is only trusted while they still apply.
 let lastInterior = null; // { key, pages, puzzles }
+const LARGE_PRINT_KINDS = new Set(["wordsearch", "sudoku"]);
 const settingsKey = (s) =>
   JSON.stringify([s.kind, s.trim, s.bleed, s.count, s.difficulty, s.wordsPerPuzzle, s.size, s.seed, s.largePrint,
     s.pools.map((p) => `${p.title}:${p.words.length}`)]);
@@ -137,6 +138,9 @@ function refreshKind() {
   for (const node of document.querySelectorAll(".ws-only")) {
     node.classList.toggle("hidden", wordless || (themed && !node.classList.contains("themed")));
   }
+  // Large print is word search and sudoku: the two whose readers most need it,
+  // and the two whose every printed character measures 16pt+ at 8.5×11.
+  document.getElementById("largePrintRow").classList.toggle("hidden", !LARGE_PRINT_KINDS.has(kind));
   // Crosswords need a clue per pasted word; say so where the words go in.
   document.getElementById("sudokuSizeRow").classList.toggle("hidden", kind !== "sudoku");
   el.custom.placeholder = kind === "crossword" ? "harbor — Sheltered place for ships\nreef — Ridge of coral near the surface" : "apple\nbanana\ncherry";
@@ -157,7 +161,7 @@ function refreshKind() {
     el.difficulty.append(o);
   }
   el.difficulty.value = opts[keep] ? keep : "medium";
-  if (kind !== "wordsearch") el.largePrint.checked = false;
+  if (!LARGE_PRINT_KINDS.has(kind)) el.largePrint.checked = false;
 }
 
 el.seed.value = randomSeed();
@@ -1133,7 +1137,7 @@ refreshTier();
   // The large-print landing page links as /?largePrint=1#tool: same checkbox
   // a visitor would tick by hand, just pre-ticked so the first render is
   // already the large-print preset, not the default they'd have to find.
-  if (q.get("largePrint") && el.kind.value === "wordsearch") {
+  if (q.get("largePrint") && LARGE_PRINT_KINDS.has(el.kind.value)) {
     el.largePrint.checked = true;
     el.largePrint.dispatchEvent(new Event("change"));
   }

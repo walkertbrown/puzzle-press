@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { PDFDocument, PDFPage } from "pdf-lib";
 import { generateBook } from "../src/generator/book.js";
+import { generateSudokuBook } from "../src/generator/sudoku.js";
 import { THEMES } from "../src/generator/wordlists.js";
 import { renderBook, planPages, solutionsThatFit } from "../src/pdf/render.js";
 import { pageGeometry } from "../src/pdf/kdp.js";
@@ -16,7 +17,10 @@ const fonts = {
 // size of 16 points or higher." The puzzles always were; the answer key was
 // 7.5–8.4pt at six grids a page. Every size is recorded as drawn, not read
 // back off a raster, so this cannot pass on a lucky measurement.
-test("a large-print book prints nothing a reader must read below 16pt", async () => {
+for (const [kind, make] of [
+  ["word search", () => generateBook({ pools: [THEMES.garden, THEMES.birds], count: 12, wordsPerPuzzle: 14, difficulty: "easy", trim: "8.5x11", seed: "lp" })],
+  ["sudoku", () => generateSudokuBook({ count: 12, difficulty: "graded", seed: "lp" })],
+]) test(`a large-print ${kind} book prints nothing a reader must read below 16pt`, async () => {
   const draws = [];
   const pages = new Map();
   const orig = PDFPage.prototype.drawText;
@@ -26,7 +30,7 @@ test("a large-print book prints nothing a reader must read below 16pt", async ()
     return orig.call(this, text, o);
   };
   try {
-    const book = generateBook({ pools: [THEMES.garden, THEMES.birds], count: 12, wordsPerPuzzle: 14, difficulty: "easy", trim: "8.5x11", seed: "lp" });
+    const book = make();
     const bytes = await renderBook(book, { title: "Large Print Garden", subtitle: "12 puzzles", author: "A", trim: "8.5x11", licensed: true, largePrint: true, fonts });
     // The copyright page (page 2) and page numbers are not reading text.
     const small = draws.filter((d) => d.size < 16 && d.page !== 2 && !/^\d+$/.test(d.text.trim()));

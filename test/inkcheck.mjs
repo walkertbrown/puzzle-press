@@ -76,8 +76,9 @@ const books = {
   // Large print: one answer grid a page, with bigger labels and headings. The
   // buyer's longest list name is used so the 16pt theme label is under strain.
   "large print": generateBook({ pools: [LONG_POOL], count: COUNT, wordsPerPuzzle: 14, difficulty: "graded", seed: "ink" }),
+  "large print sudoku": generateSudokuBook({ count: COUNT, difficulty: "graded", seed: "ink" }),
 };
-const LARGE_PRINT = new Set(["large print"]);
+const LARGE_PRINT = new Set(["large print", "large print sudoku"]);
 
 // Pixels darker than this count as ink; JPEG-free PNG output makes this exact.
 const INK = 200;

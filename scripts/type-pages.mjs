@@ -106,7 +106,7 @@ const pages = {
       ${Object.values(SUDOKU_DIFFICULTY).map((d) => `<tr><td>${d.label}</td><td>${d.givens}</td></tr>`).join("\n      ")}
       <tr><td>Graded</td><td>Easy at the front through expert at the back, level printed on each puzzle</td></tr>
     </table>
-    <p>Clue layouts are rotationally symmetric, as in newspaper and book sudoku. Grids are 9×9 with bold 3×3 boxes and numbering sized for a 6 × 9 page; large print at 8.5 × 11 gives bigger cells for pencil solvers. <strong>For children's books</strong> there are 6×6 grids (2×3 boxes, clue bands 20/16/12/10) and 4×4 grids (2×2 boxes, 10/8/6/4) — "sudoku for kids" is its own KDP category, and every small grid is verified to have one solution exactly as the 9×9 is.</p>
+    <p>Clue layouts are rotationally symmetric, as in newspaper and book sudoku. Grids are 9×9 with bold 3×3 boxes and numbering sized for a 6 × 9 page; <a href="/?kind=sudoku&amp;largePrint=1#tool">large print</a> sets 8.5 × 11 pages with 9×9 digits at about 38pt, puts one answer grid on each page so the solutions are large print too, and adds a "Large Print Edition" badge to the cover. <strong>For children's books</strong> there are 6×6 grids (2×3 boxes, clue bands 20/16/12/10) and 4×4 grids (2×2 boxes, 10/8/6/4) — "sudoku for kids" is its own KDP category, and every small grid is verified to have one solution exactly as the 9×9 is.</p>
   </section>
 
   <section class="prose">
