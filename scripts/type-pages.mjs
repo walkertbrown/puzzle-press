@@ -95,7 +95,7 @@ const pages = {
     body: `
   <section class="prose">
     <h2>The one thing a sudoku book must get right</h2>
-    <p>A sudoku with two valid solutions is broken: the solver who finds the other one checks the answer key, sees it disagree, and leaves a review saying the book is wrong. It is one of the most common complaints in sudoku book reviews, and it comes from generators that remove clues until the grid "looks hard" without checking that it still solves one way.</p>
+    <p>A sudoku with two valid solutions is broken: the solver who finds the other one checks the answer key, sees it disagree, and leaves a review saying the book is wrong. The reader can prove the fault from your own answer key, and it comes from generators that remove clues until the grid "looks hard" without checking that it still solves one way.</p>
     <p>Puzzle Press starts from a full valid grid and digs clues out in symmetric pairs. Before each pair is removed, the grid is solved by a solver that counts solutions; if removing the pair would allow a second solution, the pair stays. Every puzzle in every book has exactly one answer, by construction. The expert grades take a few seconds each because of this check — the page shows progress while it works — which is the cost of getting it right.</p>
   </section>
 
@@ -167,7 +167,7 @@ pages["large-print-word-search-generator"] = {
   title: "Large Print Word Search Generator for Seniors — KDP-Ready, Free",
   description: "Make a large print word search book for seniors: 8.5 × 11 pages, automatic grid sizing, 14 words a puzzle, letters measured at 18–25pt. Free print-ready PDF for Amazon KDP.",
   h1: "Large print word search generator for seniors",
-  lede: "The single most dependable puzzle-book category on KDP, and the most common way it's bought is as a gift: an adult child picking a book for a parent whose eyes have changed. One checkbox switches the whole book to 8.5 × 11 pages with a grid sized for big letters — no separate settings to hunt for. Free to use; free books carry one small line in the page footer and a cover marked PREVIEW.",
+  lede: "For a reader whose eyes have changed, and for whoever is choosing the book for them. One checkbox switches the whole book to 8.5 × 11 pages with a grid sized for big letters — no separate settings to hunt for. Free to use; free books carry one small line in the page footer and a cover marked PREVIEW.",
   kind: "wordsearch",
   extraQuery: "&largePrint=1",
   sample: "/samples/sample-large-print-8.5x11.pdf",
@@ -178,7 +178,7 @@ pages["large-print-word-search-generator"] = {
   <section class="prose">
     <h2>What "large print" actually changes</h2>
     <p>Ticking <strong>Large print</strong> sets three things at once: the page grows to 8.5 × 11 (US letter, the largest trim this tool makes), the puzzle grid drops to 14 words instead of the usual default, and the grid size is left automatic rather than pinned — pinning it made any longer pasted word vanish from the book, which is worse than a slightly bigger grid. Measured across 240 generated puzzles from eight different word lists: fourteen words on an 8.5 × 11 page give 14–19 cells across (median 16) and letters of 18–25pt (median 22pt) — against a median of 14pt at the standard 6 × 9 trim. The exact size still depends on the word list you use; a book of short words prints bigger letters than one full of long ones.</p>
-    <p><strong>The answers are large print too.</strong> KDP's own line on large print is that such books "usually have a font size of 16 points or higher", and a reader who needs big letters needs them in the answer key as well. Most puzzle books pack six answer grids to a page, which at 8.5 × 11 prints the answer letters at about 8pt. A large-print book from this tool puts one answer grid on each page, and every word a reader has to read, headings and theme names included, is 16pt or larger. That makes the book longer, but KDP charges one flat printing price up to 110 pages, so a large-print book of up to 50 puzzles costs no more to print. Past 50 puzzles each extra page adds a little to the print cost; the <a href="/royalty-calculator">royalty calculator</a> shows how much.</p>
+    <p><strong>The answers are large print too.</strong> KDP's own line on large print is that such books "usually have a font size of 16 points or higher", and a reader who needs big letters needs them in the answer key as well. This tool packs a regular book's answers six grids to a page, and at 8.5 × 11 that prints the answer letters at about 8pt. A large-print book from this tool puts one answer grid on each page, and every word a reader has to read, headings and theme names included, is 16pt or larger. That makes the book longer, but KDP charges one flat printing price up to 110 pages, so a large-print book of up to 50 puzzles costs no more to print. Past 50 puzzles each extra page adds a little to the print cost; the <a href="/royalty-calculator">royalty calculator</a> shows how much.</p>
   </section>
 
   <section class="prose">
