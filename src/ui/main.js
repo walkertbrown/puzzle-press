@@ -129,7 +129,10 @@ function refreshKind() {
   // A sudoku book called "Animal Word Search" is what you get if the title
   // does not follow the type. Only touch what the person has not typed.
   const [t, nouns] = DEFAULT_TITLES[kind] ?? DEFAULT_TITLES.wordsearch;
-  if (!titleEdited) el.title.value = t;
+  // A large-print book says so in its title: that phrase is what its buyers
+  // type into Amazon, and a cover badge alone is not searchable.
+  const large = el.largePrint.checked && LARGE_PRINT_KINDS.has(kind);
+  if (!titleEdited) el.title.value = large ? `Large Print ${t}` : t;
   if (!subtitleEdited) el.subtitle.value = defaultSubtitle(nouns, clampInt(el.count.value, 1, 200, 50));
   // Sudoku and mazes need no words at all. Criss-cross needs the themes but
   // not the word-search-only knobs (words per puzzle, grid size, large print).
@@ -855,7 +858,8 @@ const debounced = () => {
 // which has had to correct this twice off the round numbers here.
 const LARGE_PRINT = { trim: "8.5x11", size: "", wpp: "14" };
 el.largePrint.addEventListener("change", () => {
-  if (!el.largePrint.checked) return;
+  refreshKind();
+  if (!el.largePrint.checked) return regenerate();
   el.trim.value = LARGE_PRINT.trim;
   el.size.value = LARGE_PRINT.size;
   el.wpp.value = LARGE_PRINT.wpp;
@@ -865,7 +869,9 @@ el.largePrint.addEventListener("change", () => {
 for (const id of ["trim", "size", "wpp"]) {
   el[id].addEventListener("change", () => {
     const onPreset = el.trim.value === LARGE_PRINT.trim && el.size.value === LARGE_PRINT.size && el.wpp.value === LARGE_PRINT.wpp;
-    if (!onPreset) el.largePrint.checked = false;
+    // Off the preset is off large print, and a default title that still says
+    // "Large Print" would now be false. The page count changes too.
+    if (!onPreset && el.largePrint.checked) { el.largePrint.checked = false; refreshKind(); }
   });
 }
 
