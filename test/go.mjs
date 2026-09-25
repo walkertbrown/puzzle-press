@@ -44,8 +44,10 @@ if (servedSrc) {
   for (const s of worker) check(served.test(`/go/${s}`), `the dashboard files /go/${s} as noise — arrivals through it are counted as zero`);
 }
 
+// Named, so the worker's arrival log (scripts/golog.mjs) skips this suite.
+const headers = { "user-agent": "puzzle-press-test/go" };
 for (const slug of worker) {
-  const res = await fetch(`${base}/go/${slug}`, { redirect: "manual" });
+  const res = await fetch(`${base}/go/${slug}`, { redirect: "manual", headers });
   const loc = res.headers.get("location");
   check(res.status === 302, `/go/${slug} answered ${res.status}, not 302`);
   check(!!loc, `/go/${slug} sent no Location header`);
@@ -62,7 +64,7 @@ for (const slug of worker) {
 // An unknown slug is my own typo in a description already published, so it has
 // to land the visitor on the site. A 404 would also file them as a scanner in
 // the probe rule in traffic.mjs and drop them out of their own funnel.
-const bad = await fetch(`${base}/go/this-slug-does-not-exist`, { redirect: "manual" });
+const bad = await fetch(`${base}/go/this-slug-does-not-exist`, { redirect: "manual", headers });
 check(bad.status === 302, `an unknown /go/ slug answered ${bad.status} — a typo in a published link would 404 a real visitor`);
 check(new URL(bad.headers.get("location") || base).pathname === "/", "an unknown /go/ slug does not fall back to the home page");
 

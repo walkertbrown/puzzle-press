@@ -20,6 +20,7 @@
     "test:perf": "node test/perf.mjs",
     "test:launch": "node test/launch-assets.mjs",
     "traffic": "node scripts/traffic.mjs",
+    "golog": "node scripts/golog.mjs",
     "who": "node scripts/who.mjs",
     "crawlers": "node scripts/crawlers.mjs",
     "indexnow": "node scripts/indexnow.mjs",

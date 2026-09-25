@@ -28,6 +28,9 @@
       }
     ]
   },
+  // One key per /go/ arrival, 90-day expiry: the zone log forgets after 24h.
+  // Read with scripts/golog.mjs.
+  "kv_namespaces": [{ "binding": "GO_LOG", "id": "c06aaf6a74b24f918ed32cf5949ce513" }],
   // Studio domain. Bananafest Destiny is the studio; products live on subdomains.
   "routes": [{ "pattern": "puzzlepress.bananafest-destiny.com", "custom_domain": true }],
   "workers_dev": true,

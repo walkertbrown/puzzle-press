@@ -25,7 +25,7 @@ const GO = {
 };
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     if (url.pathname === "/config.js") {
@@ -65,6 +65,34 @@ export default {
       // it must still land the visitor on the site rather than 404 them — and a
       // 404 would file them as a scanner in traffic.mjs's probe rule as well.
       const dest = new URL(to || "/", url.origin);
+      // The zone log keeps 24 hours, so a week-long question ("did the channel
+      // link bring anyone?") could only ever be answered one day at a time.
+      // One KV key per arrival, gone after 90 days. What it keeps is what the
+      // zone log already had minus the address: the network's owner (enough to
+      // tell YouTube's link checker from a Verizon handset), the country, and
+      // whether the user-agent admits to being a bot. Known slugs only, so a
+      // visitor cannot write keys of their own choosing; ten a minute per
+      // address, so a crawler cannot spend the account's free daily writes.
+      // Written after the response and allowed to fail: the redirect never
+      // waits on the log.
+      // test/go.mjs names itself, so the suite's own eight hits every run are
+      // not logged as eight arrivals from a consumer ISP.
+      const ua = request.headers.get("user-agent") || "";
+      if (to && env.GO_LOG && ctx && !ua.startsWith("puzzle-press-test")) {
+        ctx.waitUntil((async () => {
+          const ip = request.headers.get("cf-connecting-ip") || "";
+          if (env.VERIFY_LIMIT && !(await env.VERIFY_LIMIT.limit({ key: "go:" + ip })).success) return;
+          const cf = request.cf || {};
+          const meta = {
+            org: String(cf.asOrganization || "").slice(0, 80),
+            asn: cf.asn || 0,
+            cc: cf.country || "",
+            bot: /bot|crawl|spider|preview|fetch|curl|wget|python|node|undici|headless|http-client|monitor|check/i.test(ua) || !ua,
+          };
+          const key = `${slug}:${new Date().toISOString()}:${Math.random().toString(36).slice(2, 8)}`;
+          await env.GO_LOG.put(key, "", { metadata: meta, expirationTtl: 90 * 86400 });
+        })().catch(() => {}));
+      }
       return new Response(null, {
         status: 302,
         headers: { location: dest.toString(), "cache-control": "no-store", "x-robots-tag": "noindex, nofollow" },
