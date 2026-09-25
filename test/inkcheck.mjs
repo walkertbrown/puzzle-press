@@ -39,6 +39,25 @@ const LONG_POOL = {
   clues: Object.fromEntries(THEMES.garden.words.map((w) => [w.toLowerCase(),
     `Something you might find growing, crawling or resting somewhere in an old English country garden in late summer (${w.length} letters)`])),
 };
+// Every word as long as a grid allows: the generator drops a word longer than
+// the grid, and an auto-sized grid tops out at 30, so 28 letters (plus the
+// two-cell margin suggestSize keeps) is the longest word any buyer can print.
+const LONG_WORDS = {
+  title: "Long Words",
+  words: ["antidisestablishmentarianism", "floccinaucinihilipilification", "incomprehensibilities", "counterrevolutionaries",
+    "uncharacteristically", "internationalization", "electroencephalograph", "institutionalization", "compartmentalization",
+    "deinstitutionalization", "overintellectualization", "psychophysiologically", "transubstantiation", "honorificabilitudinitatibus",
+    "spectrophotometrically", "immunoelectrophoresis", "otorhinolaryngologist", "ethylenediaminetetraacetate"].filter((w) => w.length <= 28),
+};
+// Criss-cross and crossword grids hold 19 letters at most (17 + 2), and a
+// list of nothing but longer words rightly makes no puzzle at all — so their
+// book mixes the longest placeable words into an ordinary list.
+const LONG_GRID_WORDS = {
+  title: "Long Words",
+  words: [...THEMES.garden.words, "internationalism", "counterintuitive", "photosynthesising", "transubstantiation",
+    "institutionalising", "incomprehensibility", "unsympathetically"],
+  clues: {},
+};
 const books = {
   "word search": generateBook({ pools: [THEMES.halloween], count: COUNT, wordsPerPuzzle: 15, difficulty: "graded", seed: "ink" }),
   sudoku: generateSudokuBook({ count: COUNT, difficulty: "graded", seed: "ink" }),
@@ -51,6 +70,8 @@ const books = {
   // own clues — which have no length limit at all.
   "custom list": generateBook({ pools: [LONG_POOL], count: COUNT, wordsPerPuzzle: 15, difficulty: "graded", seed: "ink" }),
   "custom criss-cross": generateCrissCrossBook({ pools: [LONG_POOL], count: COUNT, difficulty: "graded", seed: "ink" }),
+  "custom long words": generateBook({ pools: [LONG_WORDS], count: COUNT, wordsPerPuzzle: 15, difficulty: "graded", seed: "ink" }),
+  "custom long criss-cross": generateCrissCrossBook({ pools: [LONG_GRID_WORDS], count: COUNT, difficulty: "graded", seed: "ink" }),
   "custom crosswords": generateCrosswordBook({ pools: [LONG_POOL], builtinClues: {}, count: COUNT, difficulty: "graded", seed: "ink" }),
 };
 

@@ -89,3 +89,23 @@ test("a graded book steps up through the levels and warns instead of shipping a 
   assert.ok(tiny.puzzles.length <= 2);
   for (const p of tiny.puzzles) assert.ok(p.words.length >= 3);
 });
+
+test("a word too long for any grid is named, not dropped in silence", () => {
+  // Grids top out at 17 cells, plus 2 when a layout will not come: 19 letters.
+  // Word search already names the words its grid can't fit; criss-cross and
+  // crossword used to drop them, and on an all-long list told the buyer to
+  // add "longer ones".
+  const long = ["antidisestablishmentarianism", "incomprehensibilities", "counterrevolutionaries"];
+  const all = generateCrissCrossBook({ pools: [{ title: "L", words: long }], count: 2, difficulty: "graded" });
+  assert.equal(all.puzzles.length, 0);
+  assert.match(all.warnings[0], /3 words are longer than a criss-cross grid can hold \(19 letters\)/);
+  assert.match(all.warnings.at(-1), /shorter ones/);
+  assert.doesNotMatch(all.warnings.join(" "), /longer ones/);
+
+  const mixed = generateCrissCrossBook({ pools: [{ title: "M", words: [...THEMES.garden.words, long[0]] }], count: 2, difficulty: "easy" });
+  assert.equal(mixed.puzzles.length, 2);
+  assert.match(mixed.warnings[0], /One word is longer than a criss-cross grid can hold \(13 letters\).*antidisestablishmentarianism/);
+
+  const fine = generateCrissCrossBook({ pools: [THEMES.garden], count: 2, difficulty: "graded" });
+  assert.deepEqual(fine.warnings, []);
+});

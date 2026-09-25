@@ -230,11 +230,31 @@ export function gradeFor(index, count, difficulty) {
   return levels[band];
 }
 
+// The longest word any grid at this difficulty can hold: the hardest level's
+// size, plus the two cells buildGrid grows by when a layout will not come.
+// A longer word can never be placed, so it is named to the buyer rather than
+// dropped in silence — the way the word search names words its grid can't fit.
+export function longestPlaceable(difficulty) {
+  const levels = difficulty === "graded" ? Object.keys(CRISSCROSS_DIFFICULTY) : [difficulty];
+  return Math.max(...levels.map((l) => (CRISSCROSS_DIFFICULTY[l] ?? CRISSCROSS_DIFFICULTY.medium).size)) + 2;
+}
+
+export function tooLongWarning(pools, difficulty, what) {
+  const max = longestPlaceable(difficulty);
+  const long = [...new Set(pools.flatMap((p) => normalizeWords(p.words)))].filter((w) => w.length > max);
+  if (!long.length) return null;
+  const shown = long.slice(0, 4).map((w) => w.toLowerCase()).join(", ");
+  return `${long.length === 1 ? "One word is" : `${long.length} words are`} longer than a ${what} grid can hold ` +
+    `(${max} letters) and will be left out — ${shown}${long.length > 4 ? "…" : ""}.`;
+}
+
 // A book: each puzzle draws its own words from the pool(s), themed like the
 // word search books. Falls back a difficulty level when a pool is too small
 // for the word count asked for.
 export function generateCrissCrossBook({ pools, count = 20, difficulty = "medium", seed = "book", gradeCount = null } = {}) {
   const warnings = [];
+  const tooLong = tooLongWarning(pools, difficulty, "criss-cross");
+  if (tooLong) warnings.push(tooLong);
   const puzzles = [];
   const failures = [];
   const all = [...new Set(pools.flatMap((p) => normalizeWords(p.words)))];
@@ -267,7 +287,7 @@ export function generateCrissCrossBook({ pools, count = 20, difficulty = "medium
   if (failures.length) {
     warnings.push(
       failures.length === count
-        ? `None of these words can make a criss-cross: they need to be at least three letters and to share letters with each other so the grid can interlock. Add more words, or longer ones.`
+        ? `None of these words can make a criss-cross: they need to be at least three letters and to share letters with each other so the grid can interlock. Add more words${tooLong ? ", or shorter ones" : ", or longer ones"}.`
         : `${failures.length} of ${count} puzzles could not be built with a unique fill and were left out — add more words of varied lengths for a full book.`,
     );
   }

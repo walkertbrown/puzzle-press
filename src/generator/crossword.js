@@ -10,7 +10,7 @@
 
 import { makeRng } from "./rng.js";
 import { normalizeWord, normalizeWords } from "./wordsearch.js";
-import { buildGrid, CRISSCROSS_DIFFICULTY, slotsOf } from "./crisscross.js";
+import { buildGrid, CRISSCROSS_DIFFICULTY, slotsOf, tooLongWarning } from "./crisscross.js";
 
 export const CROSSWORD_DIFFICULTY = CRISSCROSS_DIFFICULTY;
 const MAX_LAYOUTS = 40;
@@ -95,6 +95,8 @@ export function generateCrosswordBook({ pools, builtinClues = {}, count = 20, di
   const puzzles = [];
   const failures = [];
   const rng = makeRng(`${seed}|crossword-book`);
+  const tooLong = tooLongWarning(pools, difficulty, "crossword");
+  if (tooLong) warnings.push(tooLong);
   // Say once, up front, which pasted words have no clue.
   for (const pool of pools) {
     const clueOf = cluesFor(pool, builtinClues);
@@ -126,7 +128,7 @@ export function generateCrosswordBook({ pools, builtinClues = {}, count = 20, di
   if (failures.length) {
     warnings.push(
       failures.length === count
-        ? `None of these words can make a crossword: they need a clue each, at least three letters, and enough shared letters to interlock. Add more words, or longer ones.`
+        ? `None of these words can make a crossword: they need a clue each, at least three letters, and enough shared letters to interlock. Add more words${tooLong ? ", or shorter ones" : ", or longer ones"}.`
         : `${failures.length} of ${count} puzzles could not be built and were left out — add more clued words of varied lengths for a full book.`,
     );
   }
