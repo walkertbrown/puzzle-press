@@ -1,7 +1,7 @@
 // The spine calculator page. It imports the same functions the book generator
 // uses, so the numbers here cannot drift away from the numbers in the PDFs.
 import { TRIMS, gutterInches, PT } from "../pdf/kdp.js";
-import { coverGeometry, spineWidthInches, PAPER, SPINE_TEXT_MIN_PAGES, BARCODE_IN } from "../pdf/cover-geometry.js";
+import { coverGeometry, spineWidthInches, PAPER, SPINE_TEXT_MIN_PAGES, SPINE_FOLD_IN, SPINE_TYPE_BOX_EM, SPINE_TYPE_MIN_PT, BARCODE_IN } from "../pdf/cover-geometry.js";
 import { toolLink, carryNote } from "./tool-link.js";
 import { px } from "./px.js";
 
@@ -69,10 +69,20 @@ function update() {
     `The same cover at ${COVER_DPI} DPI — the canvas size to type into Canva, Photoshop or Affinity. `
     + `${COVER_DPI} DPI is KDP's stated minimum for print images; export CMYK, and as one PDF holding back, spine and front together.`;
   el.gutter.textContent = `${inch(gutterInches(pages))} inside margin`;
+  // KDP's cover calculator gives a "Spine Safe Area" of the spine less 0.0625"
+  // at each fold (checked against 120 trim/paper/page combinations 2026-09-24).
+  // Being allowed spine text at 79 pages is not the same as having room for it:
+  // at 80 pages of cream the safe strip is 0.075", under 5pt of type. The type
+  // figure is a bold sans's full ascender-to-descender height, 1.117 em.
+  const safe = spine - 2 * SPINE_FOLD_IN;
+  const maxPt = Math.floor((safe * PT) / SPINE_TYPE_BOX_EM * 2) / 2;
+  const room = `KDP's spine safe area is ${inch(Math.max(0, safe))} (0.0625" in from each fold)`;
   el.spineText.textContent =
-    pages >= SPINE_TEXT_MIN_PAGES
-      ? `Allowed — ${pages} pages is at or above KDP's ${SPINE_TEXT_MIN_PAGES}-page minimum for spine text.`
-      : `Not allowed — KDP needs at least ${SPINE_TEXT_MIN_PAGES} pages before you may put text on the spine. Leave it blank.`;
+    pages < SPINE_TEXT_MIN_PAGES
+      ? `Not allowed — KDP needs at least ${SPINE_TEXT_MIN_PAGES} pages before you may put text on the spine. Leave it blank.`
+      : maxPt < SPINE_TYPE_MIN_PT
+        ? `Allowed, but there is no room — ${room}, which fits type of about ${maxPt}pt at most. Puzzle Press leaves a spine this narrow blank.`
+        : `Allowed — ${room}, which fits type up to about ${maxPt}pt from the top of a capital to the bottom of a "g".`;
   el.barcode.textContent = `Leave ${BARCODE_IN.w}" × ${BARCODE_IN.h}" clear in the lower right of the back cover.`;
   el.sum.textContent =
     `0.125" bleed + ${t.w}" back + ${inch(spine)} spine + ${t.w}" front + 0.125" bleed = ${inch(w)}`;

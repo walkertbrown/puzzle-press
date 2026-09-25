@@ -18,7 +18,7 @@ import { generateMazeBook } from "../src/generator/maze.js";
 import { generateCrossword, cluesFor } from "../src/generator/crossword.js";
 import { CLUES } from "../src/generator/clues.js";
 import { renderCover } from "../src/pdf/cover.js";
-import { coverGeometry, BARCODE_IN, SPINE_TEXT_MIN_PAGES } from "../src/pdf/cover-geometry.js";
+import { coverGeometry, BARCODE_IN } from "../src/pdf/cover-geometry.js";
 import { PT } from "../src/pdf/kdp.js";
 
 const DPI = 100;
@@ -58,7 +58,7 @@ const darkestIn = (png, { x0, y0, x1, y1 }) => {
   return worst;
 };
 
-for (const pageCount of [32, 66, 78, 80, 300]) {
+for (const pageCount of [32, 66, 78, 80, 100, 300]) {
   for (const [name, samplePuzzle] of Object.entries(samples)) {
     for (const licensed of [true, false]) {
       const png = await render({ title: "Cover Ink Check", subtitle: "barcode and spine", pageCount, puzzleCount: 50, samplePuzzle, licensed, seed: "cv" });
@@ -76,15 +76,17 @@ for (const pageCount of [32, 66, 78, 80, 300]) {
       const inBarcode = darkestIn(png, { x0: bx0 + 1, y0: by0 + 1, x1: bx1 - 1, y1: by1 - 1 });
       check(!inBarcode, `${label}: something is printed in the barcode area at ${inBarcode?.x},${inBarcode?.y} (grey ${inBarcode?.v})`);
 
-      // 2. Spine text only when KDP allows it. Below the threshold the spine
-      //    must be a flat band: no glyphs, which show up as dark pixels on it.
+      // 2. Spine text only when KDP allows it (79 pages) AND it fits 0.0625"
+      //    inside each fold (g.spineTextFits — 88pp on cream, 97 on white).
+      //    Otherwise the spine must be a flat band: no glyphs, which show up
+      //    as dark pixels on it. 80 pages is allowed but too narrow; 100 fits.
       const sx0 = px(g.spineX) + 2, sx1 = px(g.spineX + g.spine) - 2;
       if (sx1 > sx0) {
         const onSpine = darkestIn(png, { x0: sx0, y0: px(g.panelY) + 4, x1: sx1, y1: png.height - px(g.panelY) - 4 });
-        if (pageCount < SPINE_TEXT_MIN_PAGES) {
-          check(!onSpine || onSpine.v > 120, `${label}: ink on the spine of a ${pageCount}-page book (KDP allows spine text from ${SPINE_TEXT_MIN_PAGES}) at ${onSpine?.x},${onSpine?.y}`);
+        if (!g.spineTextFits) {
+          check(!onSpine || onSpine.v > 120, `${label}: ink on the spine of a ${pageCount}-page book, whose spine is too narrow for text inside KDP's safe area, at ${onSpine?.x},${onSpine?.y}`);
         } else {
-          check(Boolean(onSpine), `${label}: spine is blank on a ${pageCount}-page book, which is allowed to carry the title`);
+          check(Boolean(onSpine), `${label}: spine is blank on a ${pageCount}-page book, whose spine fits the title`);
         }
       }
     }
@@ -93,4 +95,4 @@ for (const pageCount of [32, 66, 78, 80, 300]) {
 
 rmSync(tmp, { recursive: true, force: true });
 if (failed) { console.log(`\n${failed} cover problem(s)`); process.exit(1); }
-console.log(`COVER INK OK — 4 sample types × 5 page counts × free and paid: barcode area clear, spine text only from ${SPINE_TEXT_MIN_PAGES} pages`);
+console.log(`COVER INK OK — 4 sample types × 6 page counts × free and paid: barcode area clear, spine text only where it fits KDP's spine safe area`);

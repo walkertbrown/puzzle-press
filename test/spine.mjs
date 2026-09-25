@@ -33,9 +33,19 @@ await p.fill("#pages", "60");
 await p.waitForTimeout(200);
 console.log("spine text at 60p:", (await p.textContent("#spineText")).slice(0, 60));
 if (!(await p.textContent("#spineText")).includes("Not allowed")) throw new Error("should forbid spine text under 79 pages");
+// Allowed from 79 pages, but KDP's spine safe area (spine less 0.0625" at each
+// fold) has no room for readable type until about 88 pages of cream.
+await p.selectOption("#paper", "cream");
 await p.fill("#pages", "80");
 await p.waitForTimeout(200);
-if (!(await p.textContent("#spineText")).includes("Allowed")) throw new Error("should allow spine text at 80 pages");
+const at80 = await p.textContent("#spineText");
+console.log("spine text at 80p cream:", at80);
+if (!at80.startsWith("Allowed, but there is no room") || !at80.includes('0.075"')) throw new Error("80 pages of cream: allowed, 0.075\" safe strip, no room");
+await p.fill("#pages", "88");
+await p.waitForTimeout(200);
+const at88 = await p.textContent("#spineText");
+console.log("spine text at 88p cream:", at88);
+if (!at88.includes("fits type up to about 6pt")) throw new Error("88 pages of cream should fit 6pt");
 
 await p.setViewportSize({ width: 400, height: 900 });
 await p.waitForTimeout(300);
