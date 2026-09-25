@@ -16,7 +16,7 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { PT } from "./kdp.js";
-import { coverGeometry, BARCODE_IN } from "./cover-geometry.js";
+import { coverGeometry, BARCODE_IN, SPINE_FOLD_IN, SPINE_TYPE_MIN_PT } from "./cover-geometry.js";
 import { makeRng } from "../generator/rng.js";
 import { wallSegments } from "../generator/maze.js";
 
@@ -210,16 +210,24 @@ function drawFront(page, g, { title, subtitle, author, regular, bold }) {
   const cx = g.frontX + g.panelW / 2;
 
   // Work out the text first, then size the band to fit it. A fixed band left
-  // a one-word title floating in a slab of empty navy.
-  const size = Math.min(46, fitSize(bold, title.split(/\s+/).sort((a, b) => b.length - a.length)[0] || title, w - 36, 46, 18));
-  const lines = wrap(bold, title.toUpperCase(), w - 36, size);
+  // a one-word title floating in a slab of empty navy. The band may grow only
+  // between the author line and 0.25" under the trim — past that a long title
+  // used to print its first line off the top of the page — so a title too long
+  // for that room gets smaller type instead.
+  const room = { top: g.panelY + g.panelH - 18, bottom: g.panelY + 72 };
+  let size = Math.min(46, fitSize(bold, title.split(/\s+/).sort((a, b) => b.length - a.length)[0] || title, w - 36, 46, 18));
   const ss = subtitle ? fitSize(regular, subtitle, w - 40, 15, 9) : 0;
   const subLines = subtitle ? wrap(regular, subtitle, w - 40, ss) : [];
   const pad = 30;
-  const titleH = lines.length * size * 1.1;
   const subH = subLines.length ? 10 + subLines.length * ss * 1.3 : 0;
-  const bandH = Math.max(g.panelH * 0.22, pad * 2 + titleH + subH);
-  const bandY = g.panelY + g.panelH * 0.68 - bandH / 2;
+  let lines, bandH;
+  for (;;) {
+    lines = wrap(bold, title.toUpperCase(), w - 36, size);
+    bandH = Math.max(g.panelH * 0.22, pad * 2 + lines.length * size * 1.1 + subH);
+    if (bandH <= room.top - room.bottom || size <= 10) break;
+    size -= 1;
+  }
+  const bandY = Math.max(room.bottom, Math.min(room.top - bandH, g.panelY + g.panelH * 0.68 - bandH / 2));
   page.drawRectangle({ x: g.frontX + 18, y: bandY, width: g.panelW - 36, height: bandH, color: INK });
 
   let ty = bandY + bandH - pad - size * 0.85;
@@ -235,27 +243,39 @@ function drawFront(page, g, { title, subtitle, author, regular, bold }) {
     }
   }
   if (author) {
+    // Shrinks to 9pt, then wraps: a long pen name on 5x8 ran past the trim.
     const as = fitSize(bold, author.toUpperCase(), w, 15, 9);
-    centered(page, author.toUpperCase(), { cx, y: g.panelY + 44, size: as, font: bold, color: INK });
+    const authorLines = wrap(bold, author.toUpperCase(), w, as);
+    authorLines.forEach((line, i) => {
+      centered(page, line, { cx, y: g.panelY + 44 + (authorLines.length - 1 - i) * as * 1.2, size: as, font: bold, color: INK });
+    });
   }
 }
 
 function drawSpine(page, g, { title, author, regular, bold }) {
-  if (!g.spineTextAllowed || g.spine < 12) return;
-  const cx = g.spineX + g.spine / 2;
-  const size = Math.min(14, Math.max(8, g.spine * 0.5));
-  const text = author ? `${title}   ·   ${author}` : title;
+  // KDP allows spine text from 79 pages, but the type must stay 0.0625" inside
+  // each fold (cover-geometry.js), so the spine stays blank until 6pt fits.
+  // A title too long for the spine drops the author, then goes blank rather
+  // than run off the ends.
+  if (!g.spineTextFits) return;
+  const across = (g.spine - 2 * SPINE_FOLD_IN * 72) / bold.heightAtSize(1);
   const maxLen = g.panelH - 72;
-  const s = fitSize(bold, text, maxLen, size, 7);
-  // Rotated 90° so it reads bottom-to-top, the usual orientation.
-  page.drawText(text, {
-    x: cx + s * 0.36,
-    y: g.panelY + (g.panelH - bold.widthOfTextAtSize(text, s)) / 2,
-    size: s,
-    font: bold,
-    color: INK,
-    rotate: { type: "degrees", angle: 90 },
-  });
+  for (const text of author ? [`${title}   ·   ${author}`, title] : [title]) {
+    const s = Math.min(14, across, maxLen / bold.widthOfTextAtSize(text, 1));
+    if (s < SPINE_TYPE_MIN_PT) continue;
+    // Rotated 90° so it reads bottom-to-top, the usual orientation. The
+    // baseline sits so the ascender-to-descender box is centred on the spine.
+    // Liberation Sans Bold: descender 0.212 em of the 1.117 em box.
+    page.drawText(text, {
+      x: g.spineX + g.spine / 2 + bold.heightAtSize(s) / 2 - 0.212 * s,
+      y: g.panelY + (g.panelH - bold.widthOfTextAtSize(text, s)) / 2,
+      size: s,
+      font: bold,
+      color: INK,
+      rotate: { type: "degrees", angle: 90 },
+    });
+    return;
+  }
   void regular;
 }
 

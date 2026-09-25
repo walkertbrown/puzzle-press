@@ -13,6 +13,14 @@ import { PT, TRIMS } from "./kdp.js";
 
 export const BLEED_IN = 0.125;
 export const SPINE_TEXT_MIN_PAGES = 79;
+// KDP's cover calculator: "Spine Safe Area" is the spine less 0.0625" at each
+// fold. Our spine type is Liberation Sans Bold, whose ascender-to-descender box
+// is 1.117 em; below 6pt it is not worth printing. So from 79 pages KDP allows
+// spine text, but it only fits once the spine is about 0.218" — 88 pages on
+// cream, 97 on white.
+export const SPINE_FOLD_IN = 0.0625;
+export const SPINE_TYPE_MIN_PT = 6;
+export const SPINE_TYPE_BOX_EM = 1.1171875;
 
 // Not a number KDP publishes; it is the clear area their own downloadable
 // cover templates reserve in the lower right of the back cover.
@@ -47,6 +55,8 @@ export function coverGeometry({ trim = "6x9", pageCount = 24, paper = "cream" })
     pageCount,
     paper,
     spineTextAllowed: pageCount >= SPINE_TEXT_MIN_PAGES,
+    spineTextFits: pageCount >= SPINE_TEXT_MIN_PAGES &&
+      (spineIn - 2 * SPINE_FOLD_IN) * PT >= SPINE_TYPE_MIN_PT * SPINE_TYPE_BOX_EM,
     backX: BLEED_IN * PT,
     spineX: (BLEED_IN + t.w) * PT,
     frontX: (BLEED_IN + t.w + spineIn) * PT,
