@@ -49,7 +49,7 @@ const pages = {
     body: `
   <section class="prose">
     <h2>What goes wrong in word search books</h2>
-    <p>Word search is the biggest low-content category on Amazon, and its reviews are unforgiving about a small set of faults that are easy to make and easy for a solver to spot:</p>
+    <p>Word search books are judged in their reviews, and those reviews are unforgiving about a small set of faults that are easy to make and easy for a solver to spot:</p>
     <ul>
       <li><strong>A word appears twice.</strong> Crossing words, or the random filler letters, accidentally spell a second copy — and the answer key only marks one.</li>
       <li><strong>One word hides inside another.</strong> CAT inside CATALOG in the same grid is found twice.</li>
