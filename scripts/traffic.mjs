@@ -708,7 +708,7 @@ try {
   // not crawlers. A crawler following a link out of a video description is a
   // normal thing and is not an arrival.
   const GO_LABEL = {
-    yt: "YouTube, generator", ytcalc: "YouTube, royalty calc", ytspine: "YouTube, spine calc",
+    yt: "YouTube, generator", ytcalc: "YouTube, royalty calc", ytspine: "YouTube, spine calc", ytchan: "YouTube, channel link",
     ytmargin: "YouTube, margin calc", ytguide: "YouTube, the guide",
     pin: "Pinterest pin", reddit: "Reddit post",
   };

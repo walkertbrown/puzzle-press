@@ -18,6 +18,8 @@ const GO = {
   ytspine: "/spine-calculator",
   ytmargin: "/margin-calculator",
   ytguide: "/how-to-make-a-puzzle-book",
+  ytchan: "/",                         // YouTube channel profile link — the only
+                                       // clickable one: Shorts descriptions aren't
   pin: "/",                            // Pinterest pin
   reddit: "/",                         // a post with people in it
 };
