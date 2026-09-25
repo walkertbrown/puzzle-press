@@ -5,7 +5,8 @@
 // PDF and looks at pixels, which is the only way to catch a page that draws
 // outside the box it was given — the exact thing KDP rejects files for.
 //
-// Run: node test/inkcheck.mjs
+// Run: node test/inkcheck.mjs  (ONLY=custom to run just the books whose name
+// starts with "custom"; TRIMS=5x8,6x9 to narrow the trims — both for iterating)
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync, rmSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -32,6 +33,12 @@ let failed = 0;
 const check = (ok, msg) => { if (!ok) { failed++; console.log(`FAIL ${msg}`); } };
 
 const COUNT = 8;
+const LONG_POOL = {
+  title: "Grandma Margaret's Complete Garden, Kitchen and Orchard Words",
+  words: THEMES.garden.words,
+  clues: Object.fromEntries(THEMES.garden.words.map((w) => [w.toLowerCase(),
+    `Something you might find growing, crawling or resting somewhere in an old English country garden in late summer (${w.length} letters)`])),
+};
 const books = {
   "word search": generateBook({ pools: [THEMES.halloween], count: COUNT, wordsPerPuzzle: 15, difficulty: "graded", seed: "ink" }),
   sudoku: generateSudokuBook({ count: COUNT, difficulty: "graded", seed: "ink" }),
@@ -39,6 +46,12 @@ const books = {
   mazes: generateMazeBook({ count: COUNT, difficulty: "graded", seed: "ink" }),
   "criss-cross": generateCrissCrossBook({ pools: [THEMES.halloween], count: COUNT, difficulty: "graded", seed: "ink" }),
   crosswords: generateCrosswordBook({ pools: [THEMES.garden], builtinClues: CLUES, count: COUNT, difficulty: "graded", seed: "ink" }),
+  // The longest things a buyer can type into a puzzle page: the name of their
+  // own list (maxlength 60, printed on every puzzle) and, for crosswords, their
+  // own clues — which have no length limit at all.
+  "custom list": generateBook({ pools: [LONG_POOL], count: COUNT, wordsPerPuzzle: 15, difficulty: "graded", seed: "ink" }),
+  "custom criss-cross": generateCrissCrossBook({ pools: [LONG_POOL], count: COUNT, difficulty: "graded", seed: "ink" }),
+  "custom crosswords": generateCrosswordBook({ pools: [LONG_POOL], builtinClues: {}, count: COUNT, difficulty: "graded", seed: "ink" }),
 };
 
 // Pixels darker than this count as ink; JPEG-free PNG output makes this exact.
@@ -53,8 +66,8 @@ const author = "Margaret Elizabeth Worthington-Smythe and Friends of the Library
 
 // Every trim the tool offers, with and without bleed (a checkbox in the tool;
 // untested here until 2026-09-24).
-for (const trim of Object.keys(TRIMS)) for (const bleed of [false, true]) {
-  for (const [name, book] of Object.entries(books)) {
+for (const trim of (process.env.TRIMS?.split(",") ?? Object.keys(TRIMS))) for (const bleed of [false, true]) {
+  for (const [name, book] of Object.entries(books).filter(([n]) => !process.env.ONLY || n.startsWith(process.env.ONLY))) {
     for (const licensed of [true, false]) {
       const pdf = join(tmp, `${name.replace(/\W/g, "")}-${trim}-${bleed}-${licensed}.pdf`);
       writeFileSync(pdf, await renderBook(book, { title, subtitle, author, trim, bleed, licensed, fonts }));

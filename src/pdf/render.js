@@ -153,6 +153,21 @@ function centered(page, text, { x, w, y, size, font, color = BLACK }) {
   page.drawText(text, { x: x + (w - tw) / 2, y, size, font, color });
 }
 
+// "Puzzle 12" on the left, the list's name in grey on the right. The name can
+// be the buyer's own (up to 60 characters), which at 12pt runs past the
+// "Puzzle 12" and out through the left margin on every trim; it shrinks to
+// fit the space beside the number, and is cut short only past 8pt.
+function puzzleHeader(page, F, box, index, sub, headSize) {
+  const head = `Puzzle ${index}`;
+  page.drawText(head, { x: box.x, y: box.y + box.h - headSize, size: headSize, font: F.bold });
+  const room = box.w - F.bold.widthOfTextAtSize(head, headSize) - 12;
+  const size = fitSize(F.regular, sub, room, 12, 8);
+  let text = sub;
+  while (text.length > 1 && F.regular.widthOfTextAtSize(text, size) > room) text = `${text.slice(0, -2).trimEnd()}…`;
+  const w = F.regular.widthOfTextAtSize(text, size);
+  page.drawText(text, { x: box.x + box.w - w, y: box.y + box.h - headSize + 3, size, font: F.regular, color: GREY });
+}
+
 // Shrink a font size until the text fits a width.
 function fitSize(font, text, maxWidth, start, min = 8) {
   let s = start;
@@ -250,12 +265,7 @@ function drawPuzzlePage(ctx, puzzle) {
 
   // Header
   const headSize = 20;
-  const head = `Puzzle ${puzzle.index}`;
-  page.drawText(head, { x: box.x, y: box.y + box.h - headSize, size: headSize, font: F.bold });
-  const sub = puzzle.title;
-  const subSize = 12;
-  const subW = F.regular.widthOfTextAtSize(sub, subSize);
-  page.drawText(sub, { x: box.x + box.w - subW, y: box.y + box.h - headSize + 3, size: subSize, font: F.regular, color: GREY });
+  puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize);
 
   // Word bank size decides how much height the grid can have.
   const words = puzzle.words;
@@ -339,10 +349,7 @@ function drawCrissCrossPage(ctx, puzzle) {
   const { page, box } = newPage(ctx);
   const F = ctx.F;
   const headSize = 20;
-  page.drawText(`Puzzle ${puzzle.index}`, { x: box.x, y: box.y + box.h - headSize, size: headSize, font: F.bold });
-  const sub = puzzle.title;
-  const subW = F.regular.widthOfTextAtSize(sub, 12);
-  page.drawText(sub, { x: box.x + box.w - subW, y: box.y + box.h - headSize + 3, size: 12, font: F.regular, color: GREY });
+  puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize);
 
   // Word list grouped by length: "5 letters", then the words. Column count
   // from the longest word, as the word search does.
@@ -421,30 +428,48 @@ function drawCrosswordPage(ctx, puzzle) {
   const { page, box } = newPage(ctx);
   const F = ctx.F;
   const headSize = 20;
-  page.drawText(`Puzzle ${puzzle.index}`, { x: box.x, y: box.y + box.h - headSize, size: headSize, font: F.bold });
-  const sub = puzzle.title;
-  const subW = F.regular.widthOfTextAtSize(sub, 12);
-  page.drawText(sub, { x: box.x + box.w - subW, y: box.y + box.h - headSize + 3, size: 12, font: F.regular, color: GREY });
+  puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize);
 
-  const clueSize = Math.max(8.5, Math.min(11, Math.round(box.w / 42)));
-  const line = clueSize * 1.32;
+  // A buyer's own clues have no length limit, so the block can outgrow the
+  // page. The type shrinks first (to 6.5pt, still readable in print), and only
+  // then is each clue held to fewer lines, the last one cut with an ellipsis —
+  // never ink below the margin. Wrapped lines hang indented, so they wrap at
+  // the column width less the indent, or the Down column runs off the page.
   const gap = 14;
   const colW = (box.w - gap) / 2;
-  const column = (heading, list) => {
-    const lines = [{ text: heading, bold: true }];
-    for (const e of list) {
-      const wrapped = wrap(F.regular, `${e.num}. ${e.clue} (${e.len})`, colW - 2, clueSize);
-      wrapped.forEach((t, i) => lines.push({ text: t, bold: false, indent: i > 0 }));
-    }
-    return lines;
-  };
-  const left = column("Across", puzzle.across);
-  const right = column("Down", puzzle.down);
-  const clueLines = Math.max(left.length, right.length);
-  const clueH = clueLines * line + 8;
-
   const topY = box.y + box.h - headSize - 16;
-  const availH = topY - (box.y + 28) - clueH - 12;
+  const minGrid = Math.min(12, box.w / puzzle.w) * puzzle.h;
+  const layout = (clueSize, maxLines) => {
+    const indent = clueSize * 1.3;
+    const column = (heading, list) => {
+      const lines = [{ text: heading, bold: true }];
+      for (const e of list) {
+        const text = `${e.num}. ${e.clue} (${e.len})`.replace(/\s+/g, " ");
+        const first = wrap(F.regular, text, colW - 2, clueSize)[0];
+        let rest = wrap(F.regular, text.slice(first.length).trim(), colW - 2 - indent, clueSize).filter(Boolean);
+        let wrapped = [first, ...rest];
+        if (wrapped.length > maxLines) {
+          wrapped = wrapped.slice(0, maxLines);
+          let last = wrapped[maxLines - 1];
+          const w = maxLines === 1 ? colW - 2 : colW - 2 - indent;
+          do last = `${last.replace(/\s*\S*$/, "")}…`; while (last.length > 2 && F.regular.widthOfTextAtSize(last, clueSize) > w);
+          wrapped[maxLines - 1] = last;
+        }
+        wrapped.forEach((t, i) => lines.push({ text: t, bold: false, indent: i > 0 }));
+      }
+      return lines;
+    };
+    const left = column("Across", puzzle.across);
+    const right = column("Down", puzzle.down);
+    const line = clueSize * 1.32;
+    const clueH = Math.max(left.length, right.length) * line + 8;
+    return { clueSize, indent, line, left, right, availH: topY - (box.y + 28) - clueH - 12 };
+  };
+  let L = layout(Math.max(8.5, Math.min(11, Math.round(box.w / 42))), Infinity);
+  for (let s = L.clueSize - 0.5; L.availH < minGrid && s >= 6.5; s -= 0.5) L = layout(s, Infinity);
+  for (let n = 4; L.availH < minGrid && n >= 1; n--) L = layout(6.5, n);
+  const { clueSize, line, left, right, availH } = L;
+
   const cellSide = Math.max(9, Math.min(box.w / puzzle.w, availH / puzzle.h, 26));
   const gw = cellSide * puzzle.w, gh = cellSide * puzzle.h;
   const gx = box.x + (box.w - gw) / 2;
@@ -454,7 +479,7 @@ function drawCrosswordPage(ctx, puzzle) {
   const drawCol = (lines, x) => {
     let yy = y;
     for (const l of lines) {
-      page.drawText(l.text, { x: x + (l.indent ? clueSize * 1.3 : 0), y: yy - clueSize, size: clueSize, font: l.bold ? F.bold : F.regular });
+      page.drawText(l.text, { x: x + (l.indent ? L.indent : 0), y: yy - clueSize, size: clueSize, font: l.bold ? F.bold : F.regular });
       yy -= line;
     }
   };
@@ -469,9 +494,7 @@ function drawMazePage(ctx, maze) {
   const { page, box } = newPage(ctx);
   const F = ctx.F;
   const headSize = 20;
-  page.drawText(`Puzzle ${maze.index}`, { x: box.x, y: box.y + box.h - headSize, size: headSize, font: F.bold });
-  const subW = F.regular.widthOfTextAtSize(maze.title, 12);
-  page.drawText(maze.title, { x: box.x + box.w - subW, y: box.y + box.h - headSize + 3, size: 12, font: F.regular, color: GREY });
+  puzzleHeader(page, F, box, maze.index, maze.title, headSize);
 
   // The "start" and "end" labels hang outside the grid, so the grid has to be
   // narrower than the box by enough to hold them — otherwise the labels land
@@ -547,10 +570,7 @@ function drawSudokuPage(ctx, puzzle) {
   const { page, box } = newPage(ctx);
   const F = ctx.F;
   const headSize = 20;
-  page.drawText(`Puzzle ${puzzle.index}`, { x: box.x, y: box.y + box.h - headSize, size: headSize, font: F.bold });
-  const sub = puzzle.title;
-  const subW = F.regular.widthOfTextAtSize(sub, 12);
-  page.drawText(sub, { x: box.x + box.w - subW, y: box.y + box.h - headSize + 3, size: 12, font: F.regular, color: GREY });
+  puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize);
 
   // Centre the grid in what is left of the page rather than hanging it from
   // the header with dead space underneath.
