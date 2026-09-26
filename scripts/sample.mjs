@@ -34,6 +34,12 @@ const fonts = {
 // pull on real strangers (more addresses open one than run the app), so their
 // metadata is marketing copy and belongs here.
 const SITE_URL = "https://puzzlepress.bananafest-destiny.com/";
+// What the links point at: /go/sample 302s to the home page (src/worker.js).
+// The printed text stays the bare domain. A click out of a PDF viewer carries
+// no referer, so until 2026-09-26 a reader who came back from a sample was
+// indistinguishable from someone typing the address, and "did any sample
+// reader ever come back?" had no answer.
+const LINK_URL = SITE_URL + "go/sample";
 
 // Google cuts a result headline around 70 characters. So the searchable phrase
 // leads, and the optional detail is dropped here rather than truncated
@@ -115,7 +121,7 @@ async function finishSample(bytes, meta) {
       Subtype: "Link",
       Rect: [left - 4, base - 4, left + width + 4, top + 2],
       Border: [0, 0, 0],
-      A: { Type: "Action", S: "URI", URI: PDFString.of(SITE_URL) },
+      A: { Type: "Action", S: "URI", URI: PDFString.of(LINK_URL) },
     });
     page.node.set(PDFName.of("Annots"), doc.context.obj([doc.context.register(linkAnnot)]));
     return doc.save();
@@ -143,7 +149,7 @@ async function finishSample(bytes, meta) {
       Subtype: "Link",
       Rect: [cx - half, base - 6, cx + half, base + 28],
       Border: [0, 0, 0],
-      A: { Type: "Action", S: "URI", URI: PDFString.of(SITE_URL) },
+      A: { Type: "Action", S: "URI", URI: PDFString.of(LINK_URL) },
     });
     title.node.set(PDFName.of("Annots"), doc.context.obj([doc.context.register(annot)]));
   }
@@ -167,7 +173,7 @@ async function finishSample(bytes, meta) {
     Subtype: "Link",
     Rect: [0, 0, w, h],
     Border: [0, 0, 0],
-    A: { Type: "Action", S: "URI", URI: PDFString.of(SITE_URL) },
+    A: { Type: "Action", S: "URI", URI: PDFString.of(LINK_URL) },
   });
   page.node.set(PDFName.of("Annots"), doc.context.obj([doc.context.register(linkAnnot)]));
 

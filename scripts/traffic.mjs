@@ -718,7 +718,7 @@ try {
   const GO_LABEL = {
     yt: "YouTube, generator", ytcalc: "YouTube, royalty calc", ytspine: "YouTube, spine calc", ytchan: "YouTube, channel link",
     ytmargin: "YouTube, margin calc", ytguide: "YouTube, the guide",
-    pin: "Pinterest pin", reddit: "Reddit post",
+    pin: "Pinterest pin", reddit: "Reddit post", sample: "a sample PDF's link",
   };
   const goRows = Object.keys(GO_LABEL).map((slug) => {
     const re = new RegExp(`^/go/${slug}$`);

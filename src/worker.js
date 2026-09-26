@@ -22,6 +22,9 @@ const GO = {
                                        // clickable one: Shorts descriptions aren't
   pin: "/",                            // Pinterest pin
   reddit: "/",                         // a post with people in it
+  sample: "/",                         // the link inside every sample PDF — a PDF
+                                       // viewer sends no referer, so without this a
+                                       // reader coming back looks like a type-in
 };
 
 export default {

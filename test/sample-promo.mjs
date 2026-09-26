@@ -16,7 +16,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { PDFDocument, PDFName } from "pdf-lib";
 
-const SITE_URL = "https://puzzlepress.bananafest-destiny.com/";
+const SITE_URL = "https://puzzlepress.bananafest-destiny.com/go/sample";
 
 // Both lists are read off the directory, and that is the whole point.
 //
