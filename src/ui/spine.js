@@ -1,7 +1,7 @@
 // The spine calculator page. It imports the same functions the book generator
 // uses, so the numbers here cannot drift away from the numbers in the PDFs.
 import { TRIMS, gutterInches, PT } from "../pdf/kdp.js";
-import { coverGeometry, spineWidthInches, PAPER, SPINE_TEXT_MIN_PAGES, SPINE_FOLD_IN, SPINE_TYPE_BOX_EM, SPINE_TYPE_MIN_PT, BARCODE_IN } from "../pdf/cover-geometry.js";
+import { coverGeometry, spineWidthInches, PAPER, SPINE_TEXT_MIN_PAGES, SPINE_FOLD_IN, SPINE_SAFETY_IN, SPINE_TYPE_BOX_EM, SPINE_TYPE_MIN_PT, BARCODE_IN } from "../pdf/cover-geometry.js";
 import { toolLink, carryNote } from "./tool-link.js";
 import { px } from "./px.js";
 
@@ -82,7 +82,9 @@ function update() {
       ? `Not allowed — KDP needs at least ${SPINE_TEXT_MIN_PAGES} pages before you may put text on the spine. Leave it blank.`
       : maxPt < SPINE_TYPE_MIN_PT
         ? `Allowed, but there is no room — ${room}, which fits type of about ${maxPt}pt at most. Puzzle Press leaves a spine this narrow blank.`
-        : `Allowed — ${room}, which fits type up to about ${maxPt}pt from the top of a capital to the bottom of a "g".`;
+        : !g.spineTextFits
+          ? `Allowed — ${room}, which fits type of about ${maxPt}pt from the top of a capital to the bottom of a "g". Puzzle Press keeps its spine text a further ${inch(SPINE_SAFETY_IN)} in from each fold, so it leaves a spine this narrow blank.`
+          : `Allowed — ${room}, which fits type up to about ${maxPt}pt from the top of a capital to the bottom of a "g".`;
   el.barcode.textContent = `Leave ${BARCODE_IN.w}" × ${BARCODE_IN.h}" clear in the lower right of the back cover.`;
   el.sum.textContent =
     `0.125" bleed + ${t.w}" back + ${inch(spine)} spine + ${t.w}" front + 0.125" bleed = ${inch(w)}`;

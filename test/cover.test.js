@@ -152,11 +152,12 @@ test("spine text appears once it fits KDP's spine safe area, and not before", as
     return [...html.matchAll(/xMin="([\d.]+)" yMin="[\d.]+" xMax="([\d.]+)" yMax="[\d.]+">([^<]{2,})</g)]
       .filter((m) => +m[1] >= g.spineX - 1 && +m[2] <= g.frontX + 1).map((m) => m[3]);
   };
-  // 88 pages of cream is 0.22": 6pt fits inside the folds. 87 is 0.2175": no.
-  assert.ok(coverGeometry({ trim: "6x9", pageCount: 88, paper: "cream" }).spineTextFits);
-  assert.ok(!coverGeometry({ trim: "6x9", pageCount: 87, paper: "cream" }).spineTextFits);
-  assert.deepEqual(await spineWords(87, "cream"), []);
-  assert.deepEqual(await spineWords(88, "cream"), ["Animal", "Word", "Search", "Ann", "Lee"]);
-  assert.deepEqual(await spineWords(96, "white"), []);
-  assert.ok((await spineWords(97, "white")).includes("Search"));
+  // 100 pages of cream is 0.25": 6pt fits 1/64" inside KDP's 0.0625" at each
+  // fold. 99 is 0.2475": no.
+  assert.ok(coverGeometry({ trim: "6x9", pageCount: 100, paper: "cream" }).spineTextFits);
+  assert.ok(!coverGeometry({ trim: "6x9", pageCount: 99, paper: "cream" }).spineTextFits);
+  assert.deepEqual(await spineWords(99, "cream"), []);
+  assert.deepEqual(await spineWords(100, "cream"), ["Animal", "Word", "Search", "Ann", "Lee"]);
+  assert.deepEqual(await spineWords(110, "white"), []);
+  assert.ok((await spineWords(111, "white")).includes("Search"));
 });

@@ -34,7 +34,8 @@ await p.waitForTimeout(200);
 console.log("spine text at 60p:", (await p.textContent("#spineText")).slice(0, 60));
 if (!(await p.textContent("#spineText")).includes("Not allowed")) throw new Error("should forbid spine text under 79 pages");
 // Allowed from 79 pages, but KDP's spine safe area (spine less 0.0625" at each
-// fold) has no room for readable type until about 88 pages of cream.
+// fold) has no room for readable type until about 88 pages of cream, and
+// Puzzle Press keeps its own spine text a further 1/64" in: 100 pages.
 await p.selectOption("#paper", "cream");
 await p.fill("#pages", "80");
 await p.waitForTimeout(200);
@@ -45,7 +46,12 @@ await p.fill("#pages", "88");
 await p.waitForTimeout(200);
 const at88 = await p.textContent("#spineText");
 console.log("spine text at 88p cream:", at88);
-if (!at88.includes("fits type up to about 6pt")) throw new Error("88 pages of cream should fit 6pt");
+if (!at88.includes("about 6pt") || !at88.includes("leaves a spine this narrow blank")) throw new Error("88 pages of cream: 6pt fits KDP's safe area, but Puzzle Press leaves it blank");
+await p.fill("#pages", "100");
+await p.waitForTimeout(200);
+const at100 = await p.textContent("#spineText");
+console.log("spine text at 100p cream:", at100);
+if (!at100.includes("fits type up to about")) throw new Error("100 pages of cream: Puzzle Press prints spine text");
 
 await p.setViewportSize({ width: 400, height: 900 });
 await p.waitForTimeout(300);

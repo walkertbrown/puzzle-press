@@ -16,7 +16,7 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { PT } from "./kdp.js";
-import { coverGeometry, BARCODE_IN, SPINE_FOLD_IN, SPINE_TYPE_MIN_PT } from "./cover-geometry.js";
+import { coverGeometry, BARCODE_IN, SPINE_TEXT_IN, SPINE_TYPE_MIN_PT } from "./cover-geometry.js";
 import { makeRng } from "../generator/rng.js";
 import { wallSegments } from "../generator/maze.js";
 
@@ -254,11 +254,12 @@ function drawFront(page, g, { title, subtitle, author, regular, bold }) {
 
 function drawSpine(page, g, { title, author, regular, bold }) {
   // KDP allows spine text from 79 pages, but the type must stay 0.0625" inside
-  // each fold (cover-geometry.js), so the spine stays blank until 6pt fits.
+  // each fold, and ours stays a further 1/64" in (cover-geometry.js), so the
+  // spine stays blank until 6pt fits.
   // A title too long for the spine drops the author, then goes blank rather
   // than run off the ends.
   if (!g.spineTextFits) return;
-  const across = (g.spine - 2 * SPINE_FOLD_IN * 72) / bold.heightAtSize(1);
+  const across = (g.spine - 2 * SPINE_TEXT_IN * 72) / bold.heightAtSize(1);
   const maxLen = g.panelH - 72;
   for (const text of author ? [`${title}   ·   ${author}`, title] : [title]) {
     const s = Math.min(14, across, maxLen / bold.widthOfTextAtSize(text, 1));

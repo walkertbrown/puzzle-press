@@ -286,7 +286,7 @@ function showMeta(s) {
     `Cover: ${(g.width / 72).toFixed(3)}" × ${(g.height / 72).toFixed(3)}" ` +
     `(spine ${spineWidthInches(pages, s.paper).toFixed(3)}")` +
     (pages < SPINE_TEXT_MIN_PAGES ? ` — under ${SPINE_TEXT_MIN_PAGES} pages, so KDP wants the spine blank`
-      : !g.spineTextFits ? ` — spine left blank: too narrow for title text inside KDP's spine safe area` : "");
+      : !g.spineTextFits ? ` — spine left blank: too narrow for title text to sit clear inside KDP's spine safe area` : "");
 
   // What the book is worth, using the same figures as the royalty calculator.
   const m = royalty({ list: s.list, trim: s.trim, pages, ink: s.ink });

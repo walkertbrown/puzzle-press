@@ -16,9 +16,18 @@ export const SPINE_TEXT_MIN_PAGES = 79;
 // KDP's cover calculator: "Spine Safe Area" is the spine less 0.0625" at each
 // fold. Our spine type is Liberation Sans Bold, whose ascender-to-descender box
 // is 1.117 em; below 6pt it is not worth printing. So from 79 pages KDP allows
-// spine text, but it only fits once the spine is about 0.218" — 88 pages on
-// cream, 97 on white.
+// spine text, but it only fits once the spine is about 0.249" — 100 pages on
+// cream, 111 on white.
 export const SPINE_FOLD_IN = 0.0625;
+// How far inside KDP's spine safe area our spine text stays. KDP: "at least
+// 0.0625" (1.6 mm) of space between the text and the edge of the spine". Laid
+// out on exactly that, the descenders of a "g" or "y" measured 0.0624"-0.0634"
+// from the fold at 1200 DPI (2026-09-26): on the line. The interior keeps
+// SAFETY_IN (1/32") clear; on a spine every 1/64" costs about six pages of
+// books that get spine text at all, so the spine keeps 1/64" — about 19 pixels
+// at 1200 DPI, well clear of a pixel-exact check.
+export const SPINE_SAFETY_IN = 1 / 64;
+export const SPINE_TEXT_IN = SPINE_FOLD_IN + SPINE_SAFETY_IN;
 export const SPINE_TYPE_MIN_PT = 6;
 export const SPINE_TYPE_BOX_EM = 1.1171875;
 
@@ -56,7 +65,7 @@ export function coverGeometry({ trim = "6x9", pageCount = 24, paper = "cream" })
     paper,
     spineTextAllowed: pageCount >= SPINE_TEXT_MIN_PAGES,
     spineTextFits: pageCount >= SPINE_TEXT_MIN_PAGES &&
-      (spineIn - 2 * SPINE_FOLD_IN) * PT >= SPINE_TYPE_MIN_PT * SPINE_TYPE_BOX_EM,
+      (spineIn - 2 * SPINE_TEXT_IN) * PT >= SPINE_TYPE_MIN_PT * SPINE_TYPE_BOX_EM,
     backX: BLEED_IN * PT,
     spineX: (BLEED_IN + t.w) * PT,
     frontX: (BLEED_IN + t.w + spineIn) * PT,
