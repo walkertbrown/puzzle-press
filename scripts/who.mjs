@@ -286,6 +286,10 @@ for (const [ip, e] of ranTheApp) {
       ? "$$ WENT TO STRIPE CHECKOUT"
       : d.px.has("pay")
         ? "$  opened the price"
+        // Shown, not asked: a free cover opens the price dialog by itself.
+        // Until 2026-09-26 this fired `pay` and read as the row above.
+        : d.px.has("coverpay")
+          ? "took a free cover; the price came up after it (not asked)"
         : d.madeBook || d.px.has("made")
           ? "MADE A BOOK"
           : d.px.has("failed")

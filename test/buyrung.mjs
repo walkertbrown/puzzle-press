@@ -11,6 +11,9 @@
 //   /px/pay       pressed the price link and read the dialog
 //   /px/checkout  clicked through to Stripe (keepalive — this is a navigation)
 //   /px/unlock    a returning buyer opening "Already paid?" — a support signal
+//   /px/coverpay  the same dialog, opened BY the page after a free cover
+//                 (2026-09-26: until then it fired /px/pay, so a visitor who
+//                 took a free cover read as one who asked the price)
 //
 // Instrumentation that nothing tests rots silently, and this kind rots in the
 // worst direction: the number keeps printing, it just goes quietly to zero and
@@ -78,7 +81,7 @@ const check = (ok, what) => {
   if (!ok) fails.push(what);
 };
 const since = () => { const was = px; px = []; return was; };
-const money = (seen) => seen.filter((n) => ["pay", "checkout", "unlock"].includes(n));
+const money = (seen) => seen.filter((n) => ["pay", "coverpay", "checkout", "unlock"].includes(n));
 
 console.log(`\n${"=".repeat(70)}\nTHE RUNGS WITH MONEY ON THEM — ${engine}\n${"=".repeat(70)}\n`);
 
@@ -138,6 +141,18 @@ await page.waitForTimeout(400);
 const fake = money(since());
 check(!fake.includes("checkout"), `a scripted click on Buy fires nothing (got: ${fake.join(" ") || "none"})`);
 
+// 6. Shown the price is not asking for it. A free cover opens the dialog by
+//    itself when it is done; that has to report as /px/coverpay, never /px/pay.
+await page.click("#closeDialog").catch(() => {});
+await page.waitForTimeout(200);
+since();
+await page.click("#downloadCover");
+await page.waitForSelector("#unlockDialog[open]", { timeout: 60000 });
+await page.waitForTimeout(300);
+const afterCover = money(since());
+check(afterCover.filter((n) => n === "coverpay").length === 1, `a free cover's dialog fires /px/coverpay once (got: ${afterCover.join(" ") || "none"})`);
+check(!afterCover.includes("pay"), `and not /px/pay — nobody asked`);
+
 for (const p2 of ctx.pages().slice(1)) await p2.close().catch(() => {});
 await browser.close();
 server.close();
@@ -147,4 +162,4 @@ if (fails.length) {
   console.log(`\nBUY RUNG FAILED — ${engine}: ${fails.length} problem(s)`);
   process.exit(1);
 }
-console.log(`\nBUY RUNG OK — ${engine}: the three acts on the money side each report themselves, once, and only when a person did them`);
+console.log(`\nBUY RUNG OK — ${engine}: the four acts on the money side each report themselves, once, and only when a person did them`);

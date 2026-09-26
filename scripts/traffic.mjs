@@ -478,6 +478,9 @@ try {
   // that complete — so before these three, "nobody bought" and "nobody ever
   // opened the price" printed as the same silence.
   const openedPrice = people(/^\/px\/pay\.gif$/);
+  // A free cover opens the price dialog by itself; that is `coverpay`, not
+  // `pay`, since 2026-09-26. Before then this path counted as "opened the price".
+  const shownPrice = people(/^\/px\/coverpay\.gif$/);
   const toCheckout = people(/^\/px\/checkout\.gif$/);
   const returning = people(/^\/px\/unlock\.gif$/);
   const pxTotal = hits(/^\/px\//);
@@ -668,6 +671,7 @@ try {
     // ever making a book — so it is printed as its own short ladder rather than
     // indented under "the file came out".
     console.log(`    ...opened the price         ${openedPrice}   <-- pressed "$19 one-time" and read the dialog`);
+    console.log(`    ...shown it after a cover   ${shownPrice}   <-- took a free cover; the dialog opened by itself`);
     console.log(`    ...went to Stripe           ${toCheckout}   <-- left this page for checkout; Stripe reports the ones that pay`);
     if (returning) console.log(`    ...already paid, locked out ${returning}   <-- a customer asking to be let back in. Read the mail.`);
   } else {

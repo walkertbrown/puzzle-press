@@ -575,7 +575,7 @@ function stopAutoRetry() {
 // email box. Nothing is hidden in either case — the email field stays visible
 // and fillable in buy mode, because somebody who has paid and clicked the wrong
 // link should not be stuck.
-function openUnlock({ justPaid = false, intent = "buy" } = {}) {
+function openUnlock({ justPaid = false, intent = "buy", after = null } = {}) {
   const buying = !justPaid && intent === "buy" && !!PAY_URL;
   // The rungs with money on them, and until 2026-09-23 the only dark ones left.
   // Every beacon I had described somebody getting closer to a free book; not one
@@ -583,7 +583,13 @@ function openUnlock({ justPaid = false, intent = "buy" } = {}) {
   // the price" are completely different problems and I could not tell them
   // apart. `pay` is asking what it costs; `unlock` is a returning buyer, which
   // is a support signal rather than a sales one.
-  if (!justPaid) px(buying ? "pay" : "unlock");
+  //
+  // `coverpay` (2026-09-26): a free cover opens this dialog by itself when it
+  // finishes, and until today that fired `pay` too, so "opened the price" also
+  // counted people who only took a free cover and had the price put in front
+  // of them. The first stranger to reach `pay` in days (Vodafone PT, 09-26
+  // 16:36Z) had done exactly that. Shown the price is not asking for it.
+  if (!justPaid) px(!buying ? "unlock" : after === "cover" ? "coverpay" : "pay");
   el.unlockErr.textContent = "";
   el.dialogTitle.textContent = justPaid
     ? "Thanks — one last step"
@@ -832,7 +838,7 @@ async function downloadCover() {
     el.status.textContent = lic
       ? `Cover ready — sized for ${pages} pages, ${(PAPER[s.paper] ?? PAPER.cream).label.toLowerCase()}.`
       : `Preview cover ready — your title, your spine (${pages} pages). Unlock to get it without the PREVIEW mark.`;
-    if (!lic) openUnlock();
+    if (!lic) openUnlock({ after: "cover" });
   } catch (err) {
     console.error(err);
     el.status.textContent = `Could not build the cover: ${err.message}`;

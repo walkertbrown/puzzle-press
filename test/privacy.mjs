@@ -66,7 +66,7 @@ if (offsite.length) throw new Error("page contacts a third party: " + offsite.ma
 // to the shape they were designed with rather than to a comment: a closed set
 // of known paths, a GET, and a query string that is nothing but a cache
 // buster. Adding a beacon is fine; adding a parameter to one is not.
-const PX_PATHS = new Set(["tool", "touched", "browsed", "click", "empty", "made", "failed", "handoff", "handofftop", "compare", "compareclick", "guide", "guideclick", "list", "listclick", "spine", "royalty", "margin", "pay", "checkout", "unlock"].map((n) => `/px/${n}.gif`));
+const PX_PATHS = new Set(["tool", "touched", "browsed", "click", "empty", "made", "failed", "handoff", "handofftop", "compare", "compareclick", "guide", "guideclick", "list", "listclick", "spine", "royalty", "margin", "pay", "coverpay", "checkout", "unlock"].map((n) => `/px/${n}.gif`));
 const px = requests.filter((r) => r.url.startsWith(origin) && new URL(r.url).pathname.startsWith("/px/"));
 console.log("funnel beacons:", px.length, px.map((r) => new URL(r.url).pathname));
 for (const r of px) {
