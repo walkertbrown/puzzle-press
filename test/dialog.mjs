@@ -48,7 +48,7 @@ await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${server.address().port}`;
 
 const browser = await chromium.launch();
-const p = await browser.newPage();
+const p = await browser.newPage({ acceptDownloads: true });
 await p.goto(base + "/", { waitUntil: "networkidle" });
 
 const read = async (label) => {
@@ -87,6 +87,12 @@ await p.click("#alreadyPaid");
 const paid = await read('tier line: "Already paid? Unlock"');
 await p.click("#buyNow");
 const pricing = await read("pricing block: Buy button");
+// The fourth way in: nobody clicks anything, a free cover finishes and the
+// dialog opens on top of it. It has to say the cover arrived before it sells.
+const dl = p.waitForEvent("download", { timeout: 60000 });
+await p.click("#downloadCover");
+await dl;
+const cover = await read("after a free cover (opened by itself)");
 
 const fail = [];
 if (buy.buyClass !== "buybtn") fail.push("buy intent did not render the button-styled Buy link");
@@ -95,7 +101,11 @@ if (/unlock full books/i.test(buy.title)) fail.push("buy intent still says 'Unlo
 if (paid.focus !== "email") fail.push(`already-paid intent focused "${paid.focus}", not the email box`);
 if (paid.paidLead !== "(hidden)") fail.push("already-paid intent should not show the 'Already paid?' lead-in");
 if (pricing.buyClass !== "buybtn") fail.push("the pricing block's Buy button did not open in buy intent");
-for (const [name, s] of [["buy", buy], ["already-paid", paid], ["pricing", pricing]]) {
+if (!/downloaded/i.test(cover.title)) fail.push(`after a free cover the heading is "${cover.title}" — it must say the cover downloaded, or the file reads as replaced by a price`);
+if (/footer/i.test(cover.title)) fail.push("after a free cover the heading offers to remove a footer line — a cover has none");
+if (!/PREVIEW/.test(cover.lede) || !/\d+ pages/.test(cover.lede)) fail.push(`after a free cover the lede does not say what is on it: "${cover.lede}"`);
+if (cover.buyClass !== "buybtn") fail.push("after a free cover the Buy link is not the button");
+for (const [name, s] of [["buy", buy], ["already-paid", paid], ["pricing", pricing], ["cover", cover]]) {
   // purchase.mjs, privacy.mjs and nostorage.mjs all type into #email from
   // whichever entry point they used. Hiding it anywhere breaks them.
   if (!s.emailVisible) fail.push(`${name}: email box is hidden`);

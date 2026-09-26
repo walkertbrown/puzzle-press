@@ -575,7 +575,7 @@ function stopAutoRetry() {
 // email box. Nothing is hidden in either case — the email field stays visible
 // and fillable in buy mode, because somebody who has paid and clicked the wrong
 // link should not be stuck.
-function openUnlock({ justPaid = false, intent = "buy", after = null } = {}) {
+function openUnlock({ justPaid = false, intent = "buy", after = null, pages = 0 } = {}) {
   const buying = !justPaid && intent === "buy" && !!PAY_URL;
   // The rungs with money on them, and until 2026-09-23 the only dark ones left.
   // Every beacon I had described somebody getting closer to a free book; not one
@@ -591,8 +591,16 @@ function openUnlock({ justPaid = false, intent = "buy", after = null } = {}) {
   // 16:36Z) had done exactly that. Shown the price is not asking for it.
   if (!justPaid) px(!buying ? "unlock" : after === "cover" ? "coverpay" : "pay");
   el.unlockErr.textContent = "";
+  // After a free cover the dialog opens by itself, on top of the status line
+  // that says the cover was made — so from behind the overlay, "Download cover"
+  // looked like it had produced a price instead of a file, and the heading
+  // offered to remove a footer line that a cover does not have (2026-09-26).
+  // Say the file is theirs first, then what the money changes on it.
+  const afterCover = buying && after === "cover";
   el.dialogTitle.textContent = justPaid
     ? "Thanks — one last step"
+    : afterCover
+      ? "Your cover is downloaded"
     : buying
       // "Remove the watermark" survived the 2026-09-22 sweep that took that
       // word out of the hero and the thumb bar, because I only looked at the
@@ -603,6 +611,8 @@ function openUnlock({ justPaid = false, intent = "buy", after = null } = {}) {
       : "Enter the email you paid with";
   el.dialogLede.textContent = justPaid
     ? "Enter the email you used at checkout and everything unlocks on this device."
+    : afterCover
+      ? `Your title, your spine${pages ? `, sized for ${pages} pages` : ""}, with PREVIEW across the front. ${PRICE_LABEL} takes PREVIEW off the cover and the line off the interior's footer. Unlimited books, no account, no subscription.`
     : buying
       ? `${PRICE_LABEL}. Unlimited books, no line in the footer, no PREVIEW across the cover. No account and no subscription.`
       : "Enter the email you used at checkout and everything unlocks on this device.";
@@ -838,7 +848,7 @@ async function downloadCover() {
     el.status.textContent = lic
       ? `Cover ready — sized for ${pages} pages, ${(PAPER[s.paper] ?? PAPER.cream).label.toLowerCase()}.`
       : `Preview cover ready — your title, your spine (${pages} pages). Unlock to get it without the PREVIEW mark.`;
-    if (!lic) openUnlock({ after: "cover" });
+    if (!lic) openUnlock({ after: "cover", pages });
   } catch (err) {
     console.error(err);
     el.status.textContent = `Could not build the cover: ${err.message}`;
