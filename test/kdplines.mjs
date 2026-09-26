@@ -6,9 +6,11 @@
 //   Line width — "give the lines a minimum thickness/weight of 0.75 point or
 //     0.01" (0.3 mm)". Enforced here: until 2026-09-26 every book type drew
 //     thinner lines, and nothing measured it.
-//   Font — "Minimum font size: 7 points". REPORTED, not yet enforced: the
-//     letters in small answer grids and some crossword clue numbers are under
-//     it, and raising them means fewer answers a page — a layout change.
+//   Font — "Minimum font size: 7 points". Answer-grid letters take 7pt
+//     wherever the cell has room (2026-09-26; they went down to 4.4pt). Under
+//     7pt is REPORTED; under 6.5pt FAILS, except in crosswords, whose clue
+//     numbers on 5×8 and 6×9 are still down to 4.4pt — fixing those means a
+//     bigger grid or fewer clues on the page, a layout change not yet made.
 //   Grayscale fill — "we recommend a minimum grayscale fill of 10%". Checked:
 //     any fill lighter than 10% grey that is not white fails.
 //
@@ -56,6 +58,8 @@ for (const trim of (process.env.TRIMS || "5x8,6x9,8.5x11").split(",")) for (cons
   const label = `${trim} ${name}${lp ? " large print" : ""}`;
   if (thin.length) { failed++; console.log(`FAIL ${label}: lines under 0.75pt: ${thin.join(" ")}`); }
   if (grey.size) { failed++; console.log(`FAIL ${label}: fills under 10% grey: ${[...grey].map(([k, n]) => `${k}×${n}`).join(" ")}`); }
+  const tiny = name === "crossword" ? [] : [...tf].filter(([v]) => v < 6.5).map(([v, p]) => `${+v.toFixed(2)}@${p}`);
+  if (tiny.length) { failed++; console.log(`FAIL ${label}: type under 6.5pt: ${tiny.join(" ")}`); }
   if (small.length) console.log(`note ${label}: type under 7pt: ${small.join(" ")}`);
 }
 

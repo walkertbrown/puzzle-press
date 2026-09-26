@@ -29,6 +29,14 @@ const BLACK = rgb(0, 0, 0);
 // every book type drew thinner ones: sudoku cell lines at 0.4 and 0.25, answer
 // grids at 0.4, notes rules at 0.5, maze walls down to 0.5.
 const MIN_LINE = 0.75;
+// Same page, "Minimum font size: 7 points". Answer-grid letters were sized
+// only as a share of the cell, so a 15×15 answer on a 6×9 six-up page came
+// out at 6pt and a 19×19 on 5×8 at 4.8pt. The letter now takes 7pt whenever
+// the cell has room for it — Liberation's widest capital, W, is 0.944em, so
+// at 0.85 of the cell even a row of Ws keeps a gap — and only a grid too big
+// for its page drops under 7pt, as little as that cell allows.
+const MIN_TYPE = 7;
+const gridLetter = (cell, share) => Math.min(Math.max(MIN_TYPE, cell * share), cell * 0.85);
 const GREY = rgb(0.45, 0.45, 0.45);
 const SHADE = rgb(0.82, 0.82, 0.82);
 // The address is in the line because a free book can reach Amazon, where Look
@@ -318,7 +326,7 @@ function bankColumns(font, words, width, size) {
 function drawGrid(page, F, puzzle, { x, top, side, solution }) {
   const n = puzzle.size;
   const cell = side / n;
-  const letterSize = cell * 0.62;
+  const letterSize = gridLetter(cell, 0.62);
   const shaded = new Set();
   if (solution) {
     for (const p of puzzle.placements) {
@@ -407,7 +415,7 @@ function drawCrissCrossGrid(page, F, puzzle, { x, top, side, solution, cell = nu
     const p = puzzle.placements.find((q) => q.word === g);
     for (let i = 0; i < g.length; i++) givenCells.add(`${p.row + p.dr * i},${p.col + p.dc * i}`);
   }
-  const letterSize = c * 0.6;
+  const letterSize = gridLetter(c, 0.6);
   for (let r = 0; r < puzzle.h; r++) {
     for (let k = 0; k < puzzle.w; k++) {
       const ch = puzzle.cells[r][k];
