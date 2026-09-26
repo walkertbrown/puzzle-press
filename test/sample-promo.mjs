@@ -13,6 +13,7 @@
 //
 // Run: node test/sample-promo.mjs
 import { readFileSync, readdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { PDFDocument, PDFName } from "pdf-lib";
 
 const SITE_URL = "https://puzzlepress.bananafest-destiny.com/";
@@ -114,8 +115,22 @@ for (const name of ALL) {
   check(keywords.includes(","), `${name} Keywords are not comma-separated, so the terms run together: ${JSON.stringify(keywords)}`);
 }
 
+// Every font embedded. KDP requires it, and the guide tells a seller to check
+// exactly this in File → Properties → Fonts. The renderer embeds Liberation
+// Sans (test/pdf.test.js), but the publisher line stamped on samples used
+// pdf-lib's standard Helvetica, which is never embedded — so all twelve public
+// samples listed two unembedded fonts until 2026-09-26. pdffonts reads what a
+// PDF viewer reads, whatever library wrote the file.
+for (const name of ALL) {
+  const rows = execFileSync("pdffonts", [new URL(`../public/samples/${name}`, import.meta.url).pathname], { encoding: "utf8" })
+    .split("\n").slice(2).filter(Boolean);
+  // Columns from the right: object ID (2 fields), uni, sub, emb.
+  const loose = rows.filter((r) => r.trim().split(/\s+/).at(-5) !== "yes").map((r) => r.split(/\s+/)[0]);
+  check(rows.length > 0 && loose.length === 0, `${name}: ${rows.length ? `fonts not embedded: ${loose.join(", ")}` : "no fonts listed"}`);
+}
+
 if (failed) {
   console.log(`${failed} problem(s)`);
   process.exit(1);
 }
-console.log(`${SHOULD_HAVE_PROMO.length} samples carry a way back to the site, ${SHOULD_STAY_SINGLE_PAGE.length} cover files stay single-page, ${ALL.length} carry findable metadata`);
+console.log(`${SHOULD_HAVE_PROMO.length} samples carry a way back to the site, ${SHOULD_STAY_SINGLE_PAGE.length} cover files stay single-page, ${ALL.length} carry findable metadata and embed every font`);

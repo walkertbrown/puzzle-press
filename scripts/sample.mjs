@@ -1,6 +1,7 @@
 // Regenerate the public sample book (linked from the landing page).
 import { readFileSync, writeFileSync } from "node:fs";
-import { PDFDocument, PDFName, PDFString, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, PDFName, PDFString, rgb } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
 import { generateBook } from "../src/generator/book.js";
 import { THEMES } from "../src/generator/wordlists.js";
 import { renderBook, planPages, solutionsThatFit } from "../src/pdf/render.js";
@@ -68,6 +69,18 @@ const sampleKeywords = ({ kind }) => [[
 // Applied to every generated sample, interior and cover alike. `cover: true`
 // skips the promo page, because a KDP cover is a single-page full-wrap artefact
 // and appending to it would destroy the file (asserted in test/sample-promo.mjs).
+// The publisher line is stamped in the book's own Liberation Sans, embedded.
+// It used pdf-lib's standard Helvetica until 2026-09-26, which is never
+// embedded: every public sample listed two unembedded fonts under File →
+// Properties → Fonts — the check our own guide tells a KDP seller to make.
+async function stampFonts(doc) {
+  doc.registerFontkit(fontkit);
+  return {
+    bold: await doc.embedFont(fonts.bold, { subset: true }),
+    regular: await doc.embedFont(fonts.regular, { subset: true }),
+  };
+}
+
 async function finishSample(bytes, meta) {
   const doc = await PDFDocument.load(bytes);
   doc.setTitle(sampleTitle(meta));
@@ -84,8 +97,7 @@ async function finishSample(bytes, meta) {
     // where a real back cover would carry an imprint, and that line is the
     // link. Added here, never in cover.js, which customers' covers go through.
     const page = doc.getPage(0);
-    const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-    const regular = await doc.embedFont(StandardFonts.Helvetica);
+    const { bold, regular } = await stampFonts(doc);
     const PT = 72;
     const trim = TRIMS[meta.trim];
     const left = (BLEED_IN + BARCODE_IN.margin) * PT;
@@ -110,8 +122,7 @@ async function finishSample(bytes, meta) {
   }
 
   const { width: w, height: h } = doc.getPage(0).getSize();
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const regular = await doc.embedFont(StandardFonts.Helvetica);
+  const { bold, regular } = await stampFonts(doc);
   const cx = w / 2;
   const center = (text, font, size) => cx - font.widthOfTextAtSize(text, size) / 2;
 
