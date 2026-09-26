@@ -239,9 +239,10 @@ function drawCopyrightPage(ctx, { title, author, recipe = null }) {
   // lose the file you have lost the seed too, unless the book carries it.
   // Now it does, so a printed copy is enough to make the file again.
   if (recipe) {
-    const rl = wrap(ctx.F.regular, recipe, box.w, 6.5);
+    // 7pt: KDP's "Minimum font size" (it was 6.5 until 2026-09-26).
+    const rl = wrap(ctx.F.regular, recipe, box.w, MIN_TYPE);
     rl.forEach((line, i) => {
-      centered(page, line, { x: box.x, w: box.w, y: box.y + 34 + (rl.length - 1 - i) * 8, size: 6.5, font: ctx.F.regular, color: GREY });
+      centered(page, line, { x: box.x, w: box.w, y: box.y + 34 + (rl.length - 1 - i) * 8.6, size: MIN_TYPE, font: ctx.F.regular, color: GREY });
     });
   }
   void 0;
@@ -423,7 +424,16 @@ function drawCrissCrossGrid(page, F, puzzle, { x, top, side, solution, cell = nu
       const cx = x + k * c, cy = top - (r + 1) * c;
       page.drawRectangle({ x: cx, y: cy, width: c, height: c, borderWidth: MIN_LINE, borderColor: BLACK, color: rgb(1, 1, 1) });
       const num = numbers && !solution ? numbers[`${r},${k}`] : null;
-      if (num) page.drawText(String(num), { x: cx + c * 0.07, y: cy + c * 0.66, size: Math.max(4, c * 0.3), font: F.regular, color: BLACK });
+      // Clue numbers were 0.3 of the cell with a 4pt floor, so 4.4pt on a
+      // 5×8 expert page. At 7pt (KDP's minimum) a number still leaves the
+      // lower half of any cell this layout draws for the solver's letter;
+      // only a cell under 14.6pt, which no built-in puzzle gets, holds it
+      // to half the cell. Placed from the top edge, since it no longer
+      // scales with the cell.
+      if (num) {
+        const ns = Math.min(Math.max(MIN_TYPE, c * 0.3), c * 0.48);
+        page.drawText(String(num), { x: cx + c * 0.07, y: cy + c - c * 0.08 - ns * 0.72, size: ns, font: F.regular, color: BLACK });
+      }
       const show = solution || givenCells.has(`${r},${k}`);
       if (!show) continue;
       const font = givenCells.has(`${r},${k}`) ? F.bold : F.regular;
@@ -445,7 +455,7 @@ function drawCrosswordPage(ctx, puzzle) {
   puzzleHeader(page, F, box, puzzle.index, puzzle.title, headSize, ctx.largePrint ? 16 : 12);
 
   // A buyer's own clues have no length limit, so the block can outgrow the
-  // page. The type shrinks first (to 6.5pt, still readable in print), and only
+  // page. The type shrinks first (to 7pt, KDP's minimum), and only
   // then is each clue held to fewer lines, the last one cut with an ellipsis —
   // never ink below the margin. Wrapped lines hang indented, so they wrap at
   // the column width less the indent, or the Down column runs off the page.
@@ -480,8 +490,8 @@ function drawCrosswordPage(ctx, puzzle) {
     return { clueSize, indent, line, left, right, availH: topY - (box.y + 28) - clueH - 12 };
   };
   let L = layout(Math.max(8.5, Math.min(11, Math.round(box.w / 42))), Infinity);
-  for (let s = L.clueSize - 0.5; L.availH < minGrid && s >= 6.5; s -= 0.5) L = layout(s, Infinity);
-  for (let n = 4; L.availH < minGrid && n >= 1; n--) L = layout(6.5, n);
+  for (let s = L.clueSize - 0.5; L.availH < minGrid && s >= MIN_TYPE; s -= 0.5) L = layout(s, Infinity);
+  for (let n = 4; L.availH < minGrid && n >= 1; n--) L = layout(MIN_TYPE, n);
   const { clueSize, line, left, right, availH } = L;
 
   const cellSide = Math.max(9, Math.min(box.w / puzzle.w, availH / puzzle.h, 26));

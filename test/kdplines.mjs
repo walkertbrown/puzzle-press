@@ -6,11 +6,11 @@
 //   Line width — "give the lines a minimum thickness/weight of 0.75 point or
 //     0.01" (0.3 mm)". Enforced here: until 2026-09-26 every book type drew
 //     thinner lines, and nothing measured it.
-//   Font — "Minimum font size: 7 points". Answer-grid letters take 7pt
-//     wherever the cell has room (2026-09-26; they went down to 4.4pt). Under
-//     7pt is REPORTED; under 6.5pt FAILS, except in crosswords, whose clue
-//     numbers on 5×8 and 6×9 are still down to 4.4pt — fixing those means a
-//     bigger grid or fewer clues on the page, a layout change not yet made.
+//   Font — "Minimum font size: 7 points". Answer-grid letters, crossword
+//     clue numbers and the free book's settings line all went under it until
+//     2026-09-26 (to 4.4pt). Under 7pt is REPORTED; under 6.63pt FAILS. The
+//     one case left between is a grid too big for its page (19×19 answers on
+//     5×8), where 7pt letters would touch.
 //   Grayscale fill — "we recommend a minimum grayscale fill of 10%". Checked:
 //     any fill lighter than 10% grey that is not white fails.
 //
@@ -39,8 +39,10 @@ const books = {
   crisscross: generateCrissCrossBook({ pools: [THEMES.halloween], count: C, difficulty: "graded", seed: "a" }),
   crossword: generateCrosswordBook({ pools: [THEMES.garden], builtinClues: CLUES, count: C, difficulty: "graded", seed: "a" }),
 };
-for (const trim of (process.env.TRIMS || "5x8,6x9,8.5x11").split(",")) for (const [name, book] of Object.entries(books)) for (const lp of name === "wordsearch" || name === "sudoku" ? [false, true] : [false]) {
-  const bytes = await renderBook(book, { title: "Audit", author: "A", trim, licensed: true, largePrint: lp, fonts });
+for (const trim of (process.env.TRIMS || "5x8,6x9,8.5x11").split(",")) for (const [name, book] of Object.entries(books)) for (const lp of name === "wordsearch" || name === "sudoku" ? [false, true] : [false]) for (const licensed of [true, false]) {
+  // A free book prints the settings that made it on the copyright page, small.
+  const recipe = licensed ? undefined : "Word search · 20 puzzles · graded · Halloween, Garden & Nature, Ocean Life · seed a1b2c3 · puzzlepress.bananafest-destiny.com";
+  const bytes = await renderBook(book, { title: "Audit", author: "A", trim, licensed, recipe, largePrint: lp, fonts });
   const pdf = await PDFDocument.load(bytes);
   const w = new Map(), tf = new Map(), grey = new Map();
   pdf.getPages().forEach((p, i) => {
@@ -55,11 +57,11 @@ for (const trim of (process.env.TRIMS || "5x8,6x9,8.5x11").split(",")) for (cons
   });
   const thin = [...w].filter(([v]) => v < 0.75 && v > 0).map(([v, n]) => `${+v.toFixed(3)}×${n}`);
   const small = [...tf].filter(([v]) => v < 7).map(([v, p]) => `${+v.toFixed(2)}@${p}`);
-  const label = `${trim} ${name}${lp ? " large print" : ""}`;
+  const label = `${trim} ${name}${lp ? " large print" : ""}${licensed ? "" : " free"}`;
   if (thin.length) { failed++; console.log(`FAIL ${label}: lines under 0.75pt: ${thin.join(" ")}`); }
   if (grey.size) { failed++; console.log(`FAIL ${label}: fills under 10% grey: ${[...grey].map(([k, n]) => `${k}×${n}`).join(" ")}`); }
-  const tiny = name === "crossword" ? [] : [...tf].filter(([v]) => v < 6.5).map(([v, p]) => `${+v.toFixed(2)}@${p}`);
-  if (tiny.length) { failed++; console.log(`FAIL ${label}: type under 6.5pt: ${tiny.join(" ")}`); }
+  const tiny = [...tf].filter(([v]) => v < 6.62).map(([v, p]) => `${+v.toFixed(2)}@${p}`);
+  if (tiny.length) { failed++; console.log(`FAIL ${label}: type under 6.63pt: ${tiny.join(" ")}`); }
   if (small.length) console.log(`note ${label}: type under 7pt: ${small.join(" ")}`);
 }
 
