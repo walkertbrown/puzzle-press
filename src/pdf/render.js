@@ -24,6 +24,11 @@ export { planPages, solutionsThatFit, solutionsPerPageFor, puzzlesForMinimum, MA
 import { wallSegments } from "../generator/maze.js";
 
 const BLACK = rgb(0, 0, 0);
+// KDP's Paperback Submission Guidelines, "Line width": "give the lines a
+// minimum thickness/weight of 0.75 point or 0.01" (0.3 mm)". Until 2026-09-26
+// every book type drew thinner ones: sudoku cell lines at 0.4 and 0.25, answer
+// grids at 0.4, notes rules at 0.5, maze walls down to 0.5.
+const MIN_LINE = 0.75;
 const GREY = rgb(0.45, 0.45, 0.45);
 const SHADE = rgb(0.82, 0.82, 0.82);
 // The address is in the line because a free book can reach Amazon, where Look
@@ -245,7 +250,7 @@ function drawNotesPage(ctx) {
   page.drawText("Notes", { x: box.x, y: box.y + box.h - 18, size: 16, font: ctx.F.bold });
   const gap = 24;
   for (let y = box.y + box.h - 48; y > box.y + 24; y -= gap) {
-    page.drawLine({ start: { x: box.x, y }, end: { x: box.x + box.w, y }, thickness: 0.5, color: SHADE });
+    page.drawLine({ start: { x: box.x, y }, end: { x: box.x + box.w, y }, thickness: MIN_LINE, color: SHADE });
   }
   footer(ctx, page, box);
 }
@@ -408,7 +413,7 @@ function drawCrissCrossGrid(page, F, puzzle, { x, top, side, solution, cell = nu
       const ch = puzzle.cells[r][k];
       if (!ch) continue;
       const cx = x + k * c, cy = top - (r + 1) * c;
-      page.drawRectangle({ x: cx, y: cy, width: c, height: c, borderWidth: solution ? 0.4 : 0.75, borderColor: BLACK, color: rgb(1, 1, 1) });
+      page.drawRectangle({ x: cx, y: cy, width: c, height: c, borderWidth: MIN_LINE, borderColor: BLACK, color: rgb(1, 1, 1) });
       const num = numbers && !solution ? numbers[`${r},${k}`] : null;
       if (num) page.drawText(String(num), { x: cx + c * 0.07, y: cy + c * 0.66, size: Math.max(4, c * 0.3), font: F.regular, color: BLACK });
       const show = solution || givenCells.has(`${r},${k}`);
@@ -516,7 +521,7 @@ function drawMaze(page, F, maze, { x, top, side, path = null, bounds = null }) {
   const cell = side / Math.max(maze.w, maze.h);
   const gw = cell * maze.w;
   const gh = cell * maze.h;
-  const thickness = Math.max(0.5, Math.min(1.4, cell * 0.13));
+  const thickness = Math.max(MIN_LINE, Math.min(1.4, cell * 0.13));
   const px = (cx) => x + cx * cell;
   const py = (cy) => top - cy * cell;
 
@@ -610,8 +615,8 @@ function drawSudokuGrid(page, F, values, { x, top, side, givens = null, small = 
   }
   // The 3x3 structure has to read at a glance; too little contrast between the
   // two line weights and the puzzle is unpleasant to solve.
-  const thin = small ? 0.25 : 0.4;
-  const thick = small ? 1.0 : 2.2;
+  const thin = MIN_LINE;
+  const thick = small ? 1.75 : 2.2;
   // A stroke straddles its path, so the outermost lines would put half their
   // width past the grid — over the safe-area edge on a full-page grid. Pull
   // the outer lines in by that half.
