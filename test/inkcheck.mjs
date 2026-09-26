@@ -109,9 +109,13 @@ for (const trim of (process.env.TRIMS?.split(",") ?? Object.keys(TRIMS))) for (c
         const pageNo = i + 1;
         const png = PNG.sync.read(readFileSync(join(tmp, f)));
         const m = marginsForPage(geom, pageNo);
-        // Margins in points → pixels, minus one pixel of tolerance for the
-        // rasteriser rounding a glyph edge.
-        const px = (pts) => Math.floor((pts / PT) * DPI) - 1;
+        // Margins in points → pixels, rounded so that a pixel even partly in
+        // the margin counts as in it. This used to allow one pixel (0.01") of
+        // tolerance, and the thing it tolerated was real: grid borders sat on
+        // the margin line with half their stroke outside it, which KDP's
+        // previewer can report as "insufficient gutter". The renderer now
+        // keeps SAFETY_IN clear of the line, so no tolerance is needed.
+        const px = (pts) => Math.ceil((pts / PT) * DPI);
         const left = px(m.left), right = png.width - px(m.right);
         const top = px(m.top), bottom = png.height - px(m.bottom);
         let worst = null;

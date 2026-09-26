@@ -17,7 +17,7 @@
 
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
-import { pageGeometry, marginsForPage, MIN_PAGES } from "./kdp.js";
+import { pageGeometry, marginsForPage, MIN_PAGES, SAFETY_IN, PT } from "./kdp.js";
 import { planPages, solutionsThatFit, solutionsPerPageFor } from "./layout.js";
 
 export { planPages, solutionsThatFit, solutionsPerPageFor, puzzlesForMinimum, MAX_FILLER } from "./layout.js";
@@ -121,11 +121,12 @@ function newPage(ctx) {
   ctx.pageNo += 1;
   const page = ctx.doc.addPage([ctx.geom.width, ctx.geom.height]);
   const m = marginsForPage(ctx.geom, ctx.pageNo);
+  const s = SAFETY_IN * PT;
   const box = {
-    x: m.left,
-    y: m.bottom,
-    w: ctx.geom.width - m.left - m.right,
-    h: ctx.geom.height - m.top - m.bottom,
+    x: m.left + s,
+    y: m.bottom + s,
+    w: ctx.geom.width - m.left - m.right - 2 * s,
+    h: ctx.geom.height - m.top - m.bottom - 2 * s,
     rightHand: m.rightHand,
   };
   return { page, box };

@@ -2,7 +2,7 @@
 // quote spine widths and royalties long before anyone asks for a PDF, and it
 // should not have to load a PDF engine to do it.
 
-import { MIN_PAGES } from "./kdp.js";
+import { MIN_PAGES, SAFETY_IN, PT } from "./kdp.js";
 
 // Padding a short book with lined Notes pages is a last resort, not a
 // feature. A 6-puzzle book has about 10 pages of content; filling it to KDP's
@@ -29,7 +29,7 @@ export const FLAT_RATE_PAGES = 110;
 // in KDP's flat-rate 110 pages.
 export function solutionsThatFit(geom, largePrint = false) {
   if (largePrint) return 1;
-  const h = geom.height - geom.margin.top - geom.margin.bottom - 28;
+  const h = geom.height - geom.margin.top - geom.margin.bottom - 2 * SAFETY_IN * PT - 28;
   const gap = 14;
   const sideAt3 = (h - 2 * gap) / 3 - 16;
   return sideAt3 >= 150 ? 6 : 4;

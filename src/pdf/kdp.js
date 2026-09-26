@@ -12,6 +12,16 @@ export const TRIMS = {
   "8.5x11": { label: '8.5" × 11"', w: 8.5, h: 11 },
 };
 
+// How far inside KDP's minimum margins the renderer keeps every mark. The
+// margins below are KDP's figures exactly, and the calculators show them
+// exactly; the content box is drawn this much smaller. Without it, a grid's
+// border was laid out on the margin line itself and half the stroke fell
+// outside: measured 2026-09-26 at 300 DPI, ink crossed the gutter by up to
+// 0.005" and the outside margin by 0.0067" in paid 6×9 books. KDP's previewer
+// reports "insufficient gutter" for that, and Vellum's help page on the error
+// says it "can even happen with a value that matches KDP's minimum".
+export const SAFETY_IN = 1 / 32;
+
 export const MIN_PAGES = 24;
 export const MAX_PAGES = 828;
 
