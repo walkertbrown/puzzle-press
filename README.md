@@ -1,7 +1,8 @@
 # Puzzle Press
 
-Makes a print-ready puzzle book for Amazon KDP — interior PDF and full-wrap
-cover — in the browser. Nothing is uploaded.
+A free KDP puzzle book generator: makes a print-ready word search, sudoku or
+maze book for Amazon KDP — interior PDF and full-wrap cover — in the browser.
+Nothing is uploaded.
 
 **Live: https://puzzlepress.bananafest-destiny.com**
 
