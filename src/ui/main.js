@@ -658,10 +658,15 @@ el.dialog.addEventListener("close", stopAutoRetry);
 
 async function loadFonts() {
   if (!fontsPromise) {
-    fontsPromise = Promise.all([
-      fetch("fonts/LiberationSans-Regular.ttf").then((r) => r.arrayBuffer()),
-      fetch("fonts/LiberationSans-Bold.ttf").then((r) => r.arrayBuffer()),
-    ]).then(([regular, bold]) => ({ regular, bold }));
+    // A failed fetch is not cached: one dropped connection used to make every
+    // later Download fail until the page was reloaded.
+    const font = (f) => fetch(`fonts/${f}`).then((r) => {
+      if (!r.ok) throw new Error(`${f}: HTTP ${r.status}`);
+      return r.arrayBuffer();
+    });
+    fontsPromise = Promise.all([font("LiberationSans-Regular.ttf"), font("LiberationSans-Bold.ttf")])
+      .then(([regular, bold]) => ({ regular, bold }))
+      .catch((e) => { fontsPromise = null; throw e; });
   }
   return fontsPromise;
 }
