@@ -840,15 +840,18 @@ async function downloadCover() {
     // Prefer the page count of the book actually made with these settings.
     const matches = lastInterior && lastInterior.key === settingsKey(s);
     const pages = matches ? lastInterior.pages : planPages(effectiveCount(s.count), answersPerPage(s, effectiveCount(s.count))).total;
+    // Two: the front shows puzzle 1 being solved, the back puzzle 2 as printed
+    // (a one-puzzle book shows its one puzzle on both).
+    const n2 = s.count > 1 ? 2 : 1;
     const one = s.kind === "sudoku"
-      ? generateSudokuBook({ ...s, count: 1 })
+      ? generateSudokuBook({ ...s, count: n2 })
       : s.kind === "maze"
-        ? generateMazeBook({ ...s, count: 1 })
+        ? generateMazeBook({ ...s, count: n2 })
         : s.kind === "crisscross"
-          ? generateCrissCrossBook({ ...s, count: 1 })
+          ? generateCrissCrossBook({ ...s, count: n2 })
           : s.kind === "crossword"
-            ? generateCrosswordBook({ ...s, builtinClues: await loadClues(), count: 1 })
-            : generateBook({ ...s, count: 1 });
+            ? generateCrosswordBook({ ...s, builtinClues: await loadClues(), count: n2 })
+            : generateBook({ ...s, count: n2 });
     const [fonts, { renderCover }] = await Promise.all([fontsSoon, coverSoon]);
     const bytes = await renderCover({
       title: s.title,
@@ -859,6 +862,7 @@ async function downloadCover() {
       pageCount: pages,
       puzzleCount: s.count,
       samplePuzzle: one.puzzles[0],
+      backPuzzle: one.puzzles[1],
       seed: s.seed,
       licensed: Boolean(lic),
       largePrint: s.largePrint,

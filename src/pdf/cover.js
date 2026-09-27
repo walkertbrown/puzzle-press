@@ -27,8 +27,6 @@ export {
 
 const INK = rgb(0.09, 0.16, 0.29);
 const PAPER_BG = rgb(0.96, 0.965, 0.975);
-const FAINT = rgb(0.90, 0.915, 0.935);
-const MUTED = rgb(0.36, 0.42, 0.5);
 const WHITE = rgb(1, 1, 1);
 
 const hex = (h) => rgb(parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255);
@@ -48,7 +46,8 @@ export async function renderCover({
   puzzleCount = 0,
   licensed = true,
   blurb = "",
-  samplePuzzle = null, // a generated puzzle, drawn small on the back
+  samplePuzzle = null, // a generated puzzle: the front's hero, answer marked
+  backPuzzle = null, // a second one for the back, unsolved; defaults to samplePuzzle
   fonts = null,
   seed = "cover",
   largePrint = false, // the "Large print" preset was on when this book was built
@@ -79,7 +78,7 @@ export async function renderCover({
   drawField(page, g, regular, seed, samplePuzzle && samplePuzzle.kind, pal);
   const { card, noteY } = drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle, largePrint, pal, regular, bold });
   drawSpine(page, g, { title, author, regular, bold, pal });
-  drawBack(page, g, { title, blurb, puzzleCount, samplePuzzle, regular, bold });
+  drawBack(page, g, { blurb, puzzleCount, puzzle: backPuzzle || samplePuzzle, regular, bold, pal });
   if (largePrint) drawLargePrintBadge(page, g, bold, card);
   if (!licensed) drawCoverWatermark(page, g, bold, regular, noteY); // over the strip, clear of the author
 
@@ -298,14 +297,15 @@ function drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle
 
 // The front's puzzle, drawn to be read at thumbnail size: dark ink, and an
 // answer marked the way a solver would mark it.
-function drawHero(page, p, { x, top, side, font, bold, pal }) {
+// plain: the puzzle as printed inside, nothing marked (the back cover).
+function drawHero(page, p, { x, top, side, font, bold, pal, plain = false }) {
   const ink = pal.deepC;
   if (p.kind === "sudoku") {
     const n = Math.round(Math.sqrt(p.puzzle.length));
     const boxR = n === 9 ? 3 : 2, boxC = n === 4 ? 2 : 3;
     const cell = side / n;
     // A few cells "pencilled in" in the accent, the rest as printed.
-    const filled = new Set(p.puzzle.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0).slice(0, Math.ceil(n * 0.8)));
+    const filled = new Set(plain ? [] : p.puzzle.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0).slice(0, Math.ceil(n * 0.8)));
     filled.forEach((i) => page.drawRectangle({ x: x + (i % n) * cell, y: top - (Math.floor(i / n) + 1) * cell, width: cell, height: cell, color: pal.accentC, opacity: 0.55 }));
     const size = cell * 0.6;
     p.puzzle.forEach((v, i) => {
@@ -325,7 +325,7 @@ function drawHero(page, p, { x, top, side, font, bold, pal }) {
     const cell = side / Math.max(p.w, p.h);
     const at = (i) => ({ x: x + ((i % p.w) + 0.5) * cell, y: top - (Math.floor(i / p.w) + 0.5) * cell });
     // The first stretch of the route drawn in, as if someone has started it.
-    const route = (p.solution || []).slice(0, Math.ceil((p.solution || []).length * 0.45));
+    const route = plain ? [] : (p.solution || []).slice(0, Math.ceil((p.solution || []).length * 0.45));
     for (let i = 1; i < route.length; i++) page.drawLine({ start: at(route[i - 1]), end: at(route[i]), thickness: cell * 0.42, color: pal.accentC, lineCap: 1 });
     for (const seg of wallSegments(p)) {
       page.drawLine({ start: { x: x + seg.x1 * cell, y: top - seg.y1 * cell }, end: { x: x + seg.x2 * cell, y: top - seg.y2 * cell }, thickness: Math.max(0.8, cell * 0.09), color: ink, lineCap: 2 });
@@ -341,7 +341,7 @@ function drawHero(page, p, { x, top, side, font, bold, pal }) {
       page.drawRectangle({ x: ox + c * cell, y: oy - (r + 1) * cell, width: cell, height: cell, borderWidth: Math.max(0.6, cell * 0.05), borderColor: ink, color: WHITE });
     }
     // One word filled in, in the accent, the rest left for the solver.
-    const word = (p.placements || p.entries || p.words || []).find((e) => e && e.word && e.row !== undefined) || null;
+    const word = plain ? null : (p.placements || p.entries || p.words || []).find((e) => e && e.word && e.row !== undefined) || null;
     if (word) {
       const [dr, dc] = word.dir === "down" || word.dr === 1 ? [1, 0] : [0, 1];
       for (let k = 0; k < word.word.length; k++) {
@@ -355,7 +355,7 @@ function drawHero(page, p, { x, top, side, font, bold, pal }) {
   }
   // Word search: the longest few answers ringed, as a solver would.
   const n = p.size, cell = side / n;
-  const marks = [...(p.placements || [])].sort((a, b) => b.word.length - a.word.length).slice(0, 3);
+  const marks = plain ? [] : [...(p.placements || [])].sort((a, b) => b.word.length - a.word.length).slice(0, 3);
   for (const m of marks) {
     const end = m.word.length - 1;
     page.drawLine({
@@ -399,45 +399,42 @@ function drawSpine(page, g, { title, author, regular, bold, pal }) {
   void regular; void pal;
 }
 
-function drawBack(page, g, { title, blurb, puzzleCount, samplePuzzle, regular, bold }) {
+function drawBack(page, g, { blurb, puzzleCount, puzzle, regular, bold, pal }) {
   const inset = 40;
   const x = g.backX + inset;
   const w = g.panelW - inset * 2;
   const top = g.panelY + g.panelH - 56;
 
   const heading = puzzleCount ? `${puzzleCount} puzzles inside` : "Puzzles inside";
-  const text = blurb || defaultBlurb(puzzleCount, samplePuzzle && samplePuzzle.kind);
+  const text = blurb || defaultBlurb(puzzleCount, puzzle && puzzle.kind);
   const lines = wrap(regular, text, w, 11);
   const panelTop = top + 26;
   const panelH = 26 + 22 + lines.length * 15 + 18;
-  page.drawRectangle({
-    x: g.backX + 20, y: panelTop - panelH, width: g.panelW - 40, height: panelH,
-    color: WHITE, borderWidth: 0.6, borderColor: FAINT,
-  });
+  page.drawRectangle({ x: g.backX + 27, y: panelTop - panelH - 7, width: g.panelW - 40, height: panelH, color: pal.deepC, opacity: 0.55 });
+  page.drawRectangle({ x: g.backX + 20, y: panelTop - panelH, width: g.panelW - 40, height: panelH, color: WHITE });
 
-  page.drawText(heading, { x, y: top, size: 17, font: bold, color: INK });
+  page.drawText(heading, { x, y: top, size: 17, font: bold, color: pal.deepC });
   let y = top - 26;
   for (const line of lines) {
-    page.drawText(line, { x, y, size: 11, font: regular, color: MUTED });
+    page.drawText(line, { x, y, size: 11, font: regular, color: INK });
     y -= 15;
   }
-  y -= 12;
+  y = panelTop - panelH - 7;
 
-  // A small real grid, so the back cover shows what is actually inside.
-  if (samplePuzzle) {
-    const side = Math.min(w, y - (g.panelY + BARCODE_IN.h * PT + BARCODE_IN.margin * PT + 40));
+  // A real puzzle from the book, as printed inside: the front shows one being
+  // solved, the back one waiting to be.
+  if (puzzle) {
+    const pad = 8;
+    const cap = "A puzzle from inside";
+    const capY = y - 24;
+    const side = Math.min(w, capY - 10 - pad * 2 - (g.panelY + (BARCODE_IN.h + BARCODE_IN.margin) * PT + 16));
     if (side > 90) {
-      const cap = "A puzzle from inside";
-      page.drawText(cap, {
-        x: g.backX + (g.panelW - regular.widthOfTextAtSize(cap, 9)) / 2,
-        y: y - 2, size: 9, font: regular, color: MUTED,
-      });
-      drawMiniGrid(page, samplePuzzle, {
-        x: g.backX + (g.panelW - side) / 2,
-        top: y - 16,
-        side,
-        font: regular,
-      });
+      page.drawText(cap, { x: g.backX + (g.panelW - bold.widthOfTextAtSize(cap, 11)) / 2, y: capY, size: 11, font: bold, color: WHITE });
+      const cx = g.backX + (g.panelW - side) / 2;
+      const cardTop = capY - 10 - pad;
+      page.drawRectangle({ x: cx - pad + 7, y: cardTop - side - pad - 7, width: side + pad * 2, height: side + pad * 2, color: pal.deepC, opacity: 0.55 });
+      page.drawRectangle({ x: cx - pad, y: cardTop - side - pad, width: side + pad * 2, height: side + pad * 2, color: WHITE });
+      drawHero(page, puzzle, { x: cx, top: cardTop, side, font: regular, bold, pal, plain: true });
     }
   }
 
@@ -449,37 +446,6 @@ function drawBack(page, g, { title, blurb, puzzleCount, samplePuzzle, regular, b
     height: BARCODE_IN.h * PT,
     color: WHITE,
   });
-  void title;
-}
-
-function drawMiniSudoku(page, puzzle, { x, top, side, font }) {
-  const n = Math.round(Math.sqrt(puzzle.puzzle.length));
-  const boxR = n === 9 ? 3 : 2, boxC = n === 4 ? 2 : 3;
-  const cell = side / n;
-  page.drawRectangle({ x, y: top - side, width: side, height: side, color: WHITE, borderWidth: 0.6, borderColor: FAINT });
-  const size = cell * 0.62;
-  puzzle.puzzle.forEach((v, i) => {
-    if (!v) return;
-    const r = Math.floor(i / n);
-    const c = i % n;
-    const w = font.widthOfTextAtSize(String(v), size);
-    page.drawText(String(v), { x: x + c * cell + (cell - w) / 2, y: top - (r + 1) * cell + cell * 0.3, size, font, color: MUTED });
-  });
-  for (let k = 0; k <= n; k += boxC) page.drawLine({ start: { x: x + k * cell, y: top }, end: { x: x + k * cell, y: top - side }, thickness: 0.5, color: FAINT });
-  for (let k = 0; k <= n; k += boxR) page.drawLine({ start: { x, y: top - k * cell }, end: { x: x + side, y: top - k * cell }, thickness: 0.5, color: FAINT });
-}
-
-function drawMiniMaze(page, maze, { x, top, side }) {
-  page.drawRectangle({ x, y: top - side, width: side, height: side, color: WHITE });
-  const cell = side / Math.max(maze.w, maze.h);
-  for (const seg of wallSegments(maze)) {
-    page.drawLine({
-      start: { x: x + seg.x1 * cell, y: top - seg.y1 * cell },
-      end: { x: x + seg.x2 * cell, y: top - seg.y2 * cell },
-      thickness: 0.45,
-      color: MUTED,
-    });
-  }
 }
 
 function defaultBlurb(n, kind) {
@@ -520,47 +486,4 @@ function defaultWordBlurb(n) {
     "Every puzzle has its own word list, every answer appears exactly once, and the grids are printed large enough to be a pleasure rather than a squint. " +
     "Perfect for quiet evenings, waiting rooms and long journeys."
   );
-}
-
-function drawMiniGrid(page, puzzle, { x, top, side, font }) {
-  if (puzzle.kind === "sudoku") return drawMiniSudoku(page, puzzle, { x, top, side, font });
-  if (puzzle.kind === "maze") return drawMiniMaze(page, puzzle, { x, top, side });
-  if (puzzle.kind === "crisscross" || puzzle.kind === "crossword") return drawMiniCrissCross(page, puzzle, { x, top, side, font });
-  const n = puzzle.size;
-  const cell = side / n;
-  const size = cell * 0.66;
-  page.drawRectangle({ x, y: top - side, width: side, height: side, color: WHITE, borderWidth: 0.6, borderColor: FAINT });
-  for (let r = 0; r < n; r++) {
-    for (let c = 0; c < n; c++) {
-      const ch = puzzle.grid[r][c];
-      const w = font.widthOfTextAtSize(ch, size);
-      page.drawText(ch, {
-        x: x + c * cell + (cell - w) / 2,
-        y: top - (r + 1) * cell + cell * 0.28,
-        size,
-        font,
-        color: MUTED,
-      });
-    }
-  }
-}
-
-// A criss-cross on the cover: the white cells of the grid, letters filled, on
-// a faint frame — the shape says what the book is.
-function drawMiniCrissCross(page, puzzle, { x, top, side, font }) {
-  const n = Math.max(puzzle.w, puzzle.h);
-  const cell = side / n;
-  const ox = x + (side - cell * puzzle.w) / 2;
-  const oy = top - (side - cell * puzzle.h) / 2;
-  page.drawRectangle({ x, y: top - side, width: side, height: side, color: WHITE, borderWidth: 0.6, borderColor: FAINT });
-  for (let r = 0; r < puzzle.h; r++) {
-    for (let c = 0; c < puzzle.w; c++) {
-      const ch = puzzle.cells[r][c];
-      if (!ch) continue;
-      page.drawRectangle({ x: ox + c * cell, y: oy - (r + 1) * cell, width: cell, height: cell, borderWidth: 0.4, borderColor: MUTED, color: WHITE });
-      const size = cell * 0.62;
-      const w = font.widthOfTextAtSize(ch, size);
-      page.drawText(ch, { x: ox + c * cell + (cell - w) / 2, y: oy - (r + 1) * cell + cell * 0.27, size, font, color: MUTED });
-    }
-  }
 }

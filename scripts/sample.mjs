@@ -208,7 +208,7 @@ const cover = await renderCover({
   paper: "cream",
   pageCount: pages,
   puzzleCount: 20,
-  samplePuzzle: book.puzzles[0],
+  samplePuzzle: book.puzzles[0], backPuzzle: book.puzzles[1],
   seed: "public-sample-1",
   fonts,
 });
@@ -249,7 +249,7 @@ for (const [name, book, title, subtitle, seed, kind] of [
   ["maze", mazes, "Mazes for Rainy Days", "20 mazes, easy to expert — sample book", "public-maze-1", "Maze"],
 ]) {
   const pc = await pagesOf(name === "sudoku" ? sudokuBytes : mazeBytes);
-  const c = await finishSample(await renderCover({ title, subtitle, author: "Puzzle Press", trim: "6x9", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: book.puzzles[0], seed, fonts }), { kind, theme: "easy to expert", trim: "6x9", count: 20, cover: true });
+  const c = await finishSample(await renderCover({ title, subtitle, author: "Puzzle Press", trim: "6x9", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: book.puzzles[0], backPuzzle: book.puzzles[1], seed, fonts }), { kind, theme: "easy to expert", trim: "6x9", count: 20, cover: true });
   writeFileSync(new URL(`../public/samples/sample-${name}-cover-6x9.pdf`, import.meta.url), c);
   console.log(`wrote public/samples/sample-${name}-cover-6x9.pdf`, c.length, "bytes, sized for", pc, "pages");
 }
@@ -264,7 +264,7 @@ for (const [name, book, title, subtitle, seed, kind] of [
   const pc = await pagesOf(lpBytes);
   const c = await finishSample(await renderCover({
     title: "Large Print Garden Word Search", subtitle: "20 puzzles with solutions — sample book", author: "Puzzle Press",
-    trim: "8.5x11", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: lp.puzzles[0], seed: "public-large-print-1", largePrint: true, fonts,
+    trim: "8.5x11", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: lp.puzzles[0], backPuzzle: lp.puzzles[1], seed: "public-large-print-1", largePrint: true, fonts,
   }), { kind: "Large print word search", theme: "Garden & Birds", trim: "8.5x11", count: 20, cover: true });
   writeFileSync(new URL("../public/samples/sample-large-print-cover-8.5x11.pdf", import.meta.url), c);
   console.log("wrote public/samples/sample-large-print-cover-8.5x11.pdf", c.length, "bytes, sized for", pc, "pages");
@@ -278,7 +278,7 @@ writeFileSync(new URL("../public/samples/sample-crisscross-6x9.pdf", import.meta
 console.log("wrote public/samples/sample-crisscross-6x9.pdf", ccBytes.length, "bytes", cc.warnings);
 {
   const pc = await pagesOf(ccBytes);
-  const c = await finishSample(await renderCover({ title: "Halloween Fill-In Puzzles", subtitle: "20 criss-cross puzzles, easy to expert — sample book", author: "Puzzle Press", trim: "6x9", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: cc.puzzles[0], seed: "public-crisscross-1", fonts }), { kind: "Criss-cross", theme: "Halloween", trim: "6x9", count: 20, cover: true });
+  const c = await finishSample(await renderCover({ title: "Halloween Fill-In Puzzles", subtitle: "20 criss-cross puzzles, easy to expert — sample book", author: "Puzzle Press", trim: "6x9", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: cc.puzzles[0], backPuzzle: cc.puzzles[1], seed: "public-crisscross-1", fonts }), { kind: "Criss-cross", theme: "Halloween", trim: "6x9", count: 20, cover: true });
   writeFileSync(new URL("../public/samples/sample-crisscross-cover-6x9.pdf", import.meta.url), c);
   console.log("wrote public/samples/sample-crisscross-cover-6x9.pdf", c.length, "bytes");
 }
@@ -292,7 +292,7 @@ writeFileSync(new URL("../public/samples/sample-crossword-6x9.pdf", import.meta.
 console.log("wrote public/samples/sample-crossword-6x9.pdf", xwBytes.length, "bytes", xw.warnings);
 {
   const pc = await pagesOf(xwBytes);
-  const c = await finishSample(await renderCover({ title: "Garden Crosswords", subtitle: "20 themed crosswords, easy to expert — sample book", author: "Puzzle Press", trim: "6x9", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: xw.puzzles[0], seed: "public-crossword-1", fonts }), { kind: "Crossword", theme: "Garden", trim: "6x9", count: 20, cover: true });
+  const c = await finishSample(await renderCover({ title: "Garden Crosswords", subtitle: "20 themed crosswords, easy to expert — sample book", author: "Puzzle Press", trim: "6x9", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: xw.puzzles[0], backPuzzle: xw.puzzles[1], seed: "public-crossword-1", fonts }), { kind: "Crossword", theme: "Garden", trim: "6x9", count: 20, cover: true });
   writeFileSync(new URL("../public/samples/sample-crossword-cover-6x9.pdf", import.meta.url), c);
   console.log("wrote public/samples/sample-crossword-cover-6x9.pdf", c.length, "bytes");
 }
