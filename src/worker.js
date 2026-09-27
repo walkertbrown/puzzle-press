@@ -92,8 +92,12 @@ export default {
             cc: cf.country || "",
             bot: /bot|crawl|spider|preview|fetch|curl|wget|python|node|undici|headless|http-client|monitor|check/i.test(ua) || !ua,
           };
-          const key = `${slug}:${new Date().toISOString()}:${Math.random().toString(36).slice(2, 8)}`;
-          await env.GO_LOG.put(key, "", { metadata: meta, expirationTtl: 90 * 86400 });
+          // test/go.mjs proves this write lands by sending one hit as
+          // puzzle-press-probe and reading it back. It goes through the same
+          // put, filed under probe: for an hour, and golog skips that prefix.
+          const probe = ua.startsWith("puzzle-press-probe");
+          const key = `${probe ? "probe:" : ""}${slug}:${new Date().toISOString()}:${Math.random().toString(36).slice(2, 8)}`;
+          await env.GO_LOG.put(key, "", { metadata: meta, expirationTtl: probe ? 3600 : 90 * 86400 });
         })().catch(() => {}));
       }
       return new Response(null, {

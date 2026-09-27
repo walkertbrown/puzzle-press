@@ -68,5 +68,34 @@ const bad = await fetch(`${base}/go/this-slug-does-not-exist`, { redirect: "manu
 check(bad.status === 302, `an unknown /go/ slug answered ${bad.status} — a typo in a published link would 404 a real visitor`);
 check(new URL(bad.headers.get("location") || base).pathname === "/", "an unknown /go/ slug does not fall back to the home page");
 
+// Everything above proves the redirect. None of it proves an arrival is
+// recorded, and "0 arrivals" from golog reads the same whether nobody came or
+// the write is broken. So send one hit that the worker files under probe:
+// (same put, one-hour expiry, skipped by golog), read it back from KV, then
+// delete it.
+let roundTrip = "skipped (not the live site)";
+if (base === "https://puzzlepress.bananafest-destiny.com") {
+  const creds = readFileSync(new URL("../../.git-credentials", import.meta.url), "utf8");
+  const cred = (k) => (creds.match(new RegExp(`^${k}=(.*)$`, "m")) || [])[1];
+  const token = cred("CLOUDFLARE_API_TOKEN"), account = cred("CLOUDFLARE_ACCOUNT_ID");
+  const ns = (src("../wrangler.jsonc").match(/"binding":\s*"GO_LOG",\s*"id":\s*"([0-9a-f]+)"/) || [])[1];
+  check(token && account && ns, "no Cloudflare credentials or GO_LOG id — cannot prove arrivals are recorded");
+  if (token && account && ns) {
+    const kv = `https://api.cloudflare.com/client/v4/accounts/${account}/storage/kv/namespaces/${ns}`;
+    const auth = { authorization: `Bearer ${token}` };
+    const since = new Date().toISOString();
+    await fetch(`${base}/go/${worker[0]}`, { redirect: "manual", headers: { "user-agent": "puzzle-press-probe/go" } });
+    let found = [];
+    for (let i = 0; i < 12 && !found.length; i++) {
+      await new Promise((r) => setTimeout(r, 2500));
+      const body = await (await fetch(`${kv}/keys?prefix=probe:${worker[0]}:`, { headers: auth })).json();
+      found = (body.result || []).filter((k) => k.name.split(/:(?=\d{4}-)/)[1] >= since);
+    }
+    check(found.length > 0, `a /go/${worker[0]} hit was not written to GO_LOG within 30s — golog's zero means nothing until this is fixed`);
+    for (const k of found) await fetch(`${kv}/values/${encodeURIComponent(k.name)}`, { method: "DELETE", headers: auth });
+    roundTrip = found.length ? "an arrival is written to GO_LOG and read back" : "FAILED";
+  }
+}
+console.log(`  round trip: ${roundTrip}`);
 if (failed) { console.log(`\nGO FAILED — ${failed} problem(s)`); process.exit(1); }
 console.log(`\nGO OK — ${worker.length} channel links redirect, are noindex, and land on a real page`);

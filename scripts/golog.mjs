@@ -33,7 +33,8 @@ do {
   cursor = body.result_info?.cursor || "";
 } while (cursor);
 
-const rows = keys.map((k) => {
+// probe: keys are test/go.mjs proving the write path, not arrivals.
+const rows = keys.filter((k) => !k.name.startsWith("probe:")).map((k) => {
   const [slug, ts] = k.name.split(/:(?=\d{4}-)/);
   return { slug, ts: ts.replace(/:[a-z0-9]+$/, ""), ...(k.metadata || {}) };
 }).sort((a, b) => a.ts.localeCompare(b.ts));
