@@ -19,6 +19,7 @@ import { PT } from "./kdp.js";
 import { coverGeometry, BARCODE_IN, SPINE_TEXT_IN, SPINE_TYPE_MIN_PT } from "./cover-geometry.js";
 import { makeRng } from "../generator/rng.js";
 import { wallSegments } from "../generator/maze.js";
+import { PALETTE_HEX, paletteIndex } from "./palettes.js";
 
 export {
   BLEED_IN, SPINE_TEXT_MIN_PAGES, BARCODE_IN, PAPER, spineWidthInches, coverGeometry,
@@ -30,32 +31,12 @@ const FAINT = rgb(0.90, 0.915, 0.935);
 const MUTED = rgb(0.36, 0.42, 0.5);
 const WHITE = rgb(1, 1, 1);
 
-// Puzzle books on Amazon sell on a colour you can see across a page of
-// thumbnails, so the wrap is one strong colour edge to edge. Each set is a
-// background dark enough to carry a white title, a deeper shade for the card's
-// shadow, and a bright accent for the answer highlight and the selling strip.
-// The title picks the set, so the same book always gets the same cover.
 const hex = (h) => rgb(parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255);
-export const PALETTES = [
-  { name: "teal", bg: "#12707a", deep: "#0a3f45", accent: "#ffc93c" },
-  { name: "tomato", bg: "#c8412b", deep: "#6b1d10", accent: "#ffd978" },
-  { name: "plum", bg: "#5b3f8c", deep: "#2c1d47", accent: "#ffcb47" },
-  { name: "forest", bg: "#2f6b3a", deep: "#16361c", accent: "#f6d55c" },
-  { name: "ocean", bg: "#1f5fa8", deep: "#0f2f57", accent: "#ffb627" },
-  { name: "berry", bg: "#a8174f", deep: "#520a26", accent: "#ffe08a" },
-  { name: "navy", bg: "#1b2a49", deep: "#0b1222", accent: "#f47c6b" },
-  { name: "rust", bg: "#b5541c", deep: "#57260a", accent: "#fde68a" },
-].map((p) => ({ ...p, bgC: hex(p.bg), deepC: hex(p.deep), accentC: hex(p.accent), tintC: mix(hex(p.bg), 0.1), softC: mix(hex(p.bg), 0.78) }));
 function mix(c, t) { // towards white by t
   return rgb(c.red + (1 - c.red) * t, c.green + (1 - c.green) * t, c.blue + (1 - c.blue) * t);
 }
-export function paletteFor(title, name = "") {
-  const named = PALETTES.find((p) => p.name === name);
-  if (named) return named;
-  let h = 2166136261;
-  for (const ch of String(title).toLowerCase()) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
-  return PALETTES[h % PALETTES.length];
-}
+export const PALETTES = PALETTE_HEX.map((p) => ({ ...p, bgC: hex(p.bg), deepC: hex(p.deep), accentC: hex(p.accent), tintC: mix(hex(p.bg), 0.1), softC: mix(hex(p.bg), 0.78) }));
+export const paletteFor = (title, name = "") => PALETTES[paletteIndex(title, name)];
 
 export async function renderCover({
   title = "Word Search",

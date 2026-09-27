@@ -67,6 +67,11 @@
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
   fieldset { border: 0; padding: 0; margin: 0 0 18px; }
   legend { font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 8px; }
+  .colour-pick { display: flex; gap: 10px; align-items: center; }
+  .colour-pick select { flex: 1; min-width: 0; }
+  .swatch { flex: none; width: 28px; height: 40px; border-radius: 2px; position: relative; overflow: hidden; box-shadow: 2px 2px 0 var(--sw-deep, #0a3f45); background: var(--sw-bg, #12707a); }
+  .swatch i { position: absolute; left: 0; right: 0; bottom: 6px; height: 7px; background: var(--sw-accent, #ffc93c); }
+  .swatch::before { content: ""; position: absolute; left: 5px; right: 5px; top: 5px; height: 3px; background: #fff; box-shadow: 0 5px 0 #fff; }
   label { display: block; font-size: 13px; color: var(--muted); margin: 8px 0 3px; }
   input[type=text], input[type=number], select, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: #fff; color: var(--ink); }
   textarea { min-height: 96px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
@@ -447,8 +452,9 @@
         <option value="standardColor">Standard colour</option>
       </select>
       <label for="coverColour">Cover colour</label>
+      <div class="colour-pick">
       <select id="coverColour">
-        <option value="" selected>Picked from your title</option>
+        <option value="" selected>From your title</option>
         <option value="teal">Teal</option>
         <option value="tomato">Tomato</option>
         <option value="plum">Plum</option>
@@ -458,6 +464,8 @@
         <option value="navy">Navy</option>
         <option value="rust">Rust</option>
       </select>
+      <span id="coverSwatch" class="swatch" aria-hidden="true"><i></i></span>
+      </div>
       <div id="sudokuSizeRow" class="hidden">
         <label for="sudokuSize">Grid</label>
         <select id="sudokuSize"></select>

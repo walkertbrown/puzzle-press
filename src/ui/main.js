@@ -38,6 +38,7 @@ async function loadCover() {
   return coverMod;
 }
 import { px } from "./px.js";
+import { PALETTE_HEX, paletteIndex } from "../pdf/palettes.js";
 import { coverGeometry, spineWidthInches, SPINE_TEXT_MIN_PAGES, PAPER } from "../pdf/cover-geometry.js";
 import { royalty } from "../pdf/kdp-cost.js";
 import { pageGeometry } from "../pdf/kdp.js";
@@ -214,8 +215,22 @@ function settings() {
 
 // ---------- generate + preview ----------
 
+// The cover's colour, before the cover exists: a small swatch beside the
+// select, and the automatic option names the colour the title picks. Uses the
+// hex-only palettes so the page does not load pdf-lib to show it.
+function paintSwatch(s) {
+  const p = PALETTE_HEX[paletteIndex(s.title, s.coverColour)];
+  const sw = document.getElementById("coverSwatch");
+  sw.style.setProperty("--sw-bg", p.bg);
+  sw.style.setProperty("--sw-deep", p.deep);
+  sw.style.setProperty("--sw-accent", p.accent);
+  const auto = PALETTE_HEX[paletteIndex(s.title)];
+  el.coverColour.options[0].textContent = `From your title (${el.coverColour.querySelector(`option[value="${auto.name}"]`).textContent.toLowerCase()})`;
+}
+
 function regenerate() {
   const s = settings();
+  paintSwatch(s);
   if (s.kind === "maze") {
     book = generateMazeBook({ count: Math.min(s.count, 3), gradeCount: s.count, difficulty: s.difficulty, seed: s.seed });
     shown = 0;
@@ -937,6 +952,7 @@ function syncGroundwood(from) {
   else if (other.value === "groundwood") other.value = other === el.ink ? "black" : "cream";
 }
 el.ink.addEventListener("change", () => syncGroundwood(el.ink));
+el.coverColour.addEventListener("change", () => paintSwatch(settings()));
 el.paper.addEventListener("change", () => syncGroundwood(el.paper));
 // The untouched subtitle counts the puzzles, so it has to follow the count.
 el.count.addEventListener("input", refreshKind);
