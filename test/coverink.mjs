@@ -58,6 +58,28 @@ const darkestIn = (png, { x0, y0, x1, y1 }) => {
   return worst;
 };
 
+// The band is flat (the field pattern skips the spine), so its shade is the
+// commonest value in the region; text is whatever strays from it.
+const bandOf = (png, { x0, y0, x1, y1 }) => {
+  const n = new Map();
+  for (let y = Math.max(0, Math.floor(y0)); y < Math.min(png.height, Math.ceil(y1)); y++)
+    for (let x = Math.max(0, Math.floor(x0)); x < Math.min(png.width, Math.ceil(x1)); x++) {
+      const v = png.data[(png.width * y + x) << 2];
+      n.set(v, (n.get(v) || 0) + 1);
+    }
+  return [...n].sort((a, b) => b[1] - a[1])[0]?.[0];
+};
+const offBand = (png, box) => {
+  const band = bandOf(png, box);
+  let worst = null;
+  for (let y = Math.max(0, Math.floor(box.y0)); y < Math.min(png.height, Math.ceil(box.y1)); y++)
+    for (let x = Math.max(0, Math.floor(box.x0)); x < Math.min(png.width, Math.ceil(box.x1)); x++) {
+      const d = Math.abs(png.data[(png.width * y + x) << 2] - band);
+      if (d > 8 && (!worst || d > worst.d)) worst = { x, y, d };
+    }
+  return worst;
+};
+
 for (const pageCount of [32, 66, 78, 80, 100, 300]) {
   for (const [name, samplePuzzle] of Object.entries(samples)) {
     for (const licensed of [true, false]) {
@@ -81,11 +103,13 @@ for (const pageCount of [32, 66, 78, 80, 100, 300]) {
       //    111 on white).
       //    Otherwise the spine must be a flat band: no glyphs, which show up
       //    as dark pixels on it. 80 pages is allowed but too narrow; 100 fits.
+      //    Since 2026-09-27 the spine is the cover's colour with white text, so
+      //    "text" is any pixel that differs from the band's own shade.
       const sx0 = px(g.spineX) + 2, sx1 = px(g.spineX + g.spine) - 2;
       if (sx1 > sx0) {
-        const onSpine = darkestIn(png, { x0: sx0, y0: px(g.panelY) + 4, x1: sx1, y1: png.height - px(g.panelY) - 4 });
+        const onSpine = offBand(png, { x0: sx0, y0: px(g.panelY) + 4, x1: sx1, y1: png.height - px(g.panelY) - 4 });
         if (!g.spineTextFits) {
-          check(!onSpine || onSpine.v > 120, `${label}: ink on the spine of a ${pageCount}-page book, whose spine is too narrow for text inside KDP's safe area, at ${onSpine?.x},${onSpine?.y}`);
+          check(!onSpine || onSpine.d < 60, `${label}: ink on the spine of a ${pageCount}-page book, whose spine is too narrow for text inside KDP's safe area, at ${onSpine?.x},${onSpine?.y}`);
         } else {
           check(Boolean(onSpine), `${label}: spine is blank on a ${pageCount}-page book, whose spine fits the title`);
         }
@@ -98,8 +122,8 @@ for (const pageCount of [32, 66, 78, 80, 100, 300]) {
 //    0.0625" (1.6 mm) of space between the text and the edge of the spine".
 //    At 100 DPI a pixel is 0.01", coarser than the whole question: laid out on
 //    exactly 0.0625", descenders measured 0.0624"-0.0634" from the fold, and
-//    this check passed. So crop just the spine, count a pixel as ink if it is
-//    at all darker than the band, and hold the renderer to its own promise —
+//    this check passed. So crop just the spine, count a pixel as ink if it
+//    differs at all from the band (white text on colour since 09-27), and hold the renderer to its own promise —
 //    SPINE_TEXT_IN, 1/64" further in than KDP's line — to within a pixel.
 //    "At least 0.0625"" alone passes text sitting exactly on the line. The
 //    figure is written out here, not imported, so zeroing the inset in
@@ -122,11 +146,15 @@ for (const paper of ["cream", "white"]) {
       const prefix = join(tmp, `h${Math.random().toString(36).slice(2, 7)}`);
       execFileSync("pdftoppm", ["-r", String(HI), "-png", "-gray", "-x", String(x0), "-y", String(y0), "-W", String(w), "-H", String(h), "-singlefile", f, prefix]);
       const png = PNG.sync.read(readFileSync(`${prefix}.png`));
-      // The band's own shade, read from the middle row's fold-side edge.
-      const band = png.data[(png.width * (png.height >> 1) + 3) << 2];
+      // The band's own shade: the commonest value inside the folds.
+      const band = bandOf(png, { x0: 2, y0: 0, x1: png.width - 2, y1: png.height });
+      // Only between the folds: the front's selling strip starts at the fold
+      // and runs out through the bleed, which is cover art, not spine text.
+      // Text that crossed a fold would still measure ~0" from it and fail.
+      const fx0 = Math.ceil(hp(g.spineX)) - x0, fx1 = Math.floor(hp(g.spineX + g.spine)) - x0;
       let lo = Infinity, hi = -Infinity;
-      for (let y = 0; y < png.height; y++) for (let x = 0; x < png.width; x++) {
-        if (png.data[(png.width * y + x) << 2] >= band - 8) continue;
+      for (let y = 0; y < png.height; y++) for (let x = fx0; x < fx1; x++) {
+        if (Math.abs(png.data[(png.width * y + x) << 2] - band) <= 8) continue;
         lo = Math.min(lo, x); hi = Math.max(hi, x + 1);
       }
       const label = `spine ${paper} ${pageCount}pp "${title}"${author ? " + author" : ""}`;

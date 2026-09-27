@@ -117,8 +117,8 @@ async function finishSample(bytes, meta) {
     const lead = "Sample cover, made free with Puzzle Press";
     const url = "puzzlepress.bananafest-destiny.com";
     const urlSize = Math.min(9, (9 * (right - left)) / bold.widthOfTextAtSize(url, 9));
-    page.drawText(url, { x: left, y: base, size: urlSize, font: bold, color: rgb(0.11, 0.21, 0.34) });
-    page.drawText(lead, { x: left, y: base + urlSize + 4, size: 7.5, font: regular, color: rgb(0.4, 0.4, 0.4) });
+    page.drawText(url, { x: left, y: base, size: urlSize, font: bold, color: rgb(1, 1, 1) }); // covers are a full colour since 09-27
+    page.drawText(lead, { x: left, y: base + urlSize + 4, size: 7.5, font: regular, color: rgb(0.92, 0.92, 0.92) });
     const top = base + urlSize + 4 + 10;
     const width = Math.max(bold.widthOfTextAtSize(url, urlSize), regular.widthOfTextAtSize(lead, 7.5));
     const linkAnnot = doc.context.obj({
