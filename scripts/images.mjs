@@ -24,6 +24,19 @@ function pageDataUri(page, dpi = 150) {
   return `data:image/png;base64,${readFileSync(file).toString("base64")}`;
 }
 
+// The front panel of a sample cover: the wrap minus bleed, back and spine.
+async function frontDataUri(file, dpi = 110) {
+  const { PDFDocument } = await import("pdf-lib");
+  const { BLEED_IN } = await import("../src/pdf/cover-geometry.js");
+  const path = new URL(`../public/samples/${file}`, import.meta.url).pathname;
+  const { width, height } = (await PDFDocument.load(readFileSync(path))).getPage(0).getSize();
+  const px = (pt) => Math.round((pt / 72) * dpi), b = BLEED_IN * 72;
+  const prefix = join(tmp, file);
+  execFileSync("pdftoppm", ["-r", String(dpi), "-png", "-singlefile", "-x", String(px(width - b - 6 * 72)), "-y", String(px(b)),
+    "-W", String(px(6 * 72)), "-H", String(px(height - 2 * b)), path, prefix]);
+  return `data:image/png;base64,${readFileSync(prefix + ".png").toString("base64")}`;
+}
+
 const puzzle = pageDataUri(5);
 const solution = pageDataUri(24);
 
@@ -106,27 +119,34 @@ await thumb.setContent(shell(
 await thumb.waitForTimeout(300);
 await thumb.screenshot({ path: join(outDir, "thumbnail.png") });
 
-// --- social card: headline + one page ---
+// --- social card: headline + three of the covers ---
+// Since 2026-09-27 the covers are the most eye-catching thing the tool makes,
+// and a link preview is a thumbnail, so the card shows those, not a page.
+// All three are 6x9 samples, cropped by frontDataUri.
+const fronts = await Promise.all(["sample-maze-cover-6x9.pdf", "sample-cover-6x9.pdf", "sample-sudoku-cover-6x9.pdf"].map((f) => frontDataUri(f)));
 const card = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 await card.setContent(shell(
   `<div class="wrap">
      <div class="copy">
        <div class="kicker">Puzzle Press</div>
-       <h1>Word search books,<br>ready for KDP.</h1>
-       <p>Interior and cover, print-ready. Correct trim, gutter margins, embedded fonts, and a spine measured to your page count.</p>
+       <h1>Puzzle books,<br>ready for KDP.</h1>
+       <p>Word search, sudoku, mazes, fill-ins and crosswords. Interior and cover, print-ready, with the spine measured to your page count.</p>
        <div class="tag">puzzlepress.bananafest-destiny.com</div>
      </div>
-     <div class="shot"><img src="${puzzle}"></div>
+     <div class="shot">${fronts.map((src, i) => `<img class="c${i}" src="${src}">`).join("")}</div>
    </div>`,
   `body{background:#1d3557;color:#fff}
-   .wrap{display:flex;width:1200px;height:630px;align-items:center;gap:48px;padding:0 64px}
+   .wrap{display:flex;width:1200px;height:630px;align-items:center;gap:40px;padding:0 0 0 64px;overflow:hidden}
    .copy{flex:1}
    .kicker{font-size:20px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#93a7c4;margin-bottom:18px}
    h1{font-size:60px;line-height:1.08;letter-spacing:-.02em;margin:0 0 20px}
-   p{font-size:22px;line-height:1.45;color:#c6d2e4;margin:0 0 28px;max-width:22em}
+   p{font-size:22px;line-height:1.45;color:#c6d2e4;margin:0 0 28px;max-width:21em}
    .tag{display:inline-block;font-size:19px;font-weight:600;color:#1d3557;background:#fff;padding:9px 16px;border-radius:7px}
-   .shot{flex:0 0 360px;display:flex;justify-content:center}
-   .shot img{width:360px;border-radius:6px;box-shadow:0 22px 50px rgba(0,0,0,.4);transform:rotate(3deg)}`,
+   .shot{flex:0 0 470px;position:relative;height:630px}
+   .shot img{position:absolute;width:290px;border-radius:3px;box-shadow:0 22px 50px rgba(0,0,0,.45)}
+   .c0{left:170px;top:52px;transform:rotate(9deg)}
+   .c1{left:90px;top:88px;transform:rotate(1deg)}
+   .c2{left:4px;top:128px;transform:rotate(-7deg)}`,
 ));
 await card.waitForTimeout(300);
 await card.screenshot({ path: join(outDir, "social-card.png") });
