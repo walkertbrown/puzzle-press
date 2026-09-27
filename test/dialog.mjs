@@ -68,6 +68,7 @@ const read = async (label) => {
       paidLead: lead.hidden ? "(hidden)" : lead.textContent,
       emailVisible: email.getClientRects().length > 0,
       focus: f ? (f.id || f.className || f.tagName) : "(none)",
+      openCover: document.getElementById("openCover")?.href ?? null,
     };
   });
   console.log(`\n### ${label}`);
@@ -93,6 +94,12 @@ const dl = p.waitForEvent("download", { timeout: 60000 });
 await p.click("#downloadCover");
 await dl;
 const cover = await read("after a free cover (opened by itself)");
+// "Open your cover" has to open the cover: a live link to a PDF, not a
+// revoked one (the download link used to be revoked after 10 seconds).
+const opened = cover.openCover && await p.evaluate(async (u) => {
+  await new Promise((r) => setTimeout(r, 11000));
+  try { const b = await (await fetch(u)).arrayBuffer(); return new TextDecoder().decode(b.slice(0, 5)); } catch (e) { return `fetch failed: ${e.message}`; }
+}, cover.openCover);
 
 const fail = [];
 if (buy.buyClass !== "buybtn") fail.push("buy intent did not render the button-styled Buy link");
@@ -105,6 +112,10 @@ if (!/downloaded/i.test(cover.title)) fail.push(`after a free cover the heading 
 if (/footer/i.test(cover.title)) fail.push("after a free cover the heading offers to remove a footer line — a cover has none");
 if (!/PREVIEW/.test(cover.lede) || !/\d+ pages/.test(cover.lede)) fail.push(`after a free cover the lede does not say what is on it: "${cover.lede}"`);
 if (cover.buyClass !== "buybtn") fail.push("after a free cover the Buy link is not the button");
+if (opened !== "%PDF-") fail.push(`after a free cover "Open your cover" does not open a PDF 11s later (link ${cover.openCover}, got ${opened})`);
+for (const [name, s] of [["buy", buy], ["already-paid", paid], ["pricing", pricing]]) {
+  if (s.openCover) fail.push(`${name}: shows "Open your cover" with no cover made`);
+}
 for (const [name, s] of [["buy", buy], ["already-paid", paid], ["pricing", pricing], ["cover", cover]]) {
   // purchase.mjs, privacy.mjs and nostorage.mjs all type into #email from
   // whichever entry point they used. Hiding it anywhere breaks them.

@@ -599,7 +599,7 @@ function stopAutoRetry() {
 // email box. Nothing is hidden in either case — the email field stays visible
 // and fillable in buy mode, because somebody who has paid and clicked the wrong
 // link should not be stuck.
-function openUnlock({ justPaid = false, intent = "buy", after = null, pages = 0 } = {}) {
+function openUnlock({ justPaid = false, intent = "buy", after = null, pages = 0, coverUrl = "" } = {}) {
   const buying = !justPaid && intent === "buy" && !!PAY_URL;
   // The rungs with money on them, and until 2026-09-23 the only dark ones left.
   // Every beacon I had described somebody getting closer to a free book; not one
@@ -640,6 +640,18 @@ function openUnlock({ justPaid = false, intent = "buy", after = null, pages = 0 
     : buying
       ? `${PRICE_LABEL}. Unlimited books, no line in the footer, no PREVIEW across the cover. No account and no subscription.`
       : "Enter the email you used at checkout and everything unlocks on this device.";
+  // The cover saved itself somewhere the visitor has to go and find, and on a
+  // phone that is usually out of sight, so the dialog asking for money sat over
+  // a result they could not see (2026-09-27). Let them open it from here.
+  if (afterCover && coverUrl) {
+    const open = document.createElement("a");
+    open.href = coverUrl;
+    open.target = "_blank";
+    open.rel = "noopener";
+    open.id = "openCover";
+    open.textContent = "Open your cover";
+    el.dialogLede.append(" ", open);
+  }
   if (justPaid) {
     // Offering to sell again to somebody who has just paid reads as a failed
     // payment. Show them the next step instead.
@@ -823,6 +835,7 @@ async function download() {
 
 // The cover is the paid half: the free tier makes a real interior, but a
 // finished book needs a wrap sized to its own page count.
+let freeCoverUrl = "";
 async function downloadCover() {
   const lic = getLicense();
   const s = settings();
@@ -874,11 +887,17 @@ async function downloadCover() {
     a.href = URL.createObjectURL(blob);
     a.download = `${slug(s.title)}-cover-${s.trim}.pdf`;
     a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    // A free cover's link stays alive for the dialog's "Open your cover"
+    // until the next cover replaces it.
+    if (lic) setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    else {
+      if (freeCoverUrl) URL.revokeObjectURL(freeCoverUrl);
+      freeCoverUrl = a.href;
+    }
     el.status.textContent = lic
       ? `Cover ready — sized for ${pages} pages, ${(PAPER[s.paper] ?? PAPER.cream).label.toLowerCase()}.`
       : `Preview cover ready — your title, your spine (${pages} pages). Unlock to get it without the PREVIEW mark.`;
-    if (!lic) openUnlock({ after: "cover", pages });
+    if (!lic) openUnlock({ after: "cover", pages, coverUrl: freeCoverUrl });
   } catch (err) {
     console.error(err);
     el.status.textContent = `Could not build the cover: ${err.message}`;
