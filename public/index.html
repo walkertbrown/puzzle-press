@@ -311,6 +311,9 @@
   /* The support address inside an error is the way out — same red, underlined
      so it is visibly tappable rather than a string to memorise and retype. */
   .err a { color: inherit; text-decoration: underline; }
+.cover-row{margin:28px 0 0;text-align:center}
+.cover-row img{width:100%;height:auto;max-width:1200px}
+.cover-row figcaption{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.5}
 </style>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "b7be686eebf64639b0e60d43860bbd54"}'></script>
 </head>
@@ -586,6 +589,13 @@ cherry"></textarea>
         <p>Spine width is your page count times the paper thickness — get it wrong and the whole wrap is rejected. Puzzle Press knows the page count because it made the interior, so the cover comes out at the exact size, barcode area left clear.</p>
       </div>
     </div>
+    <figure class="cover-row">
+      <picture>
+        <source srcset="cover-row.webp" type="image/webp">
+        <img src="cover-row.jpg" width="1200" height="390" alt="Five front covers made by Puzzle Press: a word search, a sudoku book, a large print word search, a crossword book and a maze book, each a solid colour with its title, one of its own puzzles and a strip reading puzzles and solutions included" loading="lazy" decoding="async">
+      </picture>
+      <figcaption>Covers from the free samples, as a paid cover comes out: the colour is picked from your title, or choose one. Open the full wraps: <a href="samples/sample-cover-6x9.pdf" target="_blank" rel="noopener">word search</a> · <a href="samples/sample-sudoku-cover-6x9.pdf" target="_blank" rel="noopener">sudoku</a> · <a href="samples/sample-large-print-cover-8.5x11.pdf" target="_blank" rel="noopener">large print</a> · <a href="samples/sample-crossword-cover-6x9.pdf" target="_blank" rel="noopener">crossword</a> · <a href="samples/sample-maze-cover-6x9.pdf" target="_blank" rel="noopener">maze</a></figcaption>
+    </figure>
   </div>
 </section>
 
