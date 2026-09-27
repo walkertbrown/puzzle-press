@@ -7,6 +7,7 @@
 //
 // Run: node test/inkcheck.mjs  (ONLY=custom to run just the books whose name
 // starts with "custom"; TRIMS=5x8,6x9 to narrow the trims — both for iterating)
+import { largestGrid } from "../src/generator/gridbound.js";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync, rmSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -97,7 +98,7 @@ for (const trim of (process.env.TRIMS?.split(",") ?? Object.keys(TRIMS))) for (c
     for (const licensed of [true, false]) {
       const pdf = join(tmp, `${name.replace(/\W/g, "")}-${trim}-${bleed}-${licensed}.pdf`);
       writeFileSync(pdf, await renderBook(book, { title, subtitle, author, trim, bleed, licensed, largePrint: LARGE_PRINT.has(name), fonts }));
-      const plan = planPages(COUNT, solutionsPerPageFor(COUNT, solutionsThatFit(pageGeometry({ trim, bleed }), LARGE_PRINT.has(name))));
+      const plan = planPages(COUNT, solutionsPerPageFor(COUNT, solutionsThatFit(pageGeometry({ trim, bleed }), LARGE_PRINT.has(name), largestGrid(book.puzzles), COUNT)));
       const geom = pageGeometry({ trim, bleed, pageCount: plan.total });
 
       const prefix = join(tmp, `p${Math.random().toString(36).slice(2, 7)}`);

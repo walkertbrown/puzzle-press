@@ -19,6 +19,7 @@ import { TRIMS } from "../pdf/kdp.js";
 // somebody actually asks for a file, so they load on the first download
 // instead of before the page is usable.
 import { planPages, solutionsThatFit, solutionsPerPageFor, puzzlesForMinimum } from "../pdf/layout.js";
+import { gridBound } from "../generator/gridbound.js";
 
 // Loaded separately rather than together. They share the heavy chunk, so the
 // second one costs almost nothing once the first has been fetched — and the
@@ -257,10 +258,17 @@ function regenerate() {
   el.warnings.textContent = book.warnings.join("\n");
 }
 
+// Answers a page for a book of `count` puzzles made with these settings.
+// Judged by the biggest grid the settings can produce, not the biggest one
+// this run happened to draw, so the page count quoted here, the one the PDF
+// comes out at and the spine the cover is cut for are one number.
+function answersPerPage(s, count) {
+  return solutionsPerPageFor(count, solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }), s.largePrint, gridBound(s), count));
+}
+
 function showMeta(s) {
-  const fits = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }), s.largePrint);
   const effective = effectiveCount(s.count);
-  const plan = planPages(effective, solutionsPerPageFor(effective, fits));
+  const plan = planPages(effective, answersPerPage(s, effective));
   const pages = plan.total;
   // The preview shows the book's first pages, so on a graded book they are all
   // easy — which would read as "this is an easy book" without saying that the
@@ -273,7 +281,7 @@ function showMeta(s) {
   // A book too short for KDP has to say so here, before the download, not
   // after somebody uploads it and gets rejected.
   if (plan.belowMinimum) {
-    const need = puzzlesForMinimum(fits);
+    const need = puzzlesForMinimum(answersPerPage(s, effective));
     el.lengthWarn.textContent =
       `${pages} pages — under KDP's ${plan.minimum}-page minimum, so KDP will not accept it as it stands. ` +
       `About ${need} puzzles makes a publishable book.`;
@@ -754,6 +762,7 @@ async function download() {
       ...s,
       licensed: Boolean(lic),
       fonts,
+      maxGrid: gridBound(s),
       recipe: recipeLine(s, full.puzzles.length),
       // Drawing a long book is seconds of work; hand the browser a moment
       // between batches of pages so the tab stays alive and says where it is.
@@ -768,7 +777,7 @@ async function download() {
     a.download = `${slug(s.title)}-${s.trim}.pdf`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    lastInterior = { key: settingsKey(s), pages: planPages(full.puzzles.length, solutionsPerPageFor(full.puzzles.length, solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }), s.largePrint))).total, puzzles: full.puzzles.length };
+    lastInterior = { key: settingsKey(s), pages: planPages(full.puzzles.length, answersPerPage(s, full.puzzles.length)).total, puzzles: full.puzzles.length };
     el.status.textContent =
       `Done — ${full.puzzles.length} puzzles, ${lastInterior.pages} pages, ${(blob.size / 1024).toFixed(0)} KB.` +
       (full.puzzles.length < count ? ` (${count - full.puzzles.length} could not be built — the cover will be sized for this book.)` : "");
@@ -811,10 +820,10 @@ async function downloadCover() {
   try {
     el.status.textContent = "Building the cover…";
     await tick();
-    const perPage = solutionsThatFit(pageGeometry({ trim: s.trim, bleed: s.bleed }), s.largePrint);
+
     // Prefer the page count of the book actually made with these settings.
     const matches = lastInterior && lastInterior.key === settingsKey(s);
-    const pages = matches ? lastInterior.pages : planPages(effectiveCount(s.count), perPage).total;
+    const pages = matches ? lastInterior.pages : planPages(effectiveCount(s.count), answersPerPage(s, effectiveCount(s.count))).total;
     const one = s.kind === "sudoku"
       ? generateSudokuBook({ ...s, count: 1 })
       : s.kind === "maze"

@@ -2,7 +2,7 @@
 // quote spine widths and royalties long before anyone asks for a PDF, and it
 // should not have to load a PDF engine to do it.
 
-import { MIN_PAGES, SAFETY_IN, PT } from "./kdp.js";
+import { MIN_PAGES, MAX_PAGES, SAFETY_IN, PT, gutterInches } from "./kdp.js";
 
 // Padding a short book with lined Notes pages is a last resort, not a
 // feature. A 6-puzzle book has about 10 pages of content; filling it to KDP's
@@ -27,12 +27,40 @@ export const FLAT_RATE_PAGES = 110;
 // size gets an answer key they can't read. At one a page every letter in the
 // book is 16pt or more, and on 8.5×11 a book of up to 50 puzzles still fits
 // in KDP's flat-rate 110 pages.
-export function solutionsThatFit(geom, largePrint = false) {
+//
+// And KDP's "Minimum font size: 7 points" (G201857950) sets a floor under
+// that density. An answer letter takes 0.85 of its cell at most, so a grid of
+// `maxGrid` cells a side needs a square of maxGrid × 7 / 0.85 points. Until
+// 2026-09-27 the grid size was never asked: a 30×30 grid typed in on 5×8 got
+// four answers a page at 4.2pt. Now the page steps down — 6, 4, 2, 1 — until
+// the biggest grid in the book (src/generator/gridbound.js) fits at 7pt.
+export const LETTER_SHARE = 0.85;
+export const MIN_TYPE = 7;
+export function solutionsThatFit(geom, largePrint = false, maxGrid = 0, puzzleCount = 0) {
   if (largePrint) return 1;
-  const h = geom.height - geom.margin.top - geom.margin.bottom - 2 * SAFETY_IN * PT - 28;
+  const s = SAFETY_IN * PT;
+  // The gutter grows with the page count, and the page count depends on the
+  // answer this returns — so each layout is judged at the gutter of the book
+  // it would make. With no count, the widest gutter any book can get: a wider
+  // gutter only ever narrows the square, so that errs toward readable.
+  const width = (per) => {
+    const pages = puzzleCount ? planPages(puzzleCount, per).total : MAX_PAGES;
+    return geom.width - Math.max(geom.margin.inner, gutterInches(pages) * PT) - geom.margin.outer - 2 * s;
+  };
+  const h = geom.height - geom.margin.top - geom.margin.bottom - 2 * s - 28;
   const gap = 14;
   const sideAt3 = (h - 2 * gap) / 3 - 16;
-  return sideAt3 >= 150 ? 6 : 4;
+  const densest = sideAt3 >= 150 ? 6 : 4;
+  const need = (maxGrid * MIN_TYPE) / LETTER_SHARE;
+  // The square each layout gives a grid, as drawSolutionsPage computes it.
+  const side = (per) => {
+    const cols = per <= 2 ? 1 : 2;
+    const rows = Math.ceil(per / cols);
+    const label = per === 1 ? 16 : 10;
+    return Math.min((width(per) - gap * (cols - 1)) / cols, (h - gap * (rows - 1)) / rows - label - 6);
+  };
+  for (const per of [6, 4, 2]) if (per <= densest && side(per) >= need) return per;
+  return 1;
 }
 
 // Solutions are packed at the density the page allows, which is the fewest

@@ -116,3 +116,30 @@ test("a long book renders and stays consistent with its plan", async () => {
   assert.equal(pdf.getPageCount(), planPages(120, perPage).total);
   assert.deepEqual(book.warnings, []);
 });
+
+// Answers a page now depend on the biggest grid (layout.js, gridbound.js), so
+// the book the UI predicts has to be judged by the same number the renderer is
+// handed. A typed 30×30 on 5×8 and a graded criss-cross on 5×8 are the cases
+// that step down; a 200-puzzle book is the one whose gutter widens.
+test("predicted pages equal rendered pages when big grids step the answer pages down", async () => {
+  const { gridBound, largestGrid } = await import("../src/generator/gridbound.js");
+  const { generateCrissCrossBook } = await import("../src/generator/crisscross.js");
+  const cases = [
+    { kind: "wordsearch", trim: "5x8", size: 30, count: 11 },
+    { kind: "wordsearch", trim: "6x9", size: 25, count: 60 },
+    { kind: "wordsearch", trim: "8.5x11", size: 30, count: 41 },
+    { kind: "wordsearch", trim: "5.5x8.5", size: null, count: 20, difficulty: "easy" },
+    { kind: "crisscross", trim: "5x8", size: null, count: 20, difficulty: "graded" },
+  ];
+  for (const c of cases) {
+    const s = { pools: [THEMES.animals], wordsPerPuzzle: 15, difficulty: "medium", seed: `big-${c.trim}`, ...c };
+    const book = c.kind === "crisscross" ? generateCrissCrossBook(s) : generateBook(s);
+    const maxGrid = gridBound(s);
+    assert.ok(largestGrid(book.puzzles) <= maxGrid, `${c.kind} ${c.trim}: a grid of ${largestGrid(book.puzzles)} beat the bound ${maxGrid}`);
+    const n = book.puzzles.length;
+    const predicted = planPages(n, solutionsPerPageFor(n, solutionsThatFit(pageGeometry({ trim: c.trim }), false, maxGrid, n))).total;
+    const bytes = await renderBook(book, { title: "Big", trim: c.trim, licensed: true, fonts, maxGrid });
+    const actual = (await PDFDocument.load(bytes)).getPageCount();
+    assert.equal(actual, predicted, `${c.kind} ${c.trim} size=${c.size}: rendered ${actual}, planned ${predicted}`);
+  }
+});

@@ -8,9 +8,10 @@
 //     thinner lines, and nothing measured it.
 //   Font — "Minimum font size: 7 points". Answer-grid letters, crossword
 //     clue numbers and the free book's settings line all went under it until
-//     2026-09-26 (to 4.4pt). Under 7pt is REPORTED; under 6.63pt FAILS. The
-//     one case left between is a grid too big for its page (19×19 answers on
-//     5×8), where 7pt letters would touch.
+//     2026-09-26 (to 4.4pt), and a grid size typed into the form (up to 30)
+//     put answer letters at 4.2pt until 2026-09-27, when the answer pages
+//     learned to step down by grid size. Anything under 7pt FAILS. The typed
+//     30×30 book is here because the defaults alone never reach the limit.
 //   Grayscale fill — "we recommend a minimum grayscale fill of 10%". Checked:
 //     any fill lighter than 10% grey that is not white fails.
 //
@@ -33,6 +34,8 @@ const fonts = {
 const C = 20;
 const books = {
   wordsearch: generateBook({ pools: [THEMES.halloween], count: C, wordsPerPuzzle: 15, difficulty: "graded", seed: "a" }),
+  wordsearch30: generateBook({ pools: [THEMES.halloween], count: C, wordsPerPuzzle: 15, difficulty: "hard", size: 30, seed: "a" }),
+  wordsearch21: generateBook({ pools: [THEMES.halloween], count: C, wordsPerPuzzle: 15, difficulty: "hard", size: 21, seed: "a" }),
   sudoku: generateSudokuBook({ count: C, difficulty: "graded", seed: "a" }),
   sudoku6: generateSudokuBook({ count: C, difficulty: "graded", seed: "a", size: 6 }),
   maze: generateMazeBook({ count: C, difficulty: "graded", seed: "a" }),
@@ -56,14 +59,12 @@ for (const trim of (process.env.TRIMS || "5x8,6x9,8.5x11").split(",")) for (cons
     }
   });
   const thin = [...w].filter(([v]) => v < 0.75 && v > 0).map(([v, n]) => `${+v.toFixed(3)}×${n}`);
-  const small = [...tf].filter(([v]) => v < 7).map(([v, p]) => `${+v.toFixed(2)}@${p}`);
+  const small = [...tf].filter(([v]) => v < 6.995).map(([v, p]) => `${+v.toFixed(2)}@${p}`);
   const label = `${trim} ${name}${lp ? " large print" : ""}${licensed ? "" : " free"}`;
   if (thin.length) { failed++; console.log(`FAIL ${label}: lines under 0.75pt: ${thin.join(" ")}`); }
   if (grey.size) { failed++; console.log(`FAIL ${label}: fills under 10% grey: ${[...grey].map(([k, n]) => `${k}×${n}`).join(" ")}`); }
-  const tiny = [...tf].filter(([v]) => v < 6.62).map(([v, p]) => `${+v.toFixed(2)}@${p}`);
-  if (tiny.length) { failed++; console.log(`FAIL ${label}: type under 6.63pt: ${tiny.join(" ")}`); }
-  if (small.length) console.log(`note ${label}: type under 7pt: ${small.join(" ")}`);
+  if (small.length) { failed++; console.log(`FAIL ${label}: type under 7pt: ${small.join(" ")}`); }
 }
 
 if (failed) { console.log(`\n${failed} problem(s)`); process.exit(1); }
-console.log("KDP LINES OK — every line at least 0.75pt and every grey fill at least 10%, all book types × 3 trims");
+console.log("KDP LINES OK — every line at least 0.75pt, all type at least 7pt and every grey fill at least 10%, all book types × 3 trims");

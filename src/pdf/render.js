@@ -19,6 +19,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { pageGeometry, marginsForPage, MIN_PAGES, SAFETY_IN, PT } from "./kdp.js";
 import { planPages, solutionsThatFit, solutionsPerPageFor } from "./layout.js";
+import { largestGrid } from "../generator/gridbound.js";
 
 export { planPages, solutionsThatFit, solutionsPerPageFor, puzzlesForMinimum, MAX_FILLER } from "./layout.js";
 import { wallSegments } from "../generator/maze.js";
@@ -64,7 +65,7 @@ export async function renderBook(book, opts = {}) {
 
   const puzzles = book.puzzles;
   const solutionsPerPage =
-    opts.solutionsPerPage ?? solutionsPerPageFor(puzzles.length, solutionsThatFit(pageGeometry({ trim, bleed }), opts.largePrint));
+    opts.solutionsPerPage ?? solutionsPerPageFor(puzzles.length, solutionsThatFit(pageGeometry({ trim, bleed }), opts.largePrint, opts.maxGrid ?? largestGrid(puzzles), puzzles.length));
   const plan = planPages(puzzles.length, solutionsPerPage);
   const geom = pageGeometry({ trim, bleed, pageCount: plan.total });
 
