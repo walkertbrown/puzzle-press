@@ -1,5 +1,5 @@
 // KDP's interior rules that can be read straight out of the PDF's drawing
-// operators, for every book type at three trims.
+// operators, for every book type at every trim the tool offers.
 //
 // Paperback Submission Guidelines (kdp.amazon.com/en_US/help/topic/G201857950),
 // "Interior specifications":
@@ -27,6 +27,7 @@ import { generateCrissCrossBook } from "../src/generator/crisscross.js";
 import { generateCrosswordBook } from "../src/generator/crossword.js";
 import { CLUES } from "../src/generator/clues.js";
 import { renderBook } from "../src/pdf/render.js";
+import { TRIMS } from "../src/pdf/kdp.js";
 const fonts = {
   regular: readFileSync(new URL("../public/fonts/LiberationSans-Regular.ttf", import.meta.url)),
   bold: readFileSync(new URL("../public/fonts/LiberationSans-Bold.ttf", import.meta.url)),
@@ -42,7 +43,7 @@ const books = {
   crisscross: generateCrissCrossBook({ pools: [THEMES.halloween], count: C, difficulty: "graded", seed: "a" }),
   crossword: generateCrosswordBook({ pools: [THEMES.garden], builtinClues: CLUES, count: C, difficulty: "graded", seed: "a" }),
 };
-for (const trim of (process.env.TRIMS || "5x8,6x9,8.5x11").split(",")) for (const [name, book] of Object.entries(books)) for (const lp of name === "wordsearch" || name === "sudoku" ? [false, true] : [false]) for (const licensed of [true, false]) {
+for (const trim of (process.env.TRIMS?.split(",") ?? Object.keys(TRIMS))) for (const [name, book] of Object.entries(books)) for (const lp of name === "wordsearch" || name === "sudoku" ? [false, true] : [false]) for (const licensed of [true, false]) {
   // A free book prints the settings that made it on the copyright page, small.
   const recipe = licensed ? undefined : "Word search · 20 puzzles · graded · Halloween, Garden & Nature, Ocean Life · seed a1b2c3 · puzzlepress.bananafest-destiny.com";
   const bytes = await renderBook(book, { title: "Audit", author: "A", trim, licensed, recipe, largePrint: lp, fonts });
@@ -67,4 +68,4 @@ for (const trim of (process.env.TRIMS || "5x8,6x9,8.5x11").split(",")) for (cons
 }
 
 if (failed) { console.log(`\n${failed} problem(s)`); process.exit(1); }
-console.log("KDP LINES OK — every line at least 0.75pt, all type at least 7pt and every grey fill at least 10%, all book types × 3 trims");
+console.log("KDP LINES OK — every line at least 0.75pt, all type at least 7pt and every grey fill at least 10%, every book type × every trim");

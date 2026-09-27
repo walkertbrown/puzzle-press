@@ -64,7 +64,22 @@ A PDF that meets Amazon KDP's paperback manuscript rules:
 - Inside (gutter) margin from KDP's page-count table, swapping sides by page
   parity so it binds correctly.
 - Title page, copyright page, one puzzle per page, a `Solutions` divider forced
-  onto a right-hand page, and solutions packed 6-up (4-up on small trims).
+  onto a right-hand page, and solutions packed as densely as 7pt answer
+  letters allow: 6 a page (4 on small trims), stepping down to 4, 2 or 1 when
+  the grids are big, e.g. a 30×30 grid typed into a 5×8 book gets one a page.
+  The page count shown before download already includes that, so the cover's
+  spine matches the interior.
+- KDP's measurable interior rules, from the
+  [Paperback Submission Guidelines](https://kdp.amazon.com/en_US/help/topic/G201857950),
+  are each tested against rendered PDFs. `test/kdplines.mjs` reads the drawing
+  operators of every book type at every trim, including typed 21×21 and 30×30
+  grids:
+  - lines: "a minimum thickness/weight of 0.75 point";
+  - type: "Minimum font size: 7 points";
+  - fills: "a minimum grayscale fill of 10%".
+
+  `test/inkcheck.mjs` rasterises every page and checks each pixel of ink sits
+  inside KDP's margins, with 1/32" to spare.
 - **Large print (word search and sudoku) is large print on every page, answers
   included.** KDP says
   large-print books "usually have a font size of 16 points or higher". At 6-up
