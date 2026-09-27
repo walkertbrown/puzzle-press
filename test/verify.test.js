@@ -6,9 +6,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/worker.js";
 
-const session = (i, email, paid = true) => ({
+const session = (i, email, paid = true, link = "plink_T") => ({
   id: `cs_${i}`,
   payment_status: paid ? "paid" : "unpaid",
+  payment_link: link,
   customer_details: { email },
 });
 
@@ -28,8 +29,32 @@ function stubStripe(pages, { exact = {} } = {}) {
   return calls;
 }
 
-const ask = (email) =>
-  worker.fetch(new Request("https://x/api/verify", { method: "POST", body: JSON.stringify({ email }) }), { STRIPE_KEY: "rk_test" });
+const ask = (email, env = { STRIPE_KEY: "rk_test", PAY_LINK_ID: "plink_T" }) =>
+  worker.fetch(new Request("https://x/api/verify", { method: "POST", body: JSON.stringify({ email }) }), env);
+
+// The Stripe account also takes payments for other products (2026-09-27), so
+// a paid session through any other link, or none, is not a licence.
+test("a payment for another product on the account is not an unlock", async () => {
+  stubStripe([[session(2, "Shelf@Example.com", true, null)]], { exact: { "shelf@example.com": [session(1, "shelf@example.com", true, "plink_OTHER")] } });
+  const res = await ask("shelf@example.com");
+  assert.equal(res.status, 404);
+  assert.equal((await res.json()).ok, false);
+});
+
+test("the scan asks Stripe for this product's link, and the exact call cannot", async () => {
+  const seen = [];
+  globalThis.fetch = async (url) => { seen.push(new URL(url).searchParams); return Response.json({ data: [], has_more: false }); };
+  await ask("nobody@example.com");
+  for (const q of seen) assert.ok(!(q.has("payment_link") && q.has("customer_details[email]")), "Stripe refuses both filters at once");
+  assert.ok(seen.some((q) => q.get("payment_link") === "plink_T"), "the scan filters by link");
+});
+
+test("with no Payment Link configured, nothing unlocks", async () => {
+  stubStripe([[session(1, "buyer@example.com")]], { exact: { "buyer@example.com": [session(1, "buyer@example.com")] } });
+  const res = await ask("buyer@example.com", { STRIPE_KEY: "rk_test" });
+  assert.equal(res.status, 503);
+  assert.match((await res.json()).error, /support@/);
+});
 
 test("the exact filter answers without scanning", async () => {
   const calls = stubStripe([[]], { exact: { "buyer@example.com": [session(1, "buyer@example.com")] } });
