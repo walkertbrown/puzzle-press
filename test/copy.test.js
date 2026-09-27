@@ -14,11 +14,11 @@ import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { THEMES } from "../src/generator/wordlists.js";
 import { CLUES } from "../src/generator/clues.js";
-import { MIN_PAGES, MAX_PAGES } from "../src/pdf/kdp.js";
+import { MIN_PAGES, MAX_PAGES, pageGeometry } from "../src/pdf/kdp.js";
 import { SUDOKU_DIFFICULTY } from "../src/generator/sudoku.js";
 import { MAZE_DIFFICULTY } from "../src/generator/maze.js";
 import { PRICE_LABEL } from "../src/ui/license.js";
-import { planPages } from "../src/pdf/layout.js";
+import { planPages, solutionsThatFit, solutionsPerPageFor, FLAT_RATE_PAGES } from "../src/pdf/layout.js";
 import { generateBook } from "../src/generator/book.js";
 
 const ROOT = new URL("..", import.meta.url).pathname;
@@ -307,4 +307,31 @@ test("every page with a make-a-book button says there's no sign-up and a refund"
     if (hasGeneratorCta && !trustSignal.test(text)) wrong.push(file);
   }
   assert.deepEqual(wrong, [], `\n${wrong.join("\n")}\n`);
+});
+
+// "13 to 88 puzzles costs the same to print" is the 6×9 range at six answers a
+// page. Since the 7pt floor (2026-09-27), a word search grid of 21–22 letters
+// gets four a page and a wider one two, and the pages said only 88 until the
+// numeric audit that day found it. Every range quoted is recomputed here.
+test("the flat-print-price puzzle ranges on the pages are the ones the layout gives", () => {
+  const geom = pageGeometry({ trim: "6x9" });
+  const range = (grid) => {
+    const ok = [];
+    for (let n = 1; n <= 200; n++) {
+      const pages = planPages(n, solutionsPerPageFor(n, solutionsThatFit(geom, false, grid, n))).total;
+      if (pages >= MIN_PAGES && pages <= FLAT_RATE_PAGES) ok.push(n);
+    }
+    return [ok[0], ok.at(-1)];
+  };
+  const [six, four, two] = [range(20), range(21), range(23)];
+  assert.equal(solutionsThatFit(geom, false, 20, 50), 6);
+  assert.equal(solutionsThatFit(geom, false, 22, 50), 4);
+  assert.equal(solutionsThatFit(geom, false, 23, 50), 2);
+  const index = readFileSync("public/index.html", "utf8");
+  const howto = readFileSync("public/how-to-make-a-puzzle-book.html", "utf8");
+  for (const [name, html] of [["index", index], ["how-to", howto]])
+    assert.ok(html.includes(`from ${six[0]} to ${six[1]} puzzles costs the same`), `${name}: six-a-page range ${six}`);
+  assert.ok(index.includes(`top down to ${four[1]}`) && index.includes(`(${two[0]} to ${two[1]})`), `index: ${four} / ${two}`);
+  assert.ok(howto.includes(`top falls to ${four[1]} or ${two[1]}`), `how-to: ${four[1]} / ${two[1]}`);
+  assert.ok(howto.includes(`${six[0]} puzzles is the fewest that reach ${MIN_PAGES} pages`));
 });
