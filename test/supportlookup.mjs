@@ -6,6 +6,10 @@
 // Run: node test/supportlookup.mjs
 import { createServer } from "node:http";
 import { execFile } from "node:child_process";
+import { readFileSync } from "node:fs";
+
+// Puzzle Press's Payment Link, from where the Worker and the script read it.
+const LINK = readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8").match(/"PAY_LINK_ID":\s*"([^"]+)"/)[1];
 
 const PORT = 8933;
 let failed = 0;
@@ -19,25 +23,33 @@ const SESSIONS = [
     id: "cs_live_PAIDBUYER0001", object: "checkout_session", created: 1757900000,
     amount_total: 1900, currency: "usd", status: "complete", payment_status: "paid",
     customer_details: { email: "Jane.Buyer@Example.com", name: "Jane Buyer", phone: null },
-    livemode: true, payment_intent: "pi_PAID0001", client_reference_id: null,
+    livemode: true, payment_link: LINK, payment_intent: "pi_PAID0001", client_reference_id: null,
   },
   {
     id: "cs_live_NOEMAIL00002", object: "checkout_session", created: 1757890000,
     amount_total: 1900, currency: "usd", status: "complete", payment_status: "paid",
     customer_details: { email: null, name: "No Address", phone: null },
-    livemode: true, payment_intent: "pi_NOEMAIL2", client_reference_id: null,
+    livemode: true, payment_link: LINK, payment_intent: "pi_NOEMAIL2", client_reference_id: null,
   },
   {
     id: "cs_live_ABANDONED0003", object: "checkout_session", created: 1757880000,
     amount_total: 1900, currency: "usd", status: "open", payment_status: "unpaid",
     customer_details: { email: "gave.up@example.com", name: null, phone: null },
-    livemode: true, payment_intent: null, client_reference_id: null,
+    livemode: true, payment_link: LINK, payment_intent: null, client_reference_id: null,
   },
   {
     id: "cs_live_MYOWNTEST0004", object: "checkout_session", created: 1757870000,
     amount_total: 1900, currency: "usd", status: "complete", payment_status: "paid",
     customer_details: { email: "me@bananafest-destiny.com", name: "Self Test", phone: null },
-    livemode: true, payment_intent: "pi_SELF004", client_reference_id: "selftest-123",
+    livemode: true, payment_link: LINK, payment_intent: "pi_SELF004", client_reference_id: "selftest-123",
+  },
+  // Another product on the same Stripe account (a ShelfCall subscription
+  // appeared in the live one 2026-09-27): paid, with an email, and no licence.
+  {
+    id: "cs_live_OTHERPRODUCT05", object: "checkout_session", created: 1757860000,
+    amount_total: 5900, currency: "usd", status: "complete", payment_status: "paid", mode: "subscription",
+    customer_details: { email: "shelf.owner@example.com", name: "Shelf Owner", phone: null },
+    livemode: true, payment_link: null, success_url: "https://app.shelfcall.com/", payment_intent: null, client_reference_id: null,
   },
 ];
 
@@ -119,6 +131,14 @@ check(/Do not invent one/.test(r.out), "and says not to make an address up");
 console.log("\n6. started checkout and never paid");
 r = await run(["gave.up@example.com"]);
 check(/Nothing was\s+charged/.test(r.out), "says nothing was charged");
+check(!/Reply with this:/.test(r.out), "and does not hand them an unlock");
+
+// 6b. Paid, for something else. /api/verify refuses it, so the script must not
+//     print a reply telling them to type their address.
+console.log("\n6b. paid for another product on the same Stripe account");
+r = await run(["shelf.owner@example.com"]);
+check(/NOT Puzzle Press/.test(r.out), "names it as another product");
+check(/will NOT find this/.test(r.out), "says /api/verify will not match it");
 check(!/Reply with this:/.test(r.out), "and does not hand them an unlock");
 
 // 7. My own test runs must be labelled, or I will spend launch night reading

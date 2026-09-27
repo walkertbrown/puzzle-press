@@ -38,6 +38,9 @@
   "vars": {
     // Public Stripe Payment Link — customers click it, so it is not a secret.
     // LIVE link — real charges.
-    "PAY_URL": "https://buy.stripe.com/6oU8wR4Z026hf3lgFVeIw00"
+    "PAY_URL": "https://buy.stripe.com/6oU8wR4Z026hf3lgFVeIw00",
+    // The same link's id. /api/verify only accepts sessions made through it,
+    // because the Stripe account also takes payments for other products.
+    "PAY_LINK_ID": "plink_1UEFsXRo6ix1hE5vvy5l5zAE"
   }
 }

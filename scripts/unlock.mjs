@@ -113,6 +113,11 @@ const when = (s) => new Date(s.created * 1000).toISOString().slice(0, 16).replac
 // scripts/traffic.mjs tags its own checkout runs so the dashboard can ignore
 // them. Say so here too, or I will spend launch night reading my own tests.
 const isSelfTest = (s) => String(s.client_reference_id ?? "").startsWith("selftest-");
+// The Stripe account also takes payments for other products (2026-09-27: a
+// ShelfCall subscription). /api/verify only accepts this product's Payment
+// Link, read from the same place the Worker gets it.
+const LINK = readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8").match(/"PAY_LINK_ID":\s*"([^"]+)"/)?.[1];
+if (!LINK) { console.error("No PAY_LINK_ID in wrangler.jsonc."); process.exit(2); }
 
 console.log(`\nSearched ${sessions.length} checkout session(s) from the last ${DAYS} days`
   + `${needle ? ` for ${JSON.stringify(needle)}` : ""}.\n`);
@@ -137,7 +142,8 @@ for (const s of matches) {
   const email = cd.email || null;
   const paid = s.payment_status === "paid";
   const complete = s.status === "complete";
-  const findable = paid && complete && Boolean(email);
+  const ours = s.payment_link === LINK;
+  const findable = ours && paid && complete && Boolean(email);
   console.log(`  ${s.id}${isSelfTest(s) ? "   <-- one of my own test runs, not a customer" : ""}`);
   console.log(`    when            ${when(s)}`);
   console.log(`    amount          ${money(s)}`);
@@ -145,6 +151,7 @@ for (const s of matches) {
   console.log(`    name on card    ${cd.name || "(none)"}`);
   console.log(`    email on file   ${email ?? "(none — Stripe has no address for this payment)"}`);
   console.log(`    livemode        ${s.livemode}`);
+  console.log(`    product         ${ours ? "Puzzle Press" : `NOT Puzzle Press (${s.payment_link || "no Payment Link"}; success URL ${s.success_url || "none"})`}`);
   console.log(`    /api/verify     ${findable ? "WILL find this" : "will NOT find this"}`);
   console.log("");
 
@@ -159,6 +166,11 @@ for (const s of matches) {
     console.log(`      Go to puzzlepress.bananafest-destiny.com, click "Already paid? Unlock",`);
     console.log(`      and enter exactly:  ${email}`);
     console.log("      Capitals do not matter. That unlocks it on that device straight away.");
+    console.log("");
+  } else if (!ours) {
+    console.log("    This payment is for another product on the same Stripe account. It");
+    console.log("    does not unlock Puzzle Press and was never meant to. If they think");
+    console.log("    they bought Puzzle Press, ask for the Puzzle Press receipt.");
     console.log("");
   } else if (paid && complete && !email) {
     console.log("    They paid and Stripe has NO email on the session, so /api/verify");

@@ -4,7 +4,7 @@
 //   POST /api/verify    -> { email } -> is there a paid Stripe Checkout Session for it?
 //   everything else     -> static assets from public/
 //
-// Env: PAY_URL (var), STRIPE_KEY (secret; a *restricted* key with read access
+// Env: PAY_URL and PAY_LINK_ID (vars: the Payment Link and its plink_ id), STRIPE_KEY (secret; a *restricted* key with read access
 // to Checkout Sessions only — the boss creates it, this code only reads it).
 
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
@@ -162,8 +162,20 @@ async function verify(request, env) {
   // is no code path that sets it from a request — it is a binding, so only
   // somebody who can deploy the Worker can point it anywhere.
   const api = env.STRIPE_API || "https://api.stripe.com";
+  // The Stripe account is not Puzzle Press's alone: on 2026-09-27 a $59/month
+  // subscription for another product (success URL app.shelfcall.com) turned
+  // up in it. Until then any paid session with the buyer's email unlocked
+  // this app, so paying for that product would have unlocked this one too.
+  // Only a payment through this product's own Payment Link is a licence, and
+  // isPaidFor checks it on every session. Stripe also filters by link, but it
+  // refuses payment_link together with customer_details ("You may only specify
+  // one of these parameters", checked live 2026-09-27), so only the scan can
+  // ask for it. With no link configured, refuse rather than accept all.
+  const link = env.PAY_LINK_ID;
+  if (!link) return json({ ok: false, error: "Unlocking is not available right now. Email support@bananafest-destiny.com and we will sort it out." }, 503);
   const sessions = async (params, startingAfter = null) => {
     const q = new URLSearchParams({ status: "complete", limit: "100", ...params });
+    if (!("customer_details[email]" in params)) q.set("payment_link", link);
     if (startingAfter) q.set("starting_after", startingAfter);
     const res = await fetch(`${api}/v1/checkout/sessions?${q}`, { headers });
     if (!res.ok) throw new Error("stripe");
@@ -171,7 +183,7 @@ async function verify(request, env) {
     return { data: body.data || [], hasMore: Boolean(body.has_more) };
   };
   const isPaidFor = (s) =>
-    s.payment_status === "paid" && ((s.customer_details || {}).email || "").toLowerCase() === email;
+    s.payment_status === "paid" && s.payment_link === link && ((s.customer_details || {}).email || "").toLowerCase() === email;
 
   let paid = null;
   let ranOut = false;

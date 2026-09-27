@@ -42,6 +42,7 @@ const check = (ok, msg) => {
 // whole reason the fallback scan exists, so the stub has to be exact too or
 // the test would prove nothing.
 let SESSIONS = [];
+let IGNORE_LINK_FILTER = false;
 let calls = [];
 
 const session = (i, email, paid = true) => ({
@@ -54,6 +55,7 @@ const session = (i, email, paid = true) => ({
   customer_details: email === null ? null : { email, name: "A Buyer", address: null, tax_exempt: "none" },
   livemode: true,
   mode: "payment",
+  payment_link: "plink_TEST",
   payment_status: paid ? "paid" : "unpaid",
   status: "complete",
   url: null,
@@ -67,7 +69,14 @@ const stripe = createServer((req, res) => {
     return res.end('{"error":{"message":"no such endpoint"}}');
   }
   const q = url.searchParams;
+  // Stripe's own refusal, verbatim (checked live 2026-09-27): the two filters
+  // cannot be combined, so a Worker that sends both must fail here as it would there.
+  if (q.has("payment_link") && [...q.keys()].some((k) => k.startsWith("customer_details"))) {
+    res.writeHead(400, { "content-type": "application/json" });
+    return res.end('{"error":{"message":"You may only specify one of these parameters: customer_details, payment_link."}}');
+  }
   let rows = SESSIONS.filter((s) => !q.get("status") || s.status === q.get("status"));
+  if (q.has("payment_link") && !IGNORE_LINK_FILTER) rows = rows.filter((s) => s.payment_link === q.get("payment_link"));
   const wanted = q.get("customer_details[email]");
   if (wanted !== null) rows = rows.filter((s) => (s.customer_details || {}).email === wanted);
   const after = q.get("starting_after");
@@ -92,6 +101,7 @@ const worker = spawn(
    "--var", "STRIPE_KEY:sk_stub_not_a_real_key",
    "--var", `STRIPE_API:http://127.0.0.1:${PORT_STRIPE}`,
    "--var", "PAY_URL:https://example.invalid/pay",
+   "--var", "PAY_LINK_ID:plink_TEST",
    "--log-level", "warn"],
   { cwd: new URL("..", import.meta.url).pathname, stdio: ["ignore", "pipe", "pipe"] },
 );
@@ -182,6 +192,28 @@ SESSIONS = [session(4, "deadbeat@example.com", false)];
 r = await verify("deadbeat@example.com");
 check(r.status === 404 && r.body.ok === false, `refused (${r.status})`);
 check(/No completed payment/.test(r.body.error || ""), "and told to check the receipt address");
+
+// 3b. The Stripe account also takes payments for other products (a ShelfCall
+//     subscription appeared in it 2026-09-27). Paying for one of those is not
+//     a Puzzle Press licence. The exact filter finds the session, because
+//     Stripe cannot filter by email and link at once, so the Worker has to
+//     refuse it itself.
+console.log("\n3b. paid, but for another product on the same Stripe account");
+const elsewhere = (i, email, over = {}) => ({ ...session(i, email), payment_link: null, mode: "subscription", amount_total: 5900, ...over });
+SESSIONS = [elsewhere(5, "shelf@example.com")];
+r = await verify("shelf@example.com");
+check(r.status === 404 && r.body.ok === false, `refused on the exact match (${r.status})`);
+SESSIONS = [elsewhere(5, "Shelf@Example.com")];
+r = await verify("shelf@example.com");
+check(r.status === 404 && r.body.ok === false, `refused on the scan (${r.status})`);
+// And if Stripe ever ignored the link filter, the Worker's own check still holds.
+IGNORE_LINK_FILTER = true;
+SESSIONS = [elsewhere(5, "Shelf@Example.com"), elsewhere(6, "shelf2@example.com", { payment_link: "plink_OTHER" })];
+r = await verify("shelf@example.com");
+check(r.status === 404, `refused with the filter ignored (${r.status})`);
+r = await verify("shelf2@example.com");
+check(r.status === 404, `refused for a different Payment Link (${r.status})`);
+IGNORE_LINK_FILTER = false;
 
 // 4. Paging. One page of a hundred was the old ceiling: sale 101 would have
 //    been told they never paid. The buyer here is on the third page — and

@@ -100,7 +100,14 @@ const UNTAGGED_MINE = new Set([
 ]);
 const isSelfTest = (s) => s.created < TAGGED_SINCE || UNTAGGED_MINE.has(s.id) || String(s.client_reference_id ?? "").startsWith("selftest-");
 const selftests = recent.filter(isSelfTest);
-const real = recent.filter((s) => !isSelfTest(s));
+// The account also takes payments for other products: on 2026-09-27 a ShelfCall
+// subscription "probe" showed up here as "Checkouts started 1 — worth knowing
+// why". Only this product's Payment Link is a Puzzle Press checkout; it is read
+// from wrangler.jsonc, where the Worker gets it.
+const LINK = readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8").match(/"PAY_LINK_ID":\s*"([^"]+)"/)?.[1];
+if (!LINK) throw new Error("No PAY_LINK_ID in wrangler.jsonc");
+const elsewhere = recent.filter((s) => !isSelfTest(s) && s.payment_link !== LINK);
+const real = recent.filter((s) => !isSelfTest(s) && s.payment_link === LINK);
 const paid = real.filter((s) => s.payment_status === "paid");
 const money = paid.reduce((a, s) => a + (s.amount_total ?? 0), 0) / 100;
 
@@ -108,6 +115,7 @@ console.log(`\n  Checkouts started           ${real.length}`);
 console.log(`  Checkouts paid              ${paid.length}`);
 console.log(`  Revenue                     $${money.toFixed(2)}`);
 if (selftests.length) console.log(`  (my own test runs ignored:  ${selftests.length})`);
+if (elsewhere.length) console.log(`  (other products' checkouts on the same Stripe account ignored: ${elsewhere.length})`);
 if (paid.length) {
   console.log("\n  Sales:");
   for (const s of paid) {
