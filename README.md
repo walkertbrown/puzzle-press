@@ -98,9 +98,13 @@ A PDF that meets Amazon KDP's paperback manuscript rules:
 - Fonts embedded and subset (Liberation Sans, SIL OFL) — KDP rejects
   manuscripts with un-embedded fonts.
 - A full-wrap cover: spine width from the page count and paper stock, bleed and
-  barcode area kept clear. One of eight colours (picked from the title, or
-  chosen), the book's own puzzle on the front with an answer marked, and a
-  strip for the puzzle count, large print and solutions.
+  barcode area kept clear, and every word at least 0.125" inside the trim
+  lines, as KDP's cover guidelines ask (`test/coversafe.mjs` checks that in
+  pixels across every colour, trim and a deliberately over-long title and
+  author). One of eight colours (picked from the title, or chosen), the
+  book's own puzzle on the front with an answer marked, a second one on the
+  back as printed inside, and a strip for the puzzle count, large print and
+  solutions.
 
 ## Free calculators, no sign-up
 

@@ -65,6 +65,7 @@
     "test:discoverable": "node test/discoverable.mjs",
     "test:ink": "node test/inkcheck.mjs",
     "test:coverink": "node test/coverink.mjs",
+    "test:coversafe": "node test/coversafe.mjs",
     "test:crisscross": "node test/crisscross-live.mjs",
     "test:biggrid": "node test/biggrid-live.mjs",
     "test:crossword": "node test/crossword-live.mjs",
