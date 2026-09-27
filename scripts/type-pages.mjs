@@ -19,18 +19,24 @@ import { DIFFICULTY as WS_DIFFICULTY } from "../src/generator/wordsearch.js";
 
 const SITE = "https://puzzlepress.bananafest-destiny.com";
 const fits = solutionsThatFit(pageGeometry({ trim: "6x9", bleed: false }));
-const row = (n) => {
-  const p = planPages(n, solutionsPerPageFor(n, fits));
-  const c = printingCost({ trim: "6x9", pages: p.total, ink: "black" }).cost;
-  const r = royalty({ list: 9.99, trim: "6x9", pages: p.total, ink: "black" }).royalty;
+const row = (n, trim, per) => {
+  const p = planPages(n, solutionsPerPageFor(n, per));
+  const c = printingCost({ trim, pages: p.total, ink: "black" }).cost;
+  const r = royalty({ list: 9.99, trim, pages: p.total, ink: "black" }).royalty;
   return `<tr><td>${n}</td><td>${p.total}</td><td>$${c.toFixed(2)}</td><td>$${r.toFixed(2)}</td></tr>`;
 };
-const costTable = `
+// Read off the cost function rather than typed in, so a rate change reaches the page.
+const centsPerPage = (trim) => +((printingCost({ trim, pages: 300, ink: "black" }).cost - printingCost({ trim, pages: 200, ink: "black" }).cost)).toFixed(2);
+const table = (trim, label, per) => `
     <table>
-      <tr><th>Puzzles</th><th>Pages (6 × 9)</th><th>Prints for</th><th>You keep at $9.99</th></tr>
-      ${[20, 50, 100].map(row).join("\n      ")}
+      <tr><th>Puzzles</th><th>Pages (${label})</th><th>Prints for</th><th>You keep at $9.99</th></tr>
+      ${[20, 50, 100].map((n) => row(n, trim, per)).join("\n      ")}
     </table>
-    <p class="fine">Page count is title, copyright, one puzzle per page, a divider, solutions ${fits} to a page, and four notes pages, rounded to an even number. Printing is KDP's flat rate up to ${FLAT_RATE_PAGES} pages, then about a penny a page. <a href="/royalty-calculator">Royalty calculator</a> for other prices and trims.</p>`;
+    <p class="fine">Page count is title, copyright, one puzzle per page, a divider, solutions ${per === 1 ? "one" : per} to a page, and four notes pages, rounded to an even number. Printing is KDP's flat rate up to ${FLAT_RATE_PAGES} pages, then $1.00 plus ${centsPerPage(trim)}¢ a page. <a href="/royalty-calculator">Royalty calculator</a> for other prices and trims.</p>`;
+const costTable = table("6x9", "6 × 9", fits);
+// The large-print preset is 8.5 × 11 with one answer grid a page (layout.js),
+// so its page prices that book, not a 6 × 9 one it can't make.
+const largePrintTable = table("8.5x11", "8.5 × 11", solutionsThatFit(pageGeometry({ trim: "8.5x11", bleed: false }), true));
 
 const themeNames = Object.values(THEMES).map((t) => t.title);
 const wsDirs = { easy: WS_DIFFICULTY.easy.dirs.length, medium: WS_DIFFICULTY.medium.dirs.length, hard: WS_DIFFICULTY.hard.dirs.length };
@@ -193,8 +199,8 @@ pages["large-print-word-search-generator"] = {
 
   <section class="prose">
     <h2>What a book costs to print, and earns</h2>
-    <p class="fine">Figures below are at the standard 6 × 9 trim for comparison with the other generator pages; 8.5 × 11 prints at KDP's large-trim rate, which is higher per page — use the <a href="/royalty-calculator">royalty calculator</a> for the 8.5 × 11 numbers on your own puzzle count.</p>
-    ${costTable}
+    <p class="fine">Figures below are for the book this preset makes: 8.5 × 11, which KDP prices at its large-trim rate, with one answer grid a page. The other generator pages quote 6 × 9, so their numbers are lower.</p>
+    ${largePrintTable}
   </section>`,
 };
 
