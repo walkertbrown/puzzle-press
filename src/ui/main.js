@@ -844,14 +844,14 @@ async function downloadCover() {
     // (a one-puzzle book shows its one puzzle on both).
     const n2 = s.count > 1 ? 2 : 1;
     const one = s.kind === "sudoku"
-      ? generateSudokuBook({ ...s, count: n2 })
+      ? generateSudokuBook({ ...s, count: n2, gradeCount: s.count })
       : s.kind === "maze"
-        ? generateMazeBook({ ...s, count: n2 })
+        ? generateMazeBook({ ...s, count: n2, gradeCount: s.count })
         : s.kind === "crisscross"
-          ? generateCrissCrossBook({ ...s, count: n2 })
+          ? generateCrissCrossBook({ ...s, count: n2, gradeCount: s.count })
           : s.kind === "crossword"
-            ? generateCrosswordBook({ ...s, builtinClues: await loadClues(), count: n2 })
-            : generateBook({ ...s, count: n2 });
+            ? generateCrosswordBook({ ...s, builtinClues: await loadClues(), count: n2, gradeCount: s.count })
+            : generateBook({ ...s, count: n2, gradeCount: s.count });
     const [fonts, { renderCover }] = await Promise.all([fontsSoon, coverSoon]);
     const bytes = await renderCover({
       title: s.title,

@@ -6,6 +6,11 @@ import { coverGeometry, spineWidthInches, renderCover, PAPER, SPINE_TEXT_MIN_PAG
 import { generateBook } from "../src/generator/book.js";
 import { THEMES } from "../src/generator/wordlists.js";
 import { planPages } from "../src/pdf/render.js";
+import { CLUES } from "../src/generator/clues.js";
+import { generateSudokuBook } from "../src/generator/sudoku.js";
+import { generateMazeBook } from "../src/generator/maze.js";
+import { generateCrissCrossBook } from "../src/generator/crisscross.js";
+import { generateCrosswordBook } from "../src/generator/crossword.js";
 
 const fonts = {
   regular: readFileSync(new URL("../public/fonts/LiberationSans-Regular.ttf", import.meta.url)),
@@ -170,4 +175,21 @@ test("the tool's cover colour choices are exactly the palettes the cover draws",
   assert.deepEqual(offered.sort(), PALETTES.map((p) => p.name).sort());
   for (const name of offered) assert.equal(paletteFor("Any Title", name).name, name);
   assert.equal(paletteFor("Any Title", "").name, paletteFor("Any Title").name); // automatic is stable
+});
+
+// The UI builds a two-puzzle book for the cover and the back says "A puzzle
+// from inside". That is only true if those two are the book's first two. A
+// graded book grades each puzzle by its place in the whole book, so without
+// gradeCount a two-puzzle build gave a different puzzle 2 (found 2026-09-27).
+test("the cover's two puzzles are the book's first two, every type, graded too", () => {
+  const J = (p) => JSON.stringify(p.grid || p.puzzle || p.cells || p.walls || p);
+  const gens = { word: generateBook, sudoku: generateSudokuBook, maze: generateMazeBook, crisscross: generateCrissCrossBook, crossword: generateCrosswordBook };
+  for (const difficulty of ["medium", "graded"]) {
+    for (const [name, gen] of Object.entries(gens)) {
+      const s = { seed: "cover-two", difficulty, size: null, wordsPerPuzzle: 15, pools: [THEMES.garden], builtinClues: CLUES };
+      const cover = gen({ ...s, count: 2, gradeCount: 12 }), book = gen({ ...s, count: 12 });
+      assert.equal(J(cover.puzzles[0]), J(book.puzzles[0]), `${name} ${difficulty}: front puzzle`);
+      assert.equal(J(cover.puzzles[1]), J(book.puzzles[1]), `${name} ${difficulty}: back puzzle`);
+    }
+  }
 });
