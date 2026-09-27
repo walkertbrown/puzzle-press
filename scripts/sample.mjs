@@ -87,8 +87,13 @@ async function stampFonts(doc) {
   };
 }
 
+// The book's own page count, before the promo page below is added — the
+// number its cover's spine has to be sized for.
+const BOOK_PAGES = new Map();
+
 async function finishSample(bytes, meta) {
   const doc = await PDFDocument.load(bytes);
+  const bookPages = doc.getPageCount();
   doc.setTitle(sampleTitle(meta));
   doc.setSubject(sampleSubject(meta));
   doc.setKeywords(sampleKeywords(meta));
@@ -177,15 +182,24 @@ async function finishSample(bytes, meta) {
   });
   page.node.set(PDFName.of("Annots"), doc.context.obj([doc.context.register(linkAnnot)]));
 
-  return doc.save();
+  const out = await doc.save();
+  BOOK_PAGES.set(out, bookPages);
+  return out;
 }
+// Every cover's spine is sized from the interior it goes with, as rendered —
+// not from a separate prediction that has to be kept in step with the layout
+// by hand (answers a page started depending on grid size on 2026-09-27).
+const pagesOf = async (pdf) => {
+  if (!BOOK_PAGES.has(pdf)) throw new Error("pagesOf wants an interior that went through finishSample");
+  return BOOK_PAGES.get(pdf);
+};
 const book = generateBook({ pools: [THEMES.garden, THEMES.kitchen], count: 20, wordsPerPuzzle: 16, difficulty: "medium", seed: "public-sample-1" });
 const bytes = await finishSample(await renderBook(book, { title: "Garden & Kitchen Word Search", subtitle: "20 puzzles with solutions — sample book", author: "Puzzle Press", trim: "6x9", licensed: true, fonts }), { kind: "Word search", theme: "Garden & Kitchen", trim: "6x9", count: 20 });
 writeFileSync(new URL("../public/samples/sample-6x9.pdf", import.meta.url), bytes);
 console.log("wrote public/samples/sample-6x9.pdf", bytes.length, "bytes,", book.warnings);
 
 // The matching cover, so a visitor can judge the paid half before paying.
-const pages = planPages(20, solutionsThatFit(pageGeometry({ trim: "6x9" }))).total;
+const pages = await pagesOf(bytes);
 const cover = await renderCover({
   title: "Garden & Kitchen Word Search",
   subtitle: "20 puzzles with solutions — sample book",
@@ -234,7 +248,7 @@ for (const [name, book, title, subtitle, seed, kind] of [
   ["sudoku", sudoku, "Sudoku for Sunday", "20 puzzles, easy to expert — sample book", "public-sudoku-1", "Sudoku"],
   ["maze", mazes, "Mazes for Rainy Days", "20 mazes, easy to expert — sample book", "public-maze-1", "Maze"],
 ]) {
-  const pc = planPages(20, solutionsThatFit(pageGeometry({ trim: "6x9" }))).total;
+  const pc = await pagesOf(name === "sudoku" ? sudokuBytes : mazeBytes);
   const c = await finishSample(await renderCover({ title, subtitle, author: "Puzzle Press", trim: "6x9", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: book.puzzles[0], seed, fonts }), { kind, theme: "easy to expert", trim: "6x9", count: 20, cover: true });
   writeFileSync(new URL(`../public/samples/sample-${name}-cover-6x9.pdf`, import.meta.url), c);
   console.log(`wrote public/samples/sample-${name}-cover-6x9.pdf`, c.length, "bytes, sized for", pc, "pages");
@@ -247,7 +261,7 @@ for (const [name, book, title, subtitle, seed, kind] of [
   const lpBytes = await finishSample(await renderBook(lp, { title: "Large Print Garden Word Search", subtitle: "20 puzzles with solutions — sample book", author: "Puzzle Press", trim: "8.5x11", licensed: true, largePrint: true, fonts }), { kind: "Large print word search", theme: "Garden & Birds", trim: "8.5x11", count: 20 });
   writeFileSync(new URL("../public/samples/sample-large-print-8.5x11.pdf", import.meta.url), lpBytes);
   console.log("wrote public/samples/sample-large-print-8.5x11.pdf", lpBytes.length, "bytes", lp.warnings);
-  const pc = planPages(20, solutionsThatFit(pageGeometry({ trim: "8.5x11" }), true)).total;
+  const pc = await pagesOf(lpBytes);
   const c = await finishSample(await renderCover({
     title: "Large Print Garden Word Search", subtitle: "20 puzzles with solutions — sample book", author: "Puzzle Press",
     trim: "8.5x11", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: lp.puzzles[0], seed: "public-large-print-1", largePrint: true, fonts,
@@ -263,7 +277,7 @@ const ccBytes = await finishSample(await renderBook(cc, { title: "Halloween Fill
 writeFileSync(new URL("../public/samples/sample-crisscross-6x9.pdf", import.meta.url), ccBytes);
 console.log("wrote public/samples/sample-crisscross-6x9.pdf", ccBytes.length, "bytes", cc.warnings);
 {
-  const pc = planPages(20, solutionsThatFit(pageGeometry({ trim: "6x9" }))).total;
+  const pc = await pagesOf(ccBytes);
   const c = await finishSample(await renderCover({ title: "Halloween Fill-In Puzzles", subtitle: "20 criss-cross puzzles, easy to expert — sample book", author: "Puzzle Press", trim: "6x9", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: cc.puzzles[0], seed: "public-crisscross-1", fonts }), { kind: "Criss-cross", theme: "Halloween", trim: "6x9", count: 20, cover: true });
   writeFileSync(new URL("../public/samples/sample-crisscross-cover-6x9.pdf", import.meta.url), c);
   console.log("wrote public/samples/sample-crisscross-cover-6x9.pdf", c.length, "bytes");
@@ -277,7 +291,7 @@ const xwBytes = await finishSample(await renderBook(xw, { title: "Garden Crosswo
 writeFileSync(new URL("../public/samples/sample-crossword-6x9.pdf", import.meta.url), xwBytes);
 console.log("wrote public/samples/sample-crossword-6x9.pdf", xwBytes.length, "bytes", xw.warnings);
 {
-  const pc = planPages(20, solutionsThatFit(pageGeometry({ trim: "6x9" }))).total;
+  const pc = await pagesOf(xwBytes);
   const c = await finishSample(await renderCover({ title: "Garden Crosswords", subtitle: "20 themed crosswords, easy to expert — sample book", author: "Puzzle Press", trim: "6x9", paper: "cream", pageCount: pc, puzzleCount: 20, samplePuzzle: xw.puzzles[0], seed: "public-crossword-1", fonts }), { kind: "Crossword", theme: "Garden", trim: "6x9", count: 20, cover: true });
   writeFileSync(new URL("../public/samples/sample-crossword-cover-6x9.pdf", import.meta.url), c);
   console.log("wrote public/samples/sample-crossword-cover-6x9.pdf", c.length, "bytes");
