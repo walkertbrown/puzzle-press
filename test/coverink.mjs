@@ -118,6 +118,24 @@ for (const pageCount of [32, 66, 78, 80, 100, 300]) {
   }
 }
 
+// 1b. The barcode area at every trim. The free cover's unlock note sits beside
+//     it on the back since 2026-09-27, and at 5x8 the back panel leaves it
+//     only 180pt beside the barcode area. The 6x9 loop above can't see that.
+for (const trim of ["5x8", "8.5x11"]) {
+  for (const licensed of [true, false]) {
+    const pageCount = 120;
+    const png = await render({ trim, title: "Cover Ink Check", pageCount, puzzleCount: 50, samplePuzzle: samples["word search"], licensed, seed: "cv" });
+    const g = coverGeometry({ trim, pageCount, paper: "cream" });
+    const px = (pts) => (pts / PT) * DPI;
+    const bx1 = px(g.backX + g.panelW - BARCODE_IN.margin * PT);
+    const bx0 = bx1 - px(BARCODE_IN.w * PT);
+    const by1 = png.height - px(g.panelY + BARCODE_IN.margin * PT);
+    const by0 = by1 - px(BARCODE_IN.h * PT);
+    const inBarcode = darkestIn(png, { x0: bx0 + 1, y0: by0 + 1, x1: bx1 - 1, y1: by1 - 1 });
+    check(!inBarcode, `${trim} ${licensed ? "paid" : "free"}: something is printed in the barcode area at ${inBarcode?.x},${inBarcode?.y} (grey ${inBarcode?.v})`);
+  }
+}
+
 // 3. Spine text clear of KDP's line, in pixels at 1200 DPI. KDP: "at least
 //    0.0625" (1.6 mm) of space between the text and the edge of the spine".
 //    At 100 DPI a pixel is 0.01", coarser than the whole question: laid out on

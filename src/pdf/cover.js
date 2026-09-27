@@ -76,11 +76,11 @@ export async function renderCover({
   page.drawRectangle({ x: 0, y: 0, width: g.width, height: g.height, color: pal.bgC });
 
   drawField(page, g, regular, seed, samplePuzzle && samplePuzzle.kind, pal);
-  const { card, noteY } = drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle, largePrint, pal, regular, bold });
+  const { card } = drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle, largePrint, pal, regular, bold });
   drawSpine(page, g, { title, author, regular, bold, pal });
   drawBack(page, g, { blurb, puzzleCount, puzzle: backPuzzle || samplePuzzle, regular, bold, pal });
   if (largePrint) drawLargePrintBadge(page, g, bold, card);
-  if (!licensed) drawCoverWatermark(page, g, bold, regular, noteY); // over the strip, clear of the author
+  if (!licensed) drawCoverWatermark(page, g, bold, regular);
 
   return doc.save();
 }
@@ -115,7 +115,7 @@ function drawLargePrintBadge(page, g, bold, card) {
 // An unlicensed cover is a real cover of the buyer's own book, marked so it
 // cannot be published. Seeing your own title on your own spine is worth more
 // than any sample of someone else's book.
-function drawCoverWatermark(page, g, bold, regular, noteY = g.panelY + 14) {
+function drawCoverWatermark(page, g, bold, regular) {
   const text = "PREVIEW";
   const angle = Math.PI / 6;
   // Size it so the rotated word fits inside the front panel. Sizing from the
@@ -145,23 +145,20 @@ function drawCoverWatermark(page, g, bold, regular, noteY = g.panelY + 14) {
     opacity: 0.4,
     rotate: { type: "degrees", angle: 30 },
   });
-  const note = "Made with Puzzle Press — unlock to remove this mark";
-  const ns = 11;
-  const nw = regular.widthOfTextAtSize(note, ns);
-  page.drawRectangle({
-    x: g.frontX + (g.panelW - nw) / 2 - 10,
-    y: noteY,
-    width: nw + 20,
-    height: ns + 12,
-    color: WHITE,
-    opacity: 0.9,
-  });
-  page.drawText(note, {
-    x: g.frontX + (g.panelW - nw) / 2,
-    y: noteY + 6,
-    size: ns,
-    font: regular,
-    color: rgb(0.7, 0.2, 0.2),
+  // The note goes on the back, in the corner beside the barcode area, so the
+  // front shows everything the paid cover has, the facts strip included.
+  const lines = [["Made with Puzzle Press", bold], ["Unlock to remove the PREVIEW mark", regular]];
+  // Sized to the room left of the barcode area, 12pt clear of it: 10pt at
+  // 6x9 and up, about 8.8pt at 5x8.
+  const room = g.panelW - (BARCODE_IN.w + 2 * BARCODE_IN.margin) * PT - 12 - 20;
+  const at10 = Math.max(...lines.map(([t, f]) => f.widthOfTextAtSize(t, 10)));
+  const ns = Math.min(10, (10 * room) / at10);
+  const nw = at10 * ns / 10;
+  const x = g.backX + BARCODE_IN.margin * PT;
+  const y = g.panelY + BARCODE_IN.margin * PT;
+  page.drawRectangle({ x, y, width: nw + 20, height: ns * 2.6 + 14, color: WHITE, opacity: 0.9 });
+  lines.forEach(([t, f], i) => {
+    page.drawText(t, { x: x + 10, y: y + 9 + (lines.length - 1 - i) * ns * 1.3, size: ns, font: f, color: rgb(0.7, 0.2, 0.2) });
   });
 }
 
@@ -292,7 +289,7 @@ function drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle
   authorLines.forEach((line, i) => {
     centered(page, line, { cx, y: g.panelY + 14 + (authorLines.length - 1 - i) * as * 1.2, size: as, font: bold, color: WHITE });
   });
-  return { card, noteY: stripY + stripH / 2 - 11.5 };
+  return { card };
 }
 
 // The front's puzzle, drawn to be read at thumbnail size: dark ink, and an
