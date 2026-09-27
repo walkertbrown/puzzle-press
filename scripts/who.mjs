@@ -310,7 +310,10 @@ for (const [ip, e] of ranTheApp) {
   const scanner = !mine && e.s404 >= 3;
   console.log(`  ${ip}${mine ? "   <-- THIS MACHINE, not a visitor" : scanner ? `   <-- SCANNER (${e.s404} 404s), excluded from the funnel` : ""}`);
   if (!mine) console.log(`    owner       ${org ?? "unknown (RDAP had no answer — do not assume person)"}`);
-  for (const ua of e.uas) console.log(`    agent       ${ua.slice(0, 100)}`);
+  // Whole, not cut at 100: Applebot is Safari 17 from Apple Inc. up to
+  // character 120, where it says "(Applebot/0.1". Cut short, three of them
+  // read as Mac visitors on 2026-09-27.
+  for (const ua of e.uas) console.log(`    agent       ${ua}`);
   const also = [d.madeCover && "made a cover", d.pickedType && "changed the puzzle type"].filter(Boolean);
   console.log(`    did         ${stage}${also.length ? ` + ${also.join(", ")}` : ""}   (${e.n} requests${e.s404 ? `, ${e.s404} were 404s` : ""})`);
   // The raw acts, unsummarised, so a wrong label above can be caught by eye.

@@ -411,6 +411,16 @@ const people = (re) =>
 // whether a page is a front door or a dead end.
 const whoDid = (re) =>
   [...pathsByIp].filter(([, paths]) => [...paths].some((p) => re.test(p))).map(([ip]) => ip);
+// main.js on its own is not a page load. The page and main.js are both
+// must-revalidate, so a browser asks for the page every visit, cache or not,
+// and only then for the script. 2026-09-27: the day's one "REAL PERSON" was
+// 94.154.43.135, whose entire day was one GET /js/main.js at 07:17 — something
+// that read the script URL somewhere and fetched it. Pages are extensionless;
+// /px/ beacons need no page beside them, because only a running page sends one.
+const PAGE = /^\/($|[a-z0-9-]+$|word-lists\/)/;
+const ranScript = (paths) => [...paths].includes("/js/main.js") && [...paths].some((p) => PAGE.test(p));
+const RAN = (paths) => [...paths].some((p) => /^\/px\//.test(p)) || ranScript(paths);
+const peopleWhere = (pred) => (pathsByIp.size ? [...pathsByIp.values()].filter(pred).length : null);
 
 try {
   const everyone = await pathCounts();
@@ -457,7 +467,7 @@ try {
   // Addresses, not requests — see the pathsByIp note above. `hits` is kept for
   // each stage so the request count can be printed beside the person count:
   // "1 person, 15 requests" is a true sentence and "15" was not.
-  const ranTheApp = people(/^\/js\/main\.js$/);
+  const ranTheApp = peopleWhere(ranScript);
   const ranReqs = hits(/^\/js\/main\.js$/);
   // Warming the PDF chunk happens on an idle callback after the first render,
   // so it is only reached by a browser that loaded the page and stayed put for
@@ -529,10 +539,10 @@ try {
   // out to be one Alibaba scraper farm, and I do not want to learn it twice.
   //
   // realSet is the same union the REAL PEOPLE line is drawn on: fired any /px/
-  // beacon, or fetched main.js. Intersecting with it answers the question the
+  // beacon, or fetched main.js after a page. Intersecting with it answers the question the
   // raw count only looks like it answers — how many of today's actual people
   // opened this page.
-  const realSet = new Set(whoDid(/^\/px\/|^\/js\/main\.js$/));
+  const realSet = new Set([...pathsByIp].filter(([, paths]) => RAN(paths)).map(([ip]) => ip));
   const ofReal = (re) => (pathsByIp.size ? whoDid(re).filter((ip) => realSet.has(ip)).length : null);
   const guideReal = ofReal(/^\/how-to-make-a-puzzle-book/);
   const compareReal = ofReal(/^\/compare/);
@@ -660,7 +670,7 @@ try {
   // a word-list reader fires /px/list without ever fetching main.js. Either one
   // alone undercounts, and the first draft of this line printed 6 above a "ran
   // the app 8" — a denominator smaller than one of its own stages.
-  const realPeople = people(/^\/px\/|^\/js\/main\.js$/);
+  const realPeople = peopleWhere(RAN);
   if (realPeople !== null) {
     console.log(`    REAL PEOPLE (ran any page)  ${realPeople}   <-- everything else on this report is a stage of these ${realPeople}, or a robot`);
   }
