@@ -68,7 +68,7 @@ const el = {
   title: $("title"), subtitle: $("subtitle"), author: $("author"), trim: $("trim"), count: $("count"), bleed: $("bleed"),
   themes: $("themes"), custom: $("custom"), customTitle: $("customTitle"),
   wpp: $("wpp"), difficulty: $("difficulty"), size: $("size"), seed: $("seed"), largePrint: $("largePrint"), kind: $("kind"), sudokuSize: $("sudokuSize"),
-  download: $("download"), downloadCover: $("downloadCover"), coverNote: $("coverNote"), moneyNote: $("moneyNote"), list: $("list"), ink: $("ink"), paper: $("paper"), reshuffle: $("reshuffle"), status: $("status"), tier: $("tier"), warnings: $("warnings"),
+  download: $("download"), downloadCover: $("downloadCover"), coverNote: $("coverNote"), moneyNote: $("moneyNote"), list: $("list"), ink: $("ink"), paper: $("paper"), coverColour: $("coverColour"), reshuffle: $("reshuffle"), status: $("status"), tier: $("tier"), warnings: $("warnings"),
   meta: $("meta"), lengthWarn: $("lengthWarn"), page: $("page"), prev: $("prev"), next: $("next"), navLabel: $("navLabel"),
   dialog: $("unlockDialog"), dialogTitle: $("dialogTitle"), dialogLede: $("dialogLede"), buyLine: $("buyLine"), paidLead: $("paidLead"), email: $("email"), unlockErr: $("unlockErr"), verify: $("verify"), closeDialog: $("closeDialog"),
 };
@@ -200,6 +200,7 @@ function settings() {
     list: Math.max(0, parseFloat(el.list.value) || 0),
     ink: el.ink.value,
     paper: el.paper.value,
+    coverColour: el.coverColour.value, // cover only; not in settingsKey
     bleed: el.bleed.checked,
     count: n(el.count.value, 1, 200, 50),
     wordsPerPuzzle: n(el.wpp.value, 5, 30, 15),
@@ -846,6 +847,7 @@ async function downloadCover() {
       seed: s.seed,
       licensed: Boolean(lic),
       largePrint: s.largePrint,
+      palette: s.coverColour,
       fonts,
     });
     const blob = new Blob([bytes], { type: "application/pdf" });

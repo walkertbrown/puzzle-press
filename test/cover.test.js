@@ -161,3 +161,13 @@ test("spine text appears once it fits KDP's spine safe area, and not before", as
   assert.deepEqual(await spineWords(110, "white"), []);
   assert.ok((await spineWords(111, "white")).includes("Search"));
 });
+
+test("the tool's cover colour choices are exactly the palettes the cover draws", async () => {
+  const { PALETTES, paletteFor } = await import("../src/pdf/cover.js");
+  const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
+  const select = html.match(/<select id="coverColour">([\s\S]*?)<\/select>/)[1];
+  const offered = [...select.matchAll(/value="([^"]*)"/g)].map((m) => m[1]).filter(Boolean);
+  assert.deepEqual(offered.sort(), PALETTES.map((p) => p.name).sort());
+  for (const name of offered) assert.equal(paletteFor("Any Title", name).name, name);
+  assert.equal(paletteFor("Any Title", "").name, paletteFor("Any Title").name); // automatic is stable
+});
