@@ -58,6 +58,21 @@ async function downloadPdf(name) {
   return { path, status, filename: dl.suggestedFilename() };
 }
 
+// 0. A number outside a field's limits is held to them and said. "0 puzzles"
+// made a 50-puzzle book, and 500 quietly became 200, until 2026-09-28.
+await page.fill("#count", "0");
+await page.waitForTimeout(400);
+const zeroMeta = await page.textContent("#meta");
+if (!/^1 puzzle ·/.test(zeroMeta)) throw new Error("asked for 0 puzzles, meta says: " + zeroMeta);
+await page.fill("#count", "500");
+await page.fill("#wpp", "2");
+await page.waitForTimeout(400);
+const clampWarn = await page.textContent("#warnings");
+for (const note of ["Number of puzzles: 500 is outside 1 to 200, so the book uses 200.", "Words per puzzle: 2 is outside 5 to 30, so the book uses 5."]) {
+  if (!clampWarn.includes(note)) throw new Error("out-of-range number not named: " + clampWarn);
+}
+await page.fill("#wpp", "15");
+
 // 1. Free tier: ask for 50, get 50, watermarked rather than shortened.
 await page.fill("#count", "50");
 await page.fill("#author", "Browser Test");

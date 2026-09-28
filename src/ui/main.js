@@ -121,7 +121,28 @@ const DEFAULT_TITLES = {
   crossword: ["Animal Crosswords", ["themed crossword", "themed crosswords"]],
 };
 const defaultSubtitle = ([one, many], count) => `${count} ${count === 1 ? one : many} with solutions`;
-const clampInt = (v, lo, hi, d) => Math.min(hi, Math.max(lo, parseInt(v, 10) || d));
+// Blank or not a number means the default; anything else is held to the
+// field's limits. "0 puzzles" used to mean 50, because 0 is falsy.
+const clampInt = (v, lo, hi, d) => {
+  const x = String(v).trim() === "" ? NaN : Math.trunc(Number(v));
+  return Number.isNaN(x) ? d : Math.min(hi, Math.max(lo, x));
+};
+// A typed number the book will not use is said out loud, above the preview,
+// instead of a 500-puzzle request quietly becoming 200 (found 2026-09-28).
+function clampNotes(kind) {
+  const fields = [["Number of puzzles", el.count, 1, 200]];
+  if (kind === "wordsearch") fields.push(["Words per puzzle", el.wpp, 5, 30], ["Grid size", el.size, 8, 30]);
+  const notes = [];
+  for (const [label, input, lo, hi] of fields) {
+    const raw = input.value.trim();
+    if (!raw || Number.isNaN(Number(raw))) continue;
+    const used = clampInt(raw, lo, hi, lo);
+    const x = Number(raw);
+    if (x < lo || x > hi) notes.push(`${label}: ${raw} is outside ${lo} to ${hi}, so the book uses ${used}.`);
+    else if (x !== used) notes.push(`${label}: ${raw} is not a whole number, so the book uses ${used}.`);
+  }
+  return notes;
+}
 let titleEdited = false;
 let subtitleEdited = false;
 el.title.addEventListener("input", () => { titleEdited = true; });
@@ -237,7 +258,7 @@ function regenerate() {
     shown = 0;
     showPuzzle();
     showMeta(s);
-    el.warnings.textContent = "";
+    el.warnings.textContent = clampNotes(s.kind).join("\n");
     return;
   }
   if (s.kind === "sudoku") {
@@ -246,14 +267,14 @@ function regenerate() {
     shown = 0;
     showPuzzle();
     showMeta(s);
-    el.warnings.textContent = "";
+    el.warnings.textContent = clampNotes(s.kind).join("\n");
     return;
   }
   if (s.pools.length === 0) {
     book = null;
     el.page.innerHTML = "<p style='color:#5c6470'>Pick at least one theme or paste at least two words.</p>";
     el.meta.textContent = "";
-    el.warnings.textContent = "";
+    el.warnings.textContent = clampNotes(s.kind).join("\n");
     el.navLabel.textContent = "";
     return;
   }
@@ -272,7 +293,7 @@ function regenerate() {
   shown = 0;
   showPuzzle();
   showMeta(s);
-  el.warnings.textContent = book.warnings.join("\n");
+  el.warnings.textContent = [...clampNotes(s.kind), ...book.warnings].join("\n");
 }
 
 // Answers a page for a book of `count` puzzles made with these settings.
