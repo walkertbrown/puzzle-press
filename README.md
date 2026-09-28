@@ -154,7 +154,7 @@ because a puzzle with two solutions is a one-star review.
   pockets.
 - **Criss-cross fill-ins** — verified to have exactly one valid fill.
 - **Crosswords** — open interlocking grids, 8–22 answers on a subject, with
-  2,286 clues written for the tool. No clue contains its answer; the test suite
+  2,298 clues written for the tool. No clue contains its answer; the test suite
   checks that on every build. Paste `word — clue` lines for your own.
 
 Seeded and deterministic throughout — the same seed rebuilds the same book

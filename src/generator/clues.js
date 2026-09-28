@@ -2288,6 +2288,18 @@ export const CLUES = {
   garnet: "Vermont's state gem, in its grossular form",
   morganhorse: "Vermont's state mammal, an American breed named for an early owner",
   brooktrout: "One of Vermont's two state fish, found in cold mountain streams",
+  rhodonite: "Pink gemstone, the Massachusetts state gem",
+  rightwhale: "Endangered baleen giant of the Atlantic, the Massachusetts state marine mammal",
+  puddingstone: "Roxbury ___, the Massachusetts state rock",
+  plymouthrock: "Traditional landing place of the Mayflower Pilgrims in 1620",
+  tabbycat: "Striped house pet, the official Massachusetts feline",
+  squaredance: "Hoedown for four couples with a caller, a Massachusetts state symbol",
+  wildturkey: "The Massachusetts state game bird",
+  cornmuffin: "Official Massachusetts quick bread, baked from cornmeal",
+  seuss: "Dr. ___, Springfield-born children's author honoured by Massachusetts",
+  ducklings: "Make Way for ___, the Massachusetts state children's book",
+  navybean: "Small white legume, baked, the official Massachusetts legume",
+  baystater: "Official name for a resident of Massachusetts",
 
   // ---- wyoming
   cheyenne: "Wyoming's capital and largest city, named for a Plains Native American nation",

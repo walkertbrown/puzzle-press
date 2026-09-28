@@ -484,6 +484,12 @@ export const THEMES = {
     title: "Massachusetts",
     words: [
       "boston", "chickadee", "mayflower", "elm", "cod", "ladybug", "lighthouse", "cranberry", "lobster", "minuteman",
+      // Twelve more official symbols, each designated in Mass. General Laws
+      // ch. 2 (Wikipedia, "List of Massachusetts state symbols", 2026-09-28).
+      // Ten words were one puzzle's worth: a 50-puzzle word search book from
+      // this list repeated the same ten words fifty times.
+      "rhodonite", "rightwhale", "puddingstone", "plymouthrock", "tabbycat", "squaredance",
+      "wildturkey", "cornmuffin", "seuss", "ducklings", "navybean", "baystater",
     ],
   },
   tennessee: {
