@@ -788,12 +788,14 @@ async function download() {
         : "Laying out pages…";
     await tick();
     const [fonts, { renderBook }] = await Promise.all([fontsSoon, renderSoon]);
+    let leftOut = [];
     const bytes = await renderBook(full, {
       ...s,
       licensed: Boolean(lic),
       fonts,
       maxGrid: gridBound(s),
       recipe: recipeLine(s, full.puzzles.length),
+      onMissing: (chars) => (leftOut = chars),
       // Drawing a long book is seconds of work; hand the browser a moment
       // between batches of pages so the tab stays alive and says where it is.
       onProgress: async (done, total) => {
@@ -810,7 +812,8 @@ async function download() {
     lastInterior = { key: settingsKey(s), pages: planPages(full.puzzles.length, answersPerPage(s, full.puzzles.length)).total, puzzles: full.puzzles.length };
     el.status.textContent =
       `Done — ${full.puzzles.length} puzzles, ${lastInterior.pages} pages, ${(blob.size / 1024).toFixed(0)} KB.` +
-      (full.puzzles.length < count ? ` (${count - full.puzzles.length} could not be built — the cover will be sized for this book.)` : "");
+      (full.puzzles.length < count ? ` (${count - full.puzzles.length} could not be built — the cover will be sized for this book.)` : "") +
+      leftOutNote(leftOut);
     // The bytes exist and the save was handed to the browser. Precisely: the
     // book rendered, the blob was built, and a.click() was dispatched without
     // throwing. It does NOT prove a file reached the disk — nothing in a page
@@ -868,6 +871,7 @@ async function downloadCover() {
             ? generateCrosswordBook({ ...s, builtinClues: await loadClues(), count: n2, gradeCount: s.count })
             : generateBook({ ...s, count: n2, gradeCount: s.count });
     const [fonts, { renderCover }] = await Promise.all([fontsSoon, coverSoon]);
+    let leftOut = [];
     const bytes = await renderCover({
       title: s.title,
       subtitle: s.subtitle,
@@ -883,6 +887,7 @@ async function downloadCover() {
       largePrint: s.largePrint,
       palette: s.coverColour,
       fonts,
+      onMissing: (chars) => (leftOut = chars),
     });
     const blob = new Blob([bytes], { type: "application/pdf" });
     const a = document.createElement("a");
@@ -899,6 +904,7 @@ async function downloadCover() {
     el.status.textContent = lic
       ? `Cover ready — sized for ${pages} pages, ${(PAPER[s.paper] ?? PAPER.cream).label.toLowerCase()}.`
       : `Preview cover ready — your title, your spine (${pages} pages). Unlock to get it without the PREVIEW mark.`;
+    el.status.textContent += leftOutNote(leftOut);
     if (!lic) openUnlock({ after: "cover", pages, coverUrl: freeCoverUrl });
   } catch (err) {
     console.error(err);
@@ -909,6 +915,12 @@ async function downloadCover() {
 }
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
+// The PDF fonts have no emoji and no Chinese, Japanese or Korean; the
+// renderers leave such characters out rather than print empty boxes
+// (src/pdf/tofu.js). Say so, or the title on the file differs from the one
+// typed and nobody knows why.
+const leftOutNote = (chars) =>
+  chars.length ? ` Left out of the PDF: ${chars.join(" ")}. The book's fonts can't print ${chars.length === 1 ? "it" : "them"}, and KDP would have got an empty box.` : "";
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "book";
 const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 

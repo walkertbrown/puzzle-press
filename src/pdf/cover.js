@@ -13,6 +13,7 @@
 // box in the lower right of the back cover is the convention KDP's own
 // downloadable templates use, and is what we keep clear.
 
+import { guardFont } from "./tofu.js";
 import { PDFDocument, rgb, StandardFonts, pushGraphicsState, popGraphicsState, concatTransformationMatrix } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { PT } from "./kdp.js";
@@ -56,6 +57,7 @@ export async function renderCover({
   seed = "cover",
   largePrint = false, // the "Large print" preset was on when this book was built
   palette = "", // a PALETTES name; empty picks one from the title
+  onMissing = null, // called with the characters no embedded font could draw
 } = {}) {
   const g = coverGeometry({ trim, pageCount, paper });
   const doc = await PDFDocument.create();
@@ -77,13 +79,17 @@ export async function renderCover({
     bold = await doc.embedFont(StandardFonts.HelveticaBold);
   }
 
+  const missing = new Set();
+  for (const f of [regular, bold, display]) if (f) guardFont(f, missing);
   const page = doc.addPage([g.width, g.height]);
   // Background covers the whole sheet including bleed.
   const pal = paletteFor(title, palette);
   page.drawRectangle({ x: 0, y: 0, width: g.width, height: g.height, color: pal.bgC });
 
   drawField(page, g, regular, seed, samplePuzzle && samplePuzzle.kind, pal);
-  const face = (text) => (display && canSet(display, text) ? display : bold);
+  // Judged on what bold can print: an emoji no face has must not push a
+  // title out of Lilita.
+  const face = (text) => (display && canSet(display, bold.printable(text)) ? display : bold);
   const { card } = drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle, largePrint, pal, regular, bold, face });
   drawSpine(page, g, { title, author, regular, bold, pal });
   drawBack(page, g, { blurb, puzzleCount, puzzle: backPuzzle || samplePuzzle, regular, bold, pal, face });
@@ -91,6 +97,7 @@ export async function renderCover({
   if (puzzleCount) drawCountBurst(page, g, face, card, puzzleCount, pal);
   if (!licensed) drawCoverWatermark(page, g, bold, regular);
 
+  if (missing.size) onMissing?.([...missing]);
   return doc.save();
 }
 

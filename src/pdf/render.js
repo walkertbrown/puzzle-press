@@ -15,6 +15,7 @@
 // below 24 pages and names how many puzzles would fix it. Support answers the
 // "KDP says fewer than 24 pages" email on that basis, so the two have to agree.
 
+import { guardFont } from "./tofu.js";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { pageGeometry, marginsForPage, MIN_PAGES, SAFETY_IN, PT } from "./kdp.js";
@@ -89,7 +90,8 @@ export async function renderBook(book, opts = {}) {
     regular = await doc.embedFont(StandardFonts.Helvetica);
     bold = await doc.embedFont(StandardFonts.HelveticaBold);
   }
-  const F = { regular, bold };
+  const missing = new Set();
+  const F = { regular: guardFont(regular, missing), bold: guardFont(bold, missing) };
 
   const ctx = { doc, geom, F, licensed, largePrint: Boolean(opts.largePrint), pageNo: 0 };
 
@@ -124,6 +126,7 @@ export async function renderBook(book, opts = {}) {
   // worked out how many (four, plus one more if the count would be odd).
   while (ctx.pageNo < plan.total) drawNotesPage(ctx);
 
+  if (missing.size) opts.onMissing?.([...missing]);
   return doc.save();
 }
 

@@ -103,3 +103,29 @@ test("a long title on the title and copyright pages doesn't end on one stranded 
   assert.ok(titleLines.length >= 4, titleLines.join(" | "));
   for (const l of titleLines) assert.ok(l.split(" ").length > 1, `stranded word: "${l}" in ${titleLines.join(" | ")}`);
 });
+
+test("characters no embedded font has are left out and reported, not printed as boxes", async (t) => {
+  try { execFileSync("pdftoppm", ["-v"], { stdio: "ignore" }); } catch { return t.skip("pdftoppm not installed"); }
+  const { renderCover } = await import("../src/pdf/cover.js");
+  const display = readFileSync(new URL("../public/fonts/LilitaOne-Regular.ttf", import.meta.url));
+  const book = generateBook({ pools: [THEMES.garden], count: 2, wordsPerPuzzle: 10, difficulty: "easy", seed: "tofu" });
+  const renders = {
+    interior: (title, author, onMissing) => renderBook(book, { title, author, trim: "6x9", licensed: true, fonts, onMissing }),
+    cover: (title, author, onMissing) => renderCover({ title, author, trim: "6x9", pageCount: 24, puzzleCount: 2, samplePuzzle: book.puzzles[0], palette: "ocean", fonts: { ...fonts, display }, onMissing }),
+  };
+  // pdftotext extracts nothing for a missing glyph, so compare pixels: with
+  // the emoji and CJK left out, the page must be identical to the same book
+  // typed without them. A box drawn anywhere makes them differ.
+  const pixels = (name, bytes) => {
+    const file = new URL(`../samples/test/tofu-${name}.pdf`, import.meta.url).pathname;
+    writeFileSync(file, bytes);
+    return execFileSync("pdftoppm", ["-r", "40", "-f", "1", "-l", "1", "-gray", file]);
+  };
+  for (const [name, render] of Object.entries(renders)) {
+    let missing = [];
+    const odd = pixels(`${name}-odd`, await render("Family ❤️ Puzzles 数独 👨‍👩‍👧", "Ana 🌸", (m) => (missing = m)));
+    const plain = pixels(`${name}-plain`, await render("Family Puzzles", "Ana", () => assert.fail(`${name}: nothing is missing from a plain title`)));
+    assert.deepEqual(missing.sort(), ["❤", "数", "独", "👧", "👨", "👩", "🌸"].sort(), name);
+    assert.ok(odd.equals(plain), `${name}: the page with left-out characters differs from the plain one`);
+  }
+});
