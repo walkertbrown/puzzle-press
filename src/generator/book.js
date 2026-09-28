@@ -2,7 +2,7 @@
 // fresh random subset of its pool, so no two puzzles share the same word set.
 
 import { makeRng } from "./rng.js";
-import { generatePuzzle, normalizeWords, removeNested, suggestSize, DIFFICULTY } from "./wordsearch.js";
+import { generatePuzzle, normalizeWords, removeNested, suggestSize, unusableWarning, DIFFICULTY } from "./wordsearch.js";
 
 // A graded book works up from easy to hard, the way published puzzle books do.
 export function gradeFor(index, count, difficulty) {
@@ -28,6 +28,8 @@ export function generateBook({
 }) {
   const rng = makeRng(`${seed}|book`);
   const warnings = [];
+  const unusable = unusableWarning(pools);
+  if (unusable) warnings.push(unusable);
 
   // DEER and REINDEER can both live in the pool; they just cannot share a
   // puzzle. Nesting is resolved per draw, below.

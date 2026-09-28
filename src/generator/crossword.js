@@ -9,7 +9,7 @@
 // both). Clues are listed by number under Across and Down.
 
 import { makeRng } from "./rng.js";
-import { normalizeWord, normalizeWords } from "./wordsearch.js";
+import { normalizeWord, normalizeWords, unusableWarning } from "./wordsearch.js";
 import { buildGrid, CRISSCROSS_DIFFICULTY, slotsOf, tooLongWarning } from "./crisscross.js";
 
 export const CROSSWORD_DIFFICULTY = CRISSCROSS_DIFFICULTY;
@@ -95,6 +95,8 @@ export function generateCrosswordBook({ pools, builtinClues = {}, count = 20, di
   const puzzles = [];
   const failures = [];
   const rng = makeRng(`${seed}|crossword-book`);
+  const unusable = unusableWarning(pools);
+  if (unusable) warnings.push(unusable);
   const tooLong = tooLongWarning(pools, difficulty, "crossword");
   if (tooLong) warnings.push(tooLong);
   // Say once, up front, which pasted words have no clue.

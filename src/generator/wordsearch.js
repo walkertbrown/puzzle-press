@@ -43,10 +43,25 @@ export function normalizeWord(w) {
     .replace(/[ÆŒØŁĐ]/g, (c) => FOLD[c]).replace(/[^A-Z]/g, "");
 }
 
+// A grid holds A to Z and nothing else. A word with a digit in it can't go in
+// as typed: dropping the digit printed "4th of July" as THOFJULY, "R2D2" as
+// RD and "7-Up" as UP (found 2026-09-28). And a word in another alphabet
+// ("Борщ") normalized to nothing and vanished. Both are left out, and the
+// generators name them (unusableWarning) instead of losing them silently.
+const usable = (raw) => !/\d/.test(raw) && normalizeWord(raw).length >= 2;
+
+export function unusableWarning(pools) {
+  const bad = [...new Set(pools.flatMap((p) => (p.words ?? []).map((w) => String(w).trim()).filter((w) => w && !usable(w))))];
+  if (!bad.length) return null;
+  const shown = bad.slice(0, 6).map((w) => `"${w}"`).join(", ");
+  return `Left out: ${shown}${bad.length > 6 ? ` and ${bad.length - 6} more` : ""}. A puzzle word needs at least two letters, and a grid holds only A to Z, so numbers and other alphabets can't go in as typed. Spell numbers out ("Fourth of July").`;
+}
+
 export function normalizeWords(words) {
   const seen = new Set();
   const out = [];
   for (const raw of words) {
+    if (/\d/.test(raw)) continue;
     const w = normalizeWord(raw);
     if (w.length < 2 || seen.has(w)) continue;
     seen.add(w);

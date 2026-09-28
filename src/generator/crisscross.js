@@ -10,7 +10,7 @@
 // { word, row, col, dr, dc } with dr/dc ∈ {0,1}.
 
 import { makeRng } from "./rng.js";
-import { normalizeWords } from "./wordsearch.js";
+import { normalizeWords, unusableWarning } from "./wordsearch.js";
 
 export const CRISSCROSS_DIFFICULTY = {
   easy: { label: "Easy", words: 8, size: 11 },
@@ -253,6 +253,8 @@ export function tooLongWarning(pools, difficulty, what) {
 // for the word count asked for.
 export function generateCrissCrossBook({ pools, count = 20, difficulty = "medium", seed = "book", gradeCount = null } = {}) {
   const warnings = [];
+  const unusable = unusableWarning(pools);
+  if (unusable) warnings.push(unusable);
   const tooLong = tooLongWarning(pools, difficulty, "criss-cross");
   if (tooLong) warnings.push(tooLong);
   const puzzles = [];

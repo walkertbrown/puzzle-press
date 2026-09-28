@@ -135,3 +135,13 @@ test("accented letters fold to their base letter instead of vanishing", async ()
   const cases = { "Café": "CAFE", "Jalapeño": "JALAPENO", "Crème brûlée": "CREMEBRULEE", "Straße": "STRASSE", "Smørrebrød": "SMORREBROD", "Æbleskiver": "AEBLESKIVER", "Œuvre": "OEUVRE", "Łódź": "LODZ", "O'Brien": "OBRIEN", "Борщ": "" };
   for (const [raw, want] of Object.entries(cases)) assert.equal(normalizeWord(raw), want, raw);
 });
+
+test("a word with a digit, or no A-Z letters, is left out and named, not mangled", () => {
+  // Until 2026-09-28 "4th of July" printed as THOFJULY, "R2D2" as RD, "7-Up" as UP.
+  const words = ["4th of July", "7-Up", "R2D2", "Борщ", "a", "fireworks", "parade", "picnic", "flag", "barbecue", "sparkler", "café"];
+  const book = generateBook({ pools: [{ title: "Mine", words }], count: 1, wordsPerPuzzle: 7, difficulty: "easy", seed: "digits" });
+  assert.deepEqual([...book.puzzles[0].words].sort(), ["BARBECUE", "CAFE", "FIREWORKS", "FLAG", "PARADE", "PICNIC", "SPARKLER"]);
+  const note = book.warnings.find((w) => w.startsWith("Left out:"));
+  for (const w of ["4th of July", "7-Up", "R2D2", "Борщ"]) assert.ok(note?.includes(`"${w}"`), `${w} not named: ${note}`);
+  assert.equal(generateBook({ pools: Object.values(THEMES), count: 3, seed: "clean" }).warnings.find((w) => w.startsWith("Left out:")), undefined);
+});
