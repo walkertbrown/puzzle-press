@@ -122,8 +122,9 @@ await thumb.screenshot({ path: join(outDir, "thumbnail.png") });
 // --- social card: headline + three of the covers ---
 // Since 2026-09-27 the covers are the most eye-catching thing the tool makes,
 // and a link preview is a thumbnail, so the card shows those, not a page.
-// All three are 6x9 samples, cropped by frontDataUri.
-const fronts = await Promise.all(["sample-maze-cover-6x9.pdf", "sample-cover-6x9.pdf", "sample-sudoku-cover-6x9.pdf"].map((f) => frontDataUri(f)));
+// All three are 6x9 samples, cropped by frontDataUri. The last is drawn on
+// top: word search, the type most books in this category are.
+const fronts = await Promise.all(["sample-maze-cover-6x9.pdf", "sample-sudoku-cover-6x9.pdf", "sample-cover-6x9.pdf"].map((f) => frontDataUri(f)));
 const card = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 await card.setContent(shell(
   `<div class="wrap">

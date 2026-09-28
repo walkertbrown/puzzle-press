@@ -11,6 +11,14 @@
 //   page and 660 ms of the 987 ms to first puzzle. It is now a 1200px WebP at
 //   81 KB. Nothing should quietly put that back.
 //
+//   The warm-up is not the landing. After the page loads, main.js fetches the
+//   1.3 MB pdf-lib chunk through pdf/heavy.js while the visitor reads, so the
+//   first Download doesn't stall. This test used to count that as page weight
+//   and sat red on it from 2026-09-13 to 09-28, which meant it could not see a
+//   real regression. Now: the landing is everything except what heavy.js
+//   pulls in (read from the built file, not typed out), and the warm-up has to
+//   start after the load event, which is the promise main.js makes.
+//
 //   The fold. On an iPhone 13 the usable viewport is 390x664 once the browser
 //   chrome is gone. What has to be inside it: what this makes, proof it works,
 //   what to do next, and what it costs. The tick list used to sit between the
@@ -55,20 +63,38 @@ const res = await p.evaluate(() =>
     transfer: r.transferSize,
     decoded: r.decodedBodySize,
     dur: Math.round(r.duration),
+    start: r.startTime,
   })),
 );
-const total = res.reduce((a, r) => a + r.transfer, 0);
+const loadEnd = await p.evaluate(() => performance.getEntriesByType("navigation")[0].loadEventEnd);
+// The warm-up: heavy-*.js and every chunk it imports that the landing's own
+// main.js does not.
+const chunksOf = async (path) => {
+  const text = await (await fetch(base + path)).text();
+  return new Set([...text.matchAll(/["']\.\/((?:chunk|heavy)-[A-Za-z0-9]+\.js)["']/g)].map((m) => `/js/${m[1]}`));
+};
+const heavy = res.find((r) => /^\/js\/heavy-[A-Za-z0-9]+\.js$/.test(r.url));
+check(heavy, "the idle warm-up (pdf/heavy.js) never ran, so this cannot tell landing from warm-up");
+const mainChunks = await chunksOf("/js/main.js");
+const warmUrls = new Set(heavy ? [heavy.url, ...[...(await chunksOf(heavy.url))].filter((u) => !mainChunks.has(u))] : []);
+const warm = res.filter((r) => warmUrls.has(r.url));
+const landing = res.filter((r) => !warmUrls.has(r.url));
+const total = landing.reduce((a, r) => a + r.transfer, 0);
 console.log(`DOM ready:      ${domReady} ms`);
 console.log(`First puzzle:   ${interactive} ms   <-- when the page becomes useful`);
 console.log(`Network idle:   ${settled} ms`);
-console.log(`Transferred:    ${(total / 1024).toFixed(0)} KB`);
+console.log(`Landing:        ${(total / 1024).toFixed(0)} KB`);
+console.log(`Warm-up:        ${(warm.reduce((a, r) => a + r.transfer, 0) / 1024).toFixed(0)} KB after load (${warm.map((r) => r.url).join(", ")})`);
 for (const r of res.sort((a, b2) => b2.transfer - a.transfer).slice(0, 8)) {
   console.log(`   ${(r.transfer / 1024).toFixed(0).padStart(5)} KB over the wire (${(r.decoded / 1024).toFixed(0)} KB unpacked, ${r.dur} ms)  ${r.url}`);
 }
 
-check(total <= BUDGET.total, `page weight ${(total / 1024).toFixed(0)} KB is over the ${BUDGET.total / 1024} KB budget`);
+check(total <= BUDGET.total, `landing weight ${(total / 1024).toFixed(0)} KB is over the ${BUDGET.total / 1024} KB budget`);
 check(interactive <= BUDGET.firstPuzzle, `first puzzle took ${interactive} ms, budget ${BUDGET.firstPuzzle} ms`);
-for (const r of res) {
+for (const r of warm) {
+  check(r.start >= loadEnd, `${r.url} started at ${Math.round(r.start)} ms, before the load event at ${Math.round(loadEnd)} ms: the warm-up is competing with the landing`);
+}
+for (const r of landing) {
   check(r.transfer <= BUDGET.asset, `${r.url} is ${(r.transfer / 1024).toFixed(0)} KB over the wire, budget ${BUDGET.asset / 1024} KB`);
 }
 // The hero must be the WebP: a browser that silently fell back to the JPEG
