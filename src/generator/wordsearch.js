@@ -33,8 +33,14 @@ export const DIFFICULTY = {
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+// Letters with accents fold to their base letter rather than vanishing: a
+// buyer's "Café" printed as CAF, "Jalapeño" as JALAPEO. NFD splits é into
+// e + a combining accent, which is then dropped; the few letters that don't
+// decompose (æ, œ, ø, ł, đ) are mapped by hand. ß uppercases to SS on its own.
+const FOLD = { Æ: "AE", Œ: "OE", Ø: "O", Ł: "L", Đ: "D" };
 export function normalizeWord(w) {
-  return String(w).toUpperCase().replace(/[^A-Z]/g, "");
+  return String(w).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase()
+    .replace(/[ÆŒØŁĐ]/g, (c) => FOLD[c]).replace(/[^A-Z]/g, "");
 }
 
 export function normalizeWords(words) {

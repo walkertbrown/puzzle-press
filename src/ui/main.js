@@ -1,5 +1,6 @@
 import { THEMES } from "../generator/wordlists.js";
 import { generateBook } from "../generator/book.js";
+import { normalizeWord } from "../generator/wordsearch.js";
 import { generateSudokuBook, generateSudokuBookAsync, SUDOKU_DIFFICULTY, SUDOKU_SIZES, givensFor } from "../generator/sudoku.js";
 import { generateMazeBook, wallSegments, MAZE_DIFFICULTY } from "../generator/maze.js";
 import { generateCrissCrossBook, CRISSCROSS_DIFFICULTY } from "../generator/crisscross.js";
@@ -189,7 +190,7 @@ function settings() {
     return p.clue ? [p] : l.split(/[,;]+/).map((w) => ({ word: w.trim() })).filter((w) => w.word);
   });
   const customWords = parsed.map((p) => p.word);
-  const customClues = Object.fromEntries(parsed.filter((p) => p.clue).map((p) => [p.word.toLowerCase().replace(/[^a-z]/g, ""), p.clue]));
+  const customClues = Object.fromEntries(parsed.filter((p) => p.clue).map((p) => [normalizeWord(p.word).toLowerCase(), p.clue]));
   if (customWords.length >= 2) pools.push({ title: el.customTitle.value.trim() || "My Words", words: customWords, clues: customClues });
   const n = clampInt;
   return {

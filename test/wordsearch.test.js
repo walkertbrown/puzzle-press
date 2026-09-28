@@ -128,3 +128,10 @@ test("a book with room for distinct lists gets no repeat warning and no repeated
   const keys = book.puzzles.map((p) => [...p.words].sort().join(","));
   assert.equal(new Set(keys).size, keys.length, "a word list repeats");
 });
+
+test("accented letters fold to their base letter instead of vanishing", async () => {
+  const { normalizeWord } = await import("../src/generator/wordsearch.js");
+  // Until 2026-09-28 a buyer's "Café" printed as CAF and "Jalapeño" as JALAPEO.
+  const cases = { "Café": "CAFE", "Jalapeño": "JALAPENO", "Crème brûlée": "CREMEBRULEE", "Straße": "STRASSE", "Smørrebrød": "SMORREBROD", "Æbleskiver": "AEBLESKIVER", "Œuvre": "OEUVRE", "Łódź": "LODZ", "O'Brien": "OBRIEN", "Борщ": "" };
+  for (const [raw, want] of Object.entries(cases)) assert.equal(normalizeWord(raw), want, raw);
+});

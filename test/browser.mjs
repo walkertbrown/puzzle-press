@@ -95,7 +95,7 @@ if (!tier.includes("Unlocked")) throw new Error("licence not recognised: " + tie
 await page.selectOption("#trim", "8.5x11");
 await page.selectOption("#difficulty", "hard");
 await page.fill("#count", "60");
-await page.fill("#custom", "apple, banana, cherry, dragonfruit, elderberry, fig, grape, honeydew, kiwi, lemon, mango, nectarine, orange, papaya, quince, raspberry, strawberry, tangerine, watermelon");
+await page.fill("#custom", "apple, banana, cherry, dragonfruit, elderberry, fig, grape, honeydew, kiwi, lemon, mango, nectarine, orange, papaya, quince, raspberry, strawberry, tangerine, watermelon, café, jalapeño");
 await page.fill("#customTitle", "Fruit Bowl");
 await page.waitForTimeout(400);
 const warnings = await page.textContent("#warnings");
@@ -103,6 +103,9 @@ const licensed = await downloadPdf("licensed.pdf");
 const licPdf = await PDFDocument.load(await (await import("node:fs")).promises.readFile(licensed.path));
 console.log("licensed:", licensed.filename, licensed.status, "pages", licPdf.getPageCount(), "warnings:", JSON.stringify(warnings));
 if (licPdf.getPage(0).getWidth() !== 612) throw new Error("expected 8.5x11 page");
+// Accents fold to the base letter: "café" printed as CAF until 2026-09-28.
+const licText = (await import("node:child_process")).execFileSync("pdftotext", [licensed.path, "-"]).toString();
+if (!licText.includes("JALAPENO") || !licText.includes("CAFE") || /JALAPEO|\bCAF\b/.test(licText)) throw new Error("accented custom words were not folded into the word lists");
 
 // 3. Phone width renders without horizontal overflow.
 await page.setViewportSize({ width: 400, height: 800 });
