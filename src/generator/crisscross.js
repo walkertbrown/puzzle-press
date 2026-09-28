@@ -244,8 +244,17 @@ export function tooLongWarning(pools, difficulty, what) {
   const long = [...new Set(pools.flatMap((p) => normalizeWords(p.words)))].filter((w) => w.length > max);
   if (!long.length) return null;
   const shown = long.slice(0, 4).map((w) => w.toLowerCase()).join(", ");
-  return `${long.length === 1 ? "One word is" : `${long.length} words are`} longer than a ${what} grid can hold ` +
-    `(${max} letters) and will be left out — ${shown}${long.length > 4 ? "…" : ""}.`;
+  // The limit belongs to the difficulty, not the puzzle type. Idaho's
+  // MOUNTAINBLUEBIRD is 16 letters: too long for Medium, where every theme
+  // link opens, and fine on Hard. Saying "a crossword grid can hold 15"
+  // told the buyer to give up on a word one setting would keep (2026-09-28).
+  const level = CRISSCROSS_DIFFICULTY[difficulty];
+  const grid = level ? `${/^[AEIOU]/.test(level.label) ? "an" : "a"} ${level.label} ${what} grid` : `a ${what} grid`;
+  const longest = Math.max(...long.map((w) => w.length));
+  const fits = Object.keys(CRISSCROSS_DIFFICULTY).filter((l) => longestPlaceable(l) >= longest).map((l) => CRISSCROSS_DIFFICULTY[l].label);
+  const hint = level && fits.length ? ` ${fits.join(" or ")} ${fits.length === 1 ? "has" : "have"} room for ${long.length === 1 ? "it" : "them"}.` : "";
+  return `${long.length === 1 ? "One word is" : `${long.length} words are`} longer than ${grid} can hold ` +
+    `(${max} letters) and will be left out — ${shown}${long.length > 4 ? "…" : ""}.${hint}`;
 }
 
 // A book: each puzzle draws its own words from the pool(s), themed like the

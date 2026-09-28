@@ -3,7 +3,7 @@
 // These check the construction on every difficulty and several themes.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { generateCrissCross, generateCrissCrossBook, slotsOf, countFills, CRISSCROSS_DIFFICULTY } from "../src/generator/crisscross.js";
+import { generateCrissCross, generateCrissCrossBook, slotsOf, countFills, CRISSCROSS_DIFFICULTY, tooLongWarning } from "../src/generator/crisscross.js";
 import { THEMES } from "../src/generator/wordlists.js";
 
 const difficulties = Object.keys(CRISSCROSS_DIFFICULTY);
@@ -104,7 +104,12 @@ test("a word too long for any grid is named, not dropped in silence", () => {
 
   const mixed = generateCrissCrossBook({ pools: [{ title: "M", words: [...THEMES.garden.words, long[0]] }], count: 2, difficulty: "easy" });
   assert.equal(mixed.puzzles.length, 2);
-  assert.match(mixed.warnings[0], /One word is longer than a criss-cross grid can hold \(13 letters\).*antidisestablishmentarianism/);
+  assert.match(mixed.warnings[0], /One word is longer than an Easy criss-cross grid can hold \(13 letters\).*antidisestablishmentarianism\.$/);
+
+  // A word a harder grid holds says which: Idaho's 16-letter state bird on
+  // Medium, where every theme link opens.
+  const idaho = tooLongWarning([THEMES.idaho], "medium", "crossword");
+  assert.equal(idaho, "One word is longer than a Medium crossword grid can hold (15 letters) and will be left out — mountainbluebird. Hard or Expert have room for it.");
 
   const fine = generateCrissCrossBook({ pools: [THEMES.garden], count: 2, difficulty: "graded" });
   assert.deepEqual(fine.warnings, []);
