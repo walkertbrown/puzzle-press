@@ -22,7 +22,8 @@ const page = await browser.newPage({ viewport: { width: W, height: H }, acceptDo
 const shoot = async (ms = 900) => frames.push({ png: await page.screenshot(), ms });
 
 await page.goto(base, { waitUntil: "networkidle" });
-// Run as a licensed user so the demo can show the cover, which is paid.
+// Run as a licensed user, so the pages carry no footer line and the cover no
+// PREVIEW mark: the demo shows what a finished book looks like.
 await page.evaluate(() => localStorage.setItem("puzzlepress.license", JSON.stringify({ email: "demo@example.com", token: "demo", verifiedAt: Date.now() })));
 await page.reload({ waitUntil: "networkidle" });
 await page.waitForSelector(".grid div");
