@@ -1,8 +1,8 @@
 # Puzzle Press
 
-A free KDP puzzle book generator: makes a print-ready word search, sudoku or
-maze book for Amazon KDP — interior PDF and full-wrap cover — in the browser.
-Nothing is uploaded.
+A free KDP puzzle book generator: makes a print-ready word search, sudoku, maze,
+criss-cross or crossword book for Amazon KDP — interior PDF and full-wrap cover
+— in the browser. Nothing is uploaded.
 
 **Live: https://puzzlepress.bananafest-destiny.com**
 
@@ -89,10 +89,11 @@ A PDF that meets Amazon KDP's paperback manuscript rules:
   a page, and every word a reader reads is 16pt or more (checked by
   `test/largeprint.test.js`, which records every size drawn). At 8.5×11 a book
   of up to 50 puzzles still fits in KDP's flat-rate 110 pages.
-- Notes pages to reach an even page count. **They do not pad to KDP's 24-page
-  minimum** — a one-puzzle book is ten pages and stays ten pages. The app warns
-  you on screen when your settings produce a book KDP will reject for being too
-  short, and that warning is what protects you, not the padding. (This README
+- Notes pages to reach an even page count, **and no further: a short book is
+  not filled out to KDP's 24-page minimum** — a one-puzzle book is ten pages
+  and stays ten pages. The app warns you on screen when your settings produce a
+  book KDP will reject for being too short, and that warning is what protects
+  you, not extra pages. (This README
   claimed otherwise until 2026-09-14. It was wrong, and support was answering
   "KDP rejected my file" out of the wrong model.)
 - Fonts embedded and subset (Liberation Sans, SIL OFL) — KDP rejects
@@ -152,7 +153,7 @@ because a puzzle with two solutions is a one-star review.
   pockets.
 - **Criss-cross fill-ins** — verified to have exactly one valid fill.
 - **Crosswords** — open interlocking grids, 8–22 answers on a subject, with
-  1,460 clues written for the tool. No clue contains its answer; the test suite
+  2,278 clues written for the tool. No clue contains its answer; the test suite
   checks that on every build. Paste `word — clue` lines for your own.
 
 Seeded and deterministic throughout — the same seed rebuilds the same book

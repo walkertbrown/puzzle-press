@@ -42,6 +42,8 @@ const walk = (base, rel, filter) => {
   }
 };
 walk(ROOT, "public", (n) => n.endsWith(".html"));
+// The README is the repo's front page, and ranks above the site in search.
+files.push(["README.md", join(ROOT, "README.md")]);
 if (MARKETING) walk(MARKETING, "marketing", (n) => n.endsWith(".md"));
 
 const TEXT = new Map(
@@ -137,6 +139,26 @@ test("a page that lists the puzzle types lists all of them", () => {
     if (missing.length) gaps.push(`${file} never mentions: ${missing.join(", ")}`);
   }
   assert.deepEqual(gaps, [], `\n${gaps.join("\n")}\n`);
+});
+
+// A sentence that says what the product makes, and lists the types, lists all
+// of them. The per-file rule above can't see this: on 2026-09-27 the royalty
+// and spine calculators and the README's first line all still said "word
+// search, sudoku or maze", while the same files named crosswords elsewhere.
+// Only claims about what Puzzle Press makes are held to it: KDP's own list of
+// content its distributors refuse, or a demo's sequence, is quoted as it is.
+test("a sentence saying what Puzzle Press makes names every type", () => {
+  const ITEM = "(?:word\\s?search(?:es)?|sudokus?|mazes?|criss-?cross(?:\\s+fill-?ins?)?|fill-?ins?|(?:themed\\s+)?crosswords?)";
+  const LIST = new RegExp(`\\b(?:generates|makes|make)\\b[^.?]{0,60}?(${ITEM}(?:(?:,\\s*|\\s+(?:or|and)\\s+|,\\s*(?:or|and)\\s+)${ITEM}){2,})`, "gi");
+  const short = [];
+  for (const [file, text] of TEXT) {
+    const plain = text.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/\s+/g, " ");
+    for (const m of plain.matchAll(LIST)) {
+      const missing = Object.entries(TYPES).filter(([, re]) => !re.test(m[1])).map(([name]) => name);
+      if (missing.length) short.push(`${file}: "${m[0].slice(0, 90)}" leaves out ${missing.join(", ")}`);
+    }
+  }
+  assert.deepEqual(short, [], `\n${short.join("\n")}\n`);
 });
 
 test("no page still counts the types wrongly", () => {
