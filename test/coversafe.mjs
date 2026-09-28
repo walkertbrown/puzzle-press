@@ -34,6 +34,7 @@ const tmp = mkdtempSync(join(tmpdir(), "pp-csafe-"));
 const fonts = {
   regular: readFileSync(new URL("../public/fonts/LiberationSans-Regular.ttf", import.meta.url)),
   bold: readFileSync(new URL("../public/fonts/LiberationSans-Bold.ttf", import.meta.url)),
+  display: readFileSync(new URL("../public/fonts/LilitaOne-Regular.ttf", import.meta.url)),
 };
 let failed = 0, checked = 0;
 

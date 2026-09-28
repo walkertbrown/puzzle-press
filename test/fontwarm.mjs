@@ -1,6 +1,6 @@
 // The funnel rung, and the speed win it is made of.
 //
-// The two TrueType files are 825 KB and used to be fetched only at the click,
+// The TrueType files (853 KB with the cover's title face) used to be fetched only at the click,
 // which put them on the critical path of the one moment somebody has decided
 // they want the thing. They are now prefetched the first time a person touches
 // a control — not on a timer, because that spends the bytes on visitors who
@@ -15,6 +15,11 @@
 //
 // Run: node test/fontwarm.mjs [baseUrl] [chromium|webkit|firefox]
 import * as playwright from "playwright";
+import { readdirSync } from "node:fs";
+
+// Every face the page ships, counted from the directory rather than typed out:
+// this said "2" and went stale the day the cover got its own title face.
+const FONTS = readdirSync(new URL("../public/fonts/", import.meta.url)).filter((f) => f.endsWith(".ttf")).length;
 
 const args = process.argv.slice(2);
 const base = (args.find((a) => a.startsWith("http")) || "https://puzzlepress.bananafest-destiny.com").replace(/\/$/, "");
@@ -74,7 +79,7 @@ await (async () => {
 const warm = await watch(`${base}/#tool`, async (page) => {
   await page.click("#themes input[value='halloween']");
 });
-check(warm.fonts.length === 2, `a real interaction fetched ${JSON.stringify(warm.fonts)}, want both fonts`);
+check(warm.fonts.length === FONTS, `a real interaction fetched ${JSON.stringify(warm.fonts)}, want all ${FONTS}`);
 check(warm.errors.length === 0, `page errors: ${warm.errors.join("; ")}`);
 console.log(`  ticked a theme                 → ${warm.fonts.length} font requests (${warm.fonts.join(", ")})`);
 
@@ -83,7 +88,7 @@ console.log(`  ticked a theme                 → ${warm.fonts.length} font requ
 const cta = await watch(base, async (page) => {
   await page.click('a[href="#tool"]');
 });
-check(cta.fonts.length === 2, `pressing the main CTA fetched ${JSON.stringify(cta.fonts)}, want both fonts`);
+check(cta.fonts.length === FONTS, `pressing the main CTA fetched ${JSON.stringify(cta.fonts)}, want all ${FONTS}`);
 console.log(`  pressed "Make a book free"     → ${cta.fonts.length} font requests`);
 
 // 3c. A button is a control too, and buttons fire neither change nor input.
@@ -97,7 +102,7 @@ console.log(`  pressed "Make a book free"     → ${cta.fonts.length} font reque
 const pager = await watch(`${base}/#tool`, async (page) => {
   await page.click("#next");
 });
-check(pager.fonts.length === 2, `pressing Next fetched ${JSON.stringify(pager.fonts)}, want both fonts`);
+check(pager.fonts.length === FONTS, `pressing Next fetched ${JSON.stringify(pager.fonts)}, want all ${FONTS}`);
 check(pager.px.includes("touched"), `pressing Next fired beacons ${JSON.stringify(pager.px)} — no "touched", so who.mjs will call this person untouched`);
 console.log(`  pressed the preview pager      \u2192 ${pager.fonts.length} font requests, beacons ${pager.px.join("+")}`);
 
@@ -122,7 +127,7 @@ const again = await watch(base, async (page) => {
   await page.fill("#count", "24");
   await page.fill("#title", "Autumn");
 });
-check(again.fonts.length === 2, `three interactions fetched ${again.fonts.length} font requests, want 2`);
+check(again.fonts.length === FONTS, `three interactions fetched ${again.fonts.length} font requests, want ${FONTS}`);
 console.log(`  three interactions             → ${again.fonts.length} font requests`);
 
 await browser.close();

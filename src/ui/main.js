@@ -716,8 +716,9 @@ async function loadFonts() {
       if (!r.ok) throw new Error(`${f}: HTTP ${r.status}`);
       return r.arrayBuffer();
     });
-    fontsPromise = Promise.all([font("LiberationSans-Regular.ttf"), font("LiberationSans-Bold.ttf")])
-      .then(([regular, bold]) => ({ regular, bold }))
+    // Lilita One is the cover's title face; the book itself uses only the two.
+    fontsPromise = Promise.all([font("LiberationSans-Regular.ttf"), font("LiberationSans-Bold.ttf"), font("LilitaOne-Regular.ttf")])
+      .then(([regular, bold, display]) => ({ regular, bold, display }))
       .catch((e) => { fontsPromise = null; throw e; });
   }
   return fontsPromise;

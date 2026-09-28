@@ -13,7 +13,7 @@
 // box in the lower right of the back cover is the convention KDP's own
 // downloadable templates use, and is what we keep clear.
 
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, pushGraphicsState, popGraphicsState, concatTransformationMatrix } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { PT } from "./kdp.js";
 import { coverGeometry, BARCODE_IN, SPINE_TEXT_IN, SPINE_TYPE_MIN_PT } from "./cover-geometry.js";
@@ -28,6 +28,10 @@ export {
 const INK = rgb(0.09, 0.16, 0.29);
 const PAPER_BG = rgb(0.96, 0.965, 0.975);
 const WHITE = rgb(1, 1, 1);
+// Highlighter colours for answers marked on the front, after the covers that
+// sell in this category: found words ringed in several bright colours, not one.
+// The palette's own accent goes first; these follow.
+const MARKERS = ["#ff7eb6", "#7ee081", "#7cc8ff", "#ffa64d"];
 
 const hex = (h) => rgb(parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255);
 function mix(c, t) { // towards white by t
@@ -60,11 +64,14 @@ export async function renderCover({
   doc.setProducer("Puzzle Press");
   doc.setCreator("Puzzle Press");
 
-  let regular, bold;
+  let regular, bold, display = null;
   if (fonts) {
     doc.registerFontkit(fontkit);
     regular = await doc.embedFont(fonts.regular, { subset: true });
     bold = await doc.embedFont(fonts.bold, { subset: true });
+    // The title face (Lilita One, SIL OFL). Optional, so a caller that only
+    // has the two text faces still gets a cover, set in bold.
+    display = fonts.display ? await doc.embedFont(fonts.display, { subset: true }) : null;
   } else {
     regular = await doc.embedFont(StandardFonts.Helvetica);
     bold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -76,10 +83,12 @@ export async function renderCover({
   page.drawRectangle({ x: 0, y: 0, width: g.width, height: g.height, color: pal.bgC });
 
   drawField(page, g, regular, seed, samplePuzzle && samplePuzzle.kind, pal);
-  const { card } = drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle, largePrint, pal, regular, bold });
+  const face = (text) => (display && canSet(display, text) ? display : bold);
+  const { card } = drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle, largePrint, pal, regular, bold, face });
   drawSpine(page, g, { title, author, regular, bold, pal });
-  drawBack(page, g, { blurb, puzzleCount, puzzle: backPuzzle || samplePuzzle, regular, bold, pal });
+  drawBack(page, g, { blurb, puzzleCount, puzzle: backPuzzle || samplePuzzle, regular, bold, pal, face });
   if (largePrint) drawLargePrintBadge(page, g, bold, card);
+  if (puzzleCount) drawCountBurst(page, g, face, card, puzzleCount, pal);
   if (!licensed) drawCoverWatermark(page, g, bold, regular);
 
   return doc.save();
@@ -192,11 +201,30 @@ function drawField(page, g, font, seed, kind, pal) {
   }
   const size = 12;
   const step = 24;
+  // A word search wrap is itself a grid with words found in it: loops in the
+  // highlighter colours, laid over the letters, as on the covers that sell.
+  if (!kind || kind === "wordsearch") {
+    const colours = [pal.accentC, ...MARKERS.map(hex)];
+    const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+    const cols = Math.floor(g.width / step), rows = Math.floor(g.height / step);
+    const loops = Math.round((cols * rows) / 38);
+    for (let i = 0; i < loops; i++) {
+      const [dc, dr] = dirs[rng.int(dirs.length)];
+      const len = 3 + rng.int(4);
+      const c0 = rng.int(cols), r0 = rng.int(rows);
+      const x0 = 6 + c0 * step + size * 0.36, y0 = g.height - step - r0 * step + size * 0.36;
+      const x1 = x0 + dc * (len - 1) * step, y1 = y0 - dr * (len - 1) * step;
+      // Never across the spine.
+      if (Math.max(x0, x1) + step / 2 > spineFrom && Math.min(x0, x1) - step / 2 < spineTo) continue;
+      page.drawLine({ start: { x: x0, y: y0 }, end: { x: x1, y: y1 }, thickness: step * 0.7, color: colours[i % colours.length], lineCap: 1, opacity: 0.45 });
+    }
+  }
+  const FIELD = mix(pal.bgC, 0.2);
   for (let y = g.height - step; y > 0; y -= step) {
     for (let x = 6; x < g.width; x += step) {
       if (x > spineFrom && x < spineTo) continue; // keep the spine clean
       const ch = kind === "sudoku" ? String(1 + rng.int(9)) : String.fromCharCode(65 + rng.int(26));
-      page.drawText(ch, { x, y, size, font, color: FAINT });
+      page.drawText(ch, { x, y, size, font, color: kind === "sudoku" || kind === "crossword" || kind === "crisscross" ? FAINT : FIELD });
     }
   }
 }
@@ -225,11 +253,56 @@ function centered(page, text, { cx, y, size, font, color }) {
   page.drawText(text, { x: cx - font.widthOfTextAtSize(text, size) / 2, y, size, font, color });
 }
 
+// Whether every character of the text is in the font. The title face covers
+// Latin; a title in anything else falls back to Liberation Sans Bold rather
+// than failing to render.
+function canSet(font, text) {
+  if (!canSet.sets) canSet.sets = new Map();
+  let set = canSet.sets.get(font);
+  if (!set) { set = new Set(font.getCharacterSet()); canSet.sets.set(font, set); }
+  for (const ch of String(text)) if (!/\s/.test(ch) && !set.has(ch.codePointAt(0))) return false;
+  return true;
+}
+
+// Draws with the page rotated by deg about (cx, cy): the tilted card.
+function tilted(page, { cx, cy, deg }, draw) {
+  const a = (deg * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a);
+  page.pushOperators(pushGraphicsState(), concatTransformationMatrix(c, s, -s, c, cx - cx * c + cy * s, cy - cx * s - cy * c));
+  draw();
+  page.pushOperators(popGraphicsState());
+}
+
+// The puzzle count on a starburst sticker on the card's top-left corner, the
+// "224 PUZZLES" roundel bestselling covers in this category carry.
+function drawCountBurst(page, g, face, card, n, pal) {
+  const r = Math.min(g.panelW, g.panelH) * 0.105;
+  if (!card || r < 30) return;
+  const cx = Math.max(card.x + r * 0.55, g.frontX + r + 18);
+  const cy = card.top - r * 0.55;
+  const points = 16;
+  let d = "";
+  for (let i = 0; i < points * 2; i++) {
+    const a = (Math.PI * i) / points + 0.1;
+    const rr = i % 2 ? r * 0.84 : r;
+    d += `${i ? "L" : "M"}${(rr * Math.cos(a)).toFixed(2)},${(-rr * Math.sin(a)).toFixed(2)} `;
+  }
+  page.drawSvgPath(`${d}Z`, { x: cx + 3, y: cy - 3, color: pal.deepC, opacity: 0.55 });
+  page.drawSvgPath(`${d}Z`, { x: cx, y: cy, color: pal.accentC, borderColor: WHITE, borderWidth: 2 });
+  const num = String(n);
+  const f = face(num);
+  const ns = Math.min(r * 0.78, fitSize(f, num, r * 1.25, Math.round(r * 0.78), 10));
+  const label = "PUZZLES";
+  const lf = face(label);
+  const ls = fitSize(lf, label, r * 1.2, Math.round(r * 0.26), 7);
+  centered(page, num, { cx, y: cy - ns * 0.18, size: ns, font: f, color: pal.deepC });
+  centered(page, label, { cx, y: cy - ns * 0.18 - ls * 1.2, size: ls, font: lf, color: pal.deepC });
+}
+
 // The front, top to bottom: the title as big as the panel allows, the
 // subtitle, one of the book's own puzzles on a white card with an answer
 // marked (the thing a thumbnail has to say is "this is a puzzle book"), and a
 // strip with what a buyer scans for: how many, large print, solutions.
-function drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle, largePrint, pal, regular, bold }) {
+function drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle, largePrint, pal, regular, bold, face }) {
   const inset = 30;
   const w = g.panelW - inset * 2;
   const cx = g.frontX + g.panelW / 2;
@@ -245,20 +318,26 @@ function drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle
   const stripY = g.panelY + authorH;
 
   // Title: as large as fits in 32% of the panel, never a word broken.
+  // Set in the title face, lines alternating white and the accent, each over a
+  // drop shadow: the stacked two-colour title of the covers that sell.
   const maxTitleH = g.panelH * 0.32;
+  const tf = face(title.toUpperCase());
   const longest = title.toUpperCase().split(/\s+/).sort((x, y) => y.length - x.length)[0] || title;
-  let size = Math.min(g.panelW * 0.16, fitSize(bold, longest, w, 72, 14));
+  let size = Math.min(g.panelW * 0.17, fitSize(tf, longest, w, 80, 14));
   let lines;
   for (;;) {
-    lines = wrap(bold, title.toUpperCase(), w, size);
-    if (lines.length * size * 1.02 <= maxTitleH || size <= 14) break;
+    lines = wrap(tf, title.toUpperCase(), w, size);
+    if (lines.length * size * 0.98 <= maxTitleH || size <= 14) break;
     size -= 1;
   }
-  let ty = top - size * 0.78;
-  for (const line of lines) {
-    centered(page, line, { cx, y: ty, size, font: bold, color: WHITE });
-    ty -= size * 1.02;
-  }
+  let ty = top - size * 0.74;
+  const drop = Math.max(1.5, size * 0.055);
+  lines.forEach((line, i) => {
+    const x = cx - tf.widthOfTextAtSize(line, size) / 2;
+    page.drawText(line, { x: x + drop, y: ty - drop, size, font: tf, color: pal.deepC });
+    page.drawText(line, { x, y: ty, size, font: tf, color: i % 2 ? pal.accentC : WHITE });
+    ty -= size * 0.98;
+  });
   if (subtitle) {
     const ss = fitSize(regular, subtitle, w, 14, 9);
     ty -= 2;
@@ -271,14 +350,21 @@ function drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle
   // The card.
   const pad = 8;
   const room = ty - 6 - (stripY + stripH + 18);
-  const side = Math.min(g.panelW * 0.8, room - pad * 2);
+  // Tilted a few degrees, like a page dropped on the cover; shrunk so the
+  // turned card takes no more room than a straight one would.
+  const TILT = -3;
+  const turn = Math.cos((TILT * Math.PI) / 180) + Math.abs(Math.sin((TILT * Math.PI) / 180));
+  const box = Math.min(g.panelW * 0.8, room - pad * 2);
+  const side = (box + pad * 2) / turn - pad * 2;
   let card = null;
   if (samplePuzzle && side > 70) {
     const x = cx - side / 2;
-    const cardTop = ty - 6 - pad - Math.max(0, (room - pad * 2 - side) / 2);
-    page.drawRectangle({ x: x - pad + 7, y: cardTop - side - pad - 7, width: side + pad * 2, height: side + pad * 2, color: pal.deepC, opacity: 0.55 });
-    page.drawRectangle({ x: x - pad, y: cardTop - side - pad, width: side + pad * 2, height: side + pad * 2, color: WHITE });
-    drawHero(page, samplePuzzle, { x, top: cardTop, side, font: regular, bold, pal });
+    const cardTop = ty - 6 - pad - Math.max(0, (room - pad * 2 - box) / 2) - (box - side) / 2;
+    tilted(page, { cx, cy: cardTop - side / 2, deg: TILT }, () => {
+      page.drawRectangle({ x: x - pad + 7, y: cardTop - side - pad - 7, width: side + pad * 2, height: side + pad * 2, color: pal.deepC, opacity: 0.55 });
+      page.drawRectangle({ x: x - pad, y: cardTop - side - pad, width: side + pad * 2, height: side + pad * 2, color: WHITE });
+      drawHero(page, samplePuzzle, { x, top: cardTop, side, font: regular, bold, pal });
+    });
     card = { x: x - pad, top: cardTop + pad, side: side + pad * 2 };
   }
 
@@ -303,7 +389,8 @@ function drawHero(page, p, { x, top, side, font, bold, pal, plain = false }) {
     const cell = side / n;
     // A few cells "pencilled in" in the accent, the rest as printed.
     const filled = new Set(plain ? [] : p.puzzle.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0).slice(0, Math.ceil(n * 0.8)));
-    filled.forEach((i) => page.drawRectangle({ x: x + (i % n) * cell, y: top - (Math.floor(i / n) + 1) * cell, width: cell, height: cell, color: pal.accentC, opacity: 0.55 }));
+    const colours = [pal.accentC, ...MARKERS.map(hex)];
+    [...filled].forEach((i, k) => page.drawRectangle({ x: x + (i % n) * cell, y: top - (Math.floor(i / n) + 1) * cell, width: cell, height: cell, color: colours[k % colours.length], opacity: 0.6 }));
     const size = cell * 0.6;
     p.puzzle.forEach((v, i) => {
       const d = v || (filled.has(i) ? p.solution[i] : 0);
@@ -352,15 +439,16 @@ function drawHero(page, p, { x, top, side, font, bold, pal, plain = false }) {
   }
   // Word search: the longest few answers ringed, as a solver would.
   const n = p.size, cell = side / n;
-  const marks = plain ? [] : [...(p.placements || [])].sort((a, b) => b.word.length - a.word.length).slice(0, 3);
-  for (const m of marks) {
+  const marks = plain ? [] : [...(p.placements || [])].sort((a, b) => b.word.length - a.word.length).slice(0, 5);
+  const colours = [pal.accentC, ...MARKERS.map(hex)];
+  marks.forEach((m, i) => {
     const end = m.word.length - 1;
     page.drawLine({
       start: { x: x + (m.col + 0.5) * cell, y: top - (m.row + 0.5) * cell },
       end: { x: x + (m.col + m.dc * end + 0.5) * cell, y: top - (m.row + m.dr * end + 0.5) * cell },
-      thickness: cell * 0.78, color: pal.accentC, lineCap: 1, opacity: 0.85,
+      thickness: cell * 0.8, color: colours[i % colours.length], lineCap: 1, opacity: 0.8,
     });
-  }
+  });
   const size = cell * 0.62;
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
     const ch = p.grid[r][c];
@@ -396,7 +484,7 @@ function drawSpine(page, g, { title, author, regular, bold, pal }) {
   void regular; void pal;
 }
 
-function drawBack(page, g, { blurb, puzzleCount, puzzle, regular, bold, pal }) {
+function drawBack(page, g, { blurb, puzzleCount, puzzle, regular, bold, pal, face }) {
   const inset = 40;
   const x = g.backX + inset;
   const w = g.panelW - inset * 2;
@@ -410,7 +498,7 @@ function drawBack(page, g, { blurb, puzzleCount, puzzle, regular, bold, pal }) {
   page.drawRectangle({ x: g.backX + 27, y: panelTop - panelH - 7, width: g.panelW - 40, height: panelH, color: pal.deepC, opacity: 0.55 });
   page.drawRectangle({ x: g.backX + 20, y: panelTop - panelH, width: g.panelW - 40, height: panelH, color: WHITE });
 
-  page.drawText(heading, { x, y: top, size: 17, font: bold, color: pal.deepC });
+  page.drawText(heading, { x, y: top, size: 19, font: face(heading), color: pal.deepC });
   let y = top - 26;
   for (const line of lines) {
     page.drawText(line, { x, y, size: 11, font: regular, color: INK });

@@ -15,6 +15,7 @@ import { generateCrosswordBook } from "../src/generator/crossword.js";
 const fonts = {
   regular: readFileSync(new URL("../public/fonts/LiberationSans-Regular.ttf", import.meta.url)),
   bold: readFileSync(new URL("../public/fonts/LiberationSans-Bold.ttf", import.meta.url)),
+  display: readFileSync(new URL("../public/fonts/LilitaOne-Regular.ttf", import.meta.url)),
 };
 
 test("spine width is page count x paper thickness, with nothing added", () => {

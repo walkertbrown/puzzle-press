@@ -11,6 +11,7 @@ import { BARCODE_IN, BLEED_IN } from "../src/pdf/cover-geometry.js";
 const fonts = {
   regular: readFileSync(new URL("../public/fonts/LiberationSans-Regular.ttf", import.meta.url)),
   bold: readFileSync(new URL("../public/fonts/LiberationSans-Bold.ttf", import.meta.url)),
+  display: readFileSync(new URL("../public/fonts/LilitaOne-Regular.ttf", import.meta.url)),
 };
 
 // scripts/traffic.mjs shows far more "opened a sample PDF" than "clicked

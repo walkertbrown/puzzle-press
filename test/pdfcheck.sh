@@ -14,7 +14,7 @@ node - <<'JS'
   const { THEMES } = await import("./src/generator/wordlists.js");
   const { renderBook } = await import("./src/pdf/render.js");
   const { renderCover } = await import("./src/pdf/cover.js");
-  const fonts = { regular: fs.readFileSync("public/fonts/LiberationSans-Regular.ttf"), bold: fs.readFileSync("public/fonts/LiberationSans-Bold.ttf") };
+  const fonts = { regular: fs.readFileSync("public/fonts/LiberationSans-Regular.ttf"), bold: fs.readFileSync("public/fonts/LiberationSans-Bold.ttf"), display: fs.readFileSync("public/fonts/LilitaOne-Regular.ttf") };
   fs.mkdirSync("samples/kdp", { recursive: true });
   const jobs = [
     ["ws-paid", generateBook({ pools: [THEMES.animals], count: 50, wordsPerPuzzle: 15, seed: "k" }), { licensed: true }],
