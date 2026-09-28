@@ -59,18 +59,31 @@ export function generateBook({
 
   const puzzles = [];
   const seenSets = new Set();
+  // The preview builds three puzzles of a fifty-puzzle book. The notes are
+  // about the book: "this book needs 3" under a 50-puzzle meta line was the
+  // preview's count leaking out (2026-09-28).
+  const bookCount = gradeCount ?? count;
+  const warned = new Set();
   for (let i = 0; i < count; i++) {
     const pool = cleanPools[i % cleanPools.length];
     const take = Math.min(wordsPerPuzzle, pool.words.length);
-    if (take < wordsPerPuzzle && i < cleanPools.length) {
-      warnings.push(`${pool.title}: only ${pool.words.length} words, wanted ${wordsPerPuzzle} per puzzle`);
-    }
     // A reader notices a repeated word list long before they notice a repeated
-    // grid, so say so up front rather than quietly shipping duplicates.
+    // grid, so say so up front rather than quietly shipping duplicates. Once
+    // per list: a state list of 11 words used to raise three notes that all
+    // meant "every puzzle has these same 11 words".
     if (i < cleanPools.length) {
-      const wanted = Math.ceil(count / cleanPools.length);
+      const wanted = Math.ceil(bookCount / cleanPools.length);
       const possible = distinctSetsPossible(pool.words.length, take, wanted);
-      if (possible < wanted) {
+      if (take < wordsPerPuzzle) {
+        warned.add(pool.title);
+        warnings.push(
+          `${pool.title}: only ${pool.words.length} words, so each puzzle uses all ${pool.words.length} instead of ${wordsPerPuzzle}` +
+            (wanted > 1
+              ? `, and the ${wanted} puzzles from this list share one word list in different grids. Add more words, or tick another theme to mix in.`
+              : "."),
+        );
+      } else if (possible < wanted) {
+        warned.add(pool.title);
         warnings.push(
           `${pool.title}: ${pool.words.length} words taken ${take} at a time makes only ` +
             `${possible} different word list${possible === 1 ? "" : "s"}, but this book needs ${wanted}. ` +
@@ -100,7 +113,7 @@ export function generateBook({
         forcedRepeat = true;
       }
     }
-    if (forcedRepeat && !warnings.some((w) => w.startsWith(REPEAT_WARNING))) {
+    if (forcedRepeat && !warned.has(pool.title) && !warnings.some((w) => w.startsWith(REPEAT_WARNING))) {
       warnings.push(
         `${REPEAT_WARNING} — "${pool.title}" ran out of different word lists, so some puzzles repeat one. ` +
           "Add more words, lower words per puzzle, or make a shorter book.",

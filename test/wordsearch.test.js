@@ -122,6 +122,15 @@ test("a book that runs out of different word lists says so instead of repeating 
   assert.ok(book.warnings.filter((w) => w.startsWith(REPEAT_WARNING)).length <= 1);
 });
 
+test("a list shorter than one puzzle is named once, for the book's real length", () => {
+  // Virginia has 11 words; words per puzzle is 15. The preview builds 3 of a
+  // 50-puzzle book. Until 2026-09-28 that raised three notes, one of them
+  // saying "this book needs 3" under a 50-puzzle meta line.
+  const book = generateBook({ pools: [THEMES.virginia], count: 3, gradeCount: 50, wordsPerPuzzle: 15, difficulty: "medium", seed: "va" });
+  assert.equal(book.warnings.length, 1, JSON.stringify(book.warnings));
+  assert.match(book.warnings[0], /^Virginia: only 11 words, so each puzzle uses all 11 instead of 15, and the 50 puzzles/);
+});
+
 test("a book with room for distinct lists gets no repeat warning and no repeated list", () => {
   const book = generateBook({ pools: [THEMES.animals], count: 40, wordsPerPuzzle: 15, difficulty: "graded", seed: "roomy" });
   assert.ok(!book.warnings.some((w) => w.startsWith(REPEAT_WARNING)), book.warnings.join("; "));
