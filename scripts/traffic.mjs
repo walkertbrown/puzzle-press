@@ -790,7 +790,7 @@ try {
   const rumSince = new Date(Date.now() - 7 * 86400e3).toISOString().replace(/\.\d+Z$/, "Z");
   const rum = await graphql(`query { viewer { accounts(filter: {accountTag: "${ACCOUNT}"}) {
     rumPageloadEventsAdaptiveGroups(limit: 500, filter: {datetime_geq: "${rumSince}", bot: 0}) {
-      count dimensions { requestHost requestPath refererHost countryName deviceType }
+      count avg { sampleInterval } dimensions { requestHost requestPath refererHost countryName deviceType }
     } } } }`);
   const mine = rum.viewer.accounts[0].rumPageloadEventsAdaptiveGroups
     .filter((r) => /puzzlepress/.test(r.dimensions.requestHost || ""));
@@ -804,6 +804,13 @@ try {
     return [...m].sort((a, b) => b[1] - a[1]);
   };
   console.log(`\n  Last 7 days by the page beacon — ${total} page loads, Cloudflare's own bot filter:`);
+  // "Adaptive" means Cloudflare may answer from a sample, and decides per
+  // query. 2026-09-27: one run printed 80 page loads, every figure a multiple
+  // of ten; the same query minutes later said 57 with sampleInterval 1. At this
+  // traffic a 1-in-10 sample is eight real loads scaled up, so say when it
+  // happens instead of printing the estimate as a count.
+  const intervals = [...new Set(mine.map((r) => r.avg?.sampleInterval ?? 1))];
+  if (intervals.some((i) => i !== 1)) console.log(`    (SAMPLED this run — interval ${intervals.map((i) => +i.toFixed(2)).join("/")}: these are estimates, not counts. Run again for exact figures.)`);
   console.log("    Referred by:");
   for (const [host, n] of tally((d) => d.refererHost).slice(0, 10)) {
     // An empty referer is not a mystery to solve: a typed address, a bookmark,
