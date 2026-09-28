@@ -193,7 +193,7 @@ function fitSize(font, text, maxWidth, start, min = 8) {
 function drawTitlePage(ctx, { title, subtitle, author }) {
   const { page, box } = newPage(ctx);
   const size = fitSize(ctx.F.bold, title, box.w, 36, 18);
-  const lines = wrap(ctx.F.bold, title, box.w, size);
+  const lines = balanced(ctx.F.bold, title, box.w, size);
   let y = box.y + box.h * 0.62;
   for (const line of lines) {
     centered(page, line, { x: box.x, w: box.w, y, size, font: ctx.F.bold });
@@ -201,7 +201,7 @@ function drawTitlePage(ctx, { title, subtitle, author }) {
   }
   if (subtitle) {
     const ss = fitSize(ctx.F.regular, subtitle, box.w, 16, 10);
-    for (const line of wrap(ctx.F.regular, subtitle, box.w, ss)) {
+    for (const line of balanced(ctx.F.regular, subtitle, box.w, ss)) {
       y -= ss * 0.4;
       centered(page, line, { x: box.x, w: box.w, y, size: ss, font: ctx.F.regular, color: GREY });
       y -= ss * 1.2;
@@ -210,7 +210,7 @@ function drawTitlePage(ctx, { title, subtitle, author }) {
   // Shrinks to 10pt, then wraps: an 80-character author ran past the margin.
   if (author) {
     const as = fitSize(ctx.F.regular, author, box.w, ctx.largePrint ? 16 : 14, 10);
-    wrap(ctx.F.regular, author, box.w, as).forEach((line, i) => {
+    balanced(ctx.F.regular, author, box.w, as).forEach((line, i) => {
       centered(page, line, { x: box.x, w: box.w, y: box.y + box.h * 0.2 - i * as * 1.2, size: as, font: ctx.F.regular });
     });
   }
@@ -231,7 +231,7 @@ function drawCopyrightPage(ctx, { title, author, recipe = null }) {
   // Each line wraps to the text box: a long title ran off both edges of the
   // page on 7x10 (found by test:ink with the longest title, 2026-09-24).
   let y = box.y + 80;
-  for (const line of lines.flatMap((l) => (l ? wrap(ctx.F.regular, l, box.w, 9) : [""])).reverse()) {
+  for (const line of lines.flatMap((l) => (l ? balanced(ctx.F.regular, l, box.w, 9) : [""])).reverse()) {
     if (line) centered(page, line, { x: box.x, w: box.w, y, size: 9, font: ctx.F.regular, color: GREY });
     y += 13;
   }
@@ -677,6 +677,23 @@ function drawSolutionsPage(ctx, puzzles, perPage) {
     }
   });
   footer(ctx, page, box);
+}
+
+// Wrap, then take the narrowest measure that keeps the same number of lines,
+// so a title that needs two lines splits into two of similar length instead
+// of ending on one stranded word ("…for the Whole" / "Family"). Display text
+// only: clue lines hang-indent and are wrapped with plain wrap().
+function balanced(font, text, maxWidth, size) {
+  const lines = wrap(font, text, maxWidth, size);
+  if (lines.length < 2) return lines;
+  let lo = Math.max(...text.split(/\s+/).filter(Boolean).map((x) => font.widthOfTextAtSize(x, size)));
+  let hi = maxWidth;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) / 2;
+    if (wrap(font, text, mid, size).length > lines.length) lo = mid;
+    else hi = mid;
+  }
+  return wrap(font, text, hi, size);
 }
 
 function wrap(font, text, maxWidth, size) {

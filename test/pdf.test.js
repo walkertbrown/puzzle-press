@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { PDFDocument } from "pdf-lib";
 import { generateBook } from "../src/generator/book.js";
 import { THEMES } from "../src/generator/wordlists.js";
@@ -88,4 +89,17 @@ test("renders an 8.5x11 hard book with bleed, licensed (no watermark)", async ()
   assert.equal(pdf.getPage(0).getWidth(), 621); // 8.625in
   assert.equal(pdf.getPage(0).getHeight(), 810); // 11.25in
   writeFileSync(new URL("../samples/test/sample-8.5x11-bleed.pdf", import.meta.url), bytes);
+});
+
+test("a long title on the title and copyright pages doesn't end on one stranded word", async (t) => {
+  try { execFileSync("pdftotext", ["-v"], { stdio: "ignore" }); } catch { return t.skip("pdftotext not installed"); }
+  const title = "The Enormous Christmas Holiday Word Search Collection for the Whole Family";
+  const book = generateBook({ pools: [THEMES.garden], count: 3, wordsPerPuzzle: 12, difficulty: "medium", seed: "balance" });
+  const file = new URL("../samples/test/title-balance-5x8.pdf", import.meta.url);
+  writeFileSync(file, await renderBook(book, { title, author: "A. B.", trim: "5x8", licensed: true, fonts }));
+  const lines = execFileSync("pdftotext", ["-f", "1", "-l", "2", "-raw", file.pathname, "-"]).toString().split("\n").map((l) => l.trim()).filter(Boolean);
+  const titleLines = lines.filter((l) => title.includes(l) && l !== "A. B.");
+  // Unbalanced, the copyright page broke "…for the Whole" / "Family".
+  assert.ok(titleLines.length >= 4, titleLines.join(" | "));
+  for (const l of titleLines) assert.ok(l.split(" ").length > 1, `stranded word: "${l}" in ${titleLines.join(" | ")}`);
 });
