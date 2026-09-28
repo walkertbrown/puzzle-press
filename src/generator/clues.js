@@ -2280,6 +2280,14 @@ export const CLUES = {
   champlain: "Large lake bordering Vermont, New York, and Quebec",
   coveredbridge: "Vermont has more of these historic wooden spans, per square mile, than any other state",
   stowe: "Popular Vermont ski resort town nestled below the state's tallest peak",
+  monarch: "Vermont's state butterfly, orange and black, known for its long migration",
+  marble: "One of Vermont's three state rocks, a stone carved for statues and monuments",
+  slate: "One of Vermont's three state rocks, split thin for roof tiles",
+  talc: "Vermont's state mineral, the softest on the Mohs scale",
+  applepie: "Vermont's official state dessert, orchard fruit baked in a crust",
+  garnet: "Vermont's state gem, in its grossular form",
+  morganhorse: "Vermont's state mammal, an American breed named for an early owner",
+  brooktrout: "One of Vermont's two state fish, found in cold mountain streams",
 
   // ---- wyoming
   cheyenne: "Wyoming's capital and largest city, named for a Plains Native American nation",

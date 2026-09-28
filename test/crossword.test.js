@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { THEMES } from "../src/generator/wordlists.js";
 import { CLUES } from "../src/generator/clues.js";
 import { normalizeWord } from "../src/generator/wordsearch.js";
+import { generateCrissCrossBook } from "../src/generator/crisscross.js";
 import { generateCrossword, generateCrosswordBook, cluesFor, parseClueLine, numberGrid, CROSSWORD_DIFFICULTY } from "../src/generator/crossword.js";
 
 test("every built-in word has a clue, and no clue contains its answer or a whole-word piece of it", () => {
@@ -20,6 +21,21 @@ test("every built-in word has a clue, and no clue contains its answer or a whole
       assert.ok(!leak, `${id}: clue for ${k} leaks "${leak}": ${c}`);
     }
   }
+});
+
+// Every word-list page links to a crossword and a criss-cross of its own
+// theme, and the tool opens on medium. Vermont's ten long words made neither
+// on easy or medium: the link opened on "No puzzle could be made" (2026-09-28).
+test("every built-in theme alone makes a full easy and medium crossword and criss-cross", () => {
+  const short = [];
+  for (const [id, t] of Object.entries(THEMES)) {
+    for (const d of ["easy", "medium"]) {
+      const cw = generateCrosswordBook({ pools: [t], builtinClues: CLUES, count: 8, difficulty: d, seed: "theme" }).puzzles.length;
+      const cc = generateCrissCrossBook({ pools: [t], count: 8, difficulty: d, seed: "theme" }).puzzles.length;
+      if (cw < 8 || cc < 8) short.push(`${id}/${d}: crossword ${cw}, criss-cross ${cc}`);
+    }
+  }
+  assert.deepEqual(short, []);
 });
 
 test("numbering and clue lists match the grid on every difficulty", () => {

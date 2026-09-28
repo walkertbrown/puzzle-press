@@ -721,6 +721,11 @@ export const THEMES = {
     words: [
       "montpelier", "burlington", "greenmountain", "hermitthrush", "redclover", "sugarmaple", "maplesyrup",
       "champlain", "coveredbridge", "stowe",
+      // Eight shorter state symbols (Wikipedia, "List of Vermont state
+      // symbols", 2026-09-28). With only the ten above, nine of them ten
+      // letters or more, no easy or medium crossword or criss-cross could be
+      // built, and the Vermont page's own links opened on an error.
+      "monarch", "marble", "slate", "talc", "applepie", "garnet", "morganhorse", "brooktrout",
     ],
   },
   wyoming: {
