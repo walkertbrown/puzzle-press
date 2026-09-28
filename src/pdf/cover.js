@@ -291,7 +291,7 @@ function drawCountBurst(page, g, face, card, n, pal) {
   const num = String(n);
   const f = face(num);
   const ns = Math.min(r * 0.78, fitSize(f, num, r * 1.25, Math.round(r * 0.78), 10));
-  const label = "PUZZLES";
+  const label = n === 1 ? "PUZZLE" : "PUZZLES";
   const lf = face(label);
   const ls = fitSize(lf, label, r * 1.2, Math.round(r * 0.26), 7);
   centered(page, num, { cx, y: cy - ns * 0.18, size: ns, font: f, color: pal.deepC });
@@ -312,7 +312,7 @@ function drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle
   const as = author ? fitSize(bold, author.toUpperCase(), w, 14, 9) : 0;
   const authorLines = author ? wrap(bold, author.toUpperCase(), w, as) : [];
   const authorH = authorLines.length ? 20 + authorLines.length * as * 1.2 : 12;
-  const facts = [puzzleCount ? `${puzzleCount} PUZZLES` : "", largePrint ? "LARGE PRINT" : "", "SOLUTIONS INCLUDED"].filter(Boolean).join("   \u2022   ");
+  const facts = [puzzleCount ? `${puzzleCount} ${puzzleCount === 1 ? "PUZZLE" : "PUZZLES"}` : "", largePrint ? "LARGE PRINT" : "", "SOLUTIONS INCLUDED"].filter(Boolean).join("   \u2022   ");
   const fs = fitSize(bold, facts, g.panelW - 40, 13, 7);
   const stripH = fs * 2.3;
   const stripY = g.panelY + authorH;
@@ -329,6 +329,19 @@ function drawFront(page, g, { title, subtitle, author, puzzleCount, samplePuzzle
     lines = wrap(tf, title.toUpperCase(), w, size);
     if (lines.length * size * 0.98 <= maxTitleH || size <= 14) break;
     size -= 1;
+  }
+  // Balanced: the narrowest measure that still takes the same number of
+  // lines, so a long title doesn't end on one stranded word ("VOLUME / 3").
+  if (lines.length > 1) {
+    const T = title.toUpperCase();
+    let lo = Math.max(...T.split(/\s+/).filter(Boolean).map((x) => tf.widthOfTextAtSize(x, size)));
+    let hi = w;
+    while (hi - lo > 1) {
+      const mid = (lo + hi) / 2;
+      if (wrap(tf, T, mid, size).length > lines.length) lo = mid;
+      else hi = mid;
+    }
+    lines = wrap(tf, T, hi, size);
   }
   let ty = top - size * 0.74;
   const drop = Math.max(1.5, size * 0.055);

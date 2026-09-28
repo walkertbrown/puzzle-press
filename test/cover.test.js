@@ -105,6 +105,33 @@ test("a short book gets a cover with no spine text and still renders", async () 
   assert.ok(pdf.getPage(0).getWidth() > 0);
 });
 
+// The sticker and the strip both carry the count; a one-puzzle book said
+// "1 PUZZLES" on both until 2026-09-28. A long title is wrapped to even lines,
+// so it no longer ends on one stranded word ("… VOLUME" / "3").
+test("the count reads 1 PUZZLE, and a long title doesn't strand its last word", async (t) => {
+  const { execFileSync } = await import("node:child_process");
+  try { execFileSync("pdftotext", ["-v"], { stdio: "ignore" }); } catch { return t.skip("pdftotext not installed"); }
+  mkdirSync(new URL("../samples/test/", import.meta.url), { recursive: true });
+  const book = generateBook({ pools: [THEMES.garden], count: 2, seed: "one" });
+  const text = async (o) => {
+    const file = `samples/test/cover-count-${o.puzzleCount}.pdf`;
+    writeFileSync(file, await renderCover({ trim: "8.5x11", pageCount: 60, samplePuzzle: book.puzzles[0], fonts, seed: "one", ...o }));
+    return execFileSync("pdftotext", ["-raw", file, "-"]).toString();
+  };
+  const one = await text({ title: "My First Word Search", puzzleCount: 1 });
+  assert.doesNotMatch(one, /PUZZLES/);
+  assert.equal(one.match(/\bPUZZLE\b/g).length, 2);
+  const many = await text({
+    title: "Large Print Word Search for Seniors: Volume 3",
+    subtitle: "Big easy-to-read puzzles on garden, food and travel themes",
+    author: "Margaret Anne Holloway-Fitzgerald",
+    largePrint: true,
+    puzzleCount: 200,
+  });
+  assert.equal(many.match(/\bPUZZLES\b/g).length, 2);
+  assert.match(many, /VOLUME 3/);
+});
+
 // KDP's cover calculator gives a safe area for every trim: text 0.125" inside
 // the trim on the front and back, 0.0625" inside each spine fold (its "Spine
 // Safe Area" is spine − 0.125). Nothing checked where the text actually landed
