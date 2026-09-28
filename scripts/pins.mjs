@@ -169,7 +169,7 @@ await pin("06-crisscross.png", {
 await pin("07-crossword.png", {
   kicker: "Themed crossword books",
   title: "Crosswords with clues, a whole book at a time.",
-  body: "Plain-language clues for 2,703 words across 90 themes, or paste your own word — clue lines. Solutions at the back.",
+  body: "Plain-language clues for 2,728 words across 90 themes, or paste your own word — clue lines. Solutions at the back.",
   img: png(xwPdf, 20),
   foot: "Make a crossword book free →",
 });

@@ -478,6 +478,11 @@ export const THEMES = {
     title: "Arizona",
     words: [
       "phoenix", "tucson", "mesa", "saguaro", "paloverde", "turquoise", "ringtail", "sedona",
+      // Eleven more official symbols (Wikipedia, "List of Arizona state
+      // symbols", 2026-09-28; the Grand Canyon is in the state's nickname).
+      // Eight words was one puzzle's worth, repeated through a whole book.
+      "grandcanyon", "cactuswren", "treefrog", "apachetrout", "swallowtail", "petrifiedwood",
+      "copper", "bolotie", "lemonade", "pluto", "rattlesnake",
     ],
   },
   massachusetts: {
@@ -699,6 +704,10 @@ export const THEMES = {
     title: "Delaware",
     words: [
       "dover", "wilmington", "firststate", "bluehen", "peachblossom", "holly", "rehoboth", "dupont", "taxfree",
+      // Fourteen more official symbols (Wikipedia, "List of Delaware state
+      // symbols", 2026-09-28). Nine words was one puzzle's worth.
+      "strawberry", "ladybug", "weakfish", "sweetgoldenrod", "horseshoecrab", "stonefly", "greyfox",
+      "loggerhead", "bluedasher", "redknot", "channeledwhelk", "belemnite", "peachpie", "milk",
     ],
   },
   southdakota: {

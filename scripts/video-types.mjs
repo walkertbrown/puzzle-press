@@ -55,7 +55,7 @@ const types = [
   ["sudoku", "Sudoku — every puzzle verified to have exactly one solution.", ".sudoku div"],
   ["maze", "Mazes — one route through, no dead pockets, solutions at the back.", ".maze svg line"],
   ["crisscross", "Criss-cross fill-ins — every grid verified to have one fill.", ".crisscross .cell"],
-  ["crossword", "Themed crosswords — 2,298 clues written by hand, or paste your own.", ".crisscross .cell i"],
+  ["crossword", "Themed crosswords — 2,319 clues written by hand, or paste your own.", ".crisscross .cell i"],
 ];
 const pdfs = {};
 for (const [kind, text, sel] of types) {
