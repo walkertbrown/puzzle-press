@@ -273,7 +273,7 @@ function regenerate() {
   if (s.pools.length === 0) {
     book = null;
     el.page.innerHTML = "<p style='color:#5c6470'>Pick at least one theme or paste at least two words.</p>";
-    el.meta.textContent = "";
+    showMeta(s);
     el.warnings.textContent = clampNotes(s.kind).join("\n");
     el.navLabel.textContent = "";
     return;
@@ -305,6 +305,16 @@ function answersPerPage(s, count) {
 }
 
 function showMeta(s) {
+  // A book with no puzzles in it has no pages, no spine and no royalty. It
+  // used to promise "50 puzzles · 66 pages" above "No puzzle could be made"
+  // (2026-09-28), with a cover size and a price for the book that wasn't.
+  if (!book?.puzzles.length) {
+    el.meta.textContent = book ? "No book yet: no puzzle could be made from these words." : "";
+    el.lengthWarn.hidden = true;
+    el.coverNote.textContent = "";
+    el.moneyNote.textContent = "";
+    return;
+  }
   const effective = effectiveCount(s.count);
   const plan = planPages(effective, answersPerPage(s, effective));
   const pages = plan.total;

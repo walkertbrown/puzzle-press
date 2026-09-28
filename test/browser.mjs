@@ -177,6 +177,17 @@ for (const width of [1280, 1000, 860, 400]) {
 if (clipped.length) throw new Error(`select labels are cut off:\n  ${clipped.join("\n  ")}`);
 console.log(`no clipped control labels at 1280/1000/860/400px across all five puzzle types`);
 
+// Words that can't interlock make no book, and the line above the preview
+// says so instead of "50 puzzles · 66 pages" with a cover size (2026-09-28).
+await page.setViewportSize({ width: 1280, height: 900 });
+await page.goto(`${base}/?kind=crisscross#tool`, { waitUntil: "networkidle" });
+for (const cb of await page.$$("#themes input:checked")) await cb.uncheck();
+await page.fill("#custom", "xyz, qqq");
+await page.waitForTimeout(800);
+const emptyMeta = await page.textContent("#meta");
+const emptyCover = await page.textContent("#coverNote");
+if (!emptyMeta.startsWith("No book yet") || emptyCover) throw new Error(`no puzzles, but meta says "${emptyMeta}" and cover "${emptyCover}"`);
+
 await browser.close();
 if (errors.length) {
   console.error("Browser errors:", errors);
