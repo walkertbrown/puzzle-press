@@ -45,6 +45,8 @@
   table { border-collapse:collapse; width:100%; font-size:14px; background:var(--card); }
   th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
   th { color:var(--muted); font-weight:600; }
+  .scroll { overflow-x:auto; }
+  .dim { color:var(--muted); white-space:nowrap; }
   .cta { margin:34px 0 10px; padding:22px; background:var(--card); border:1px solid var(--line); border-radius:12px; }
   .cta h2 { margin:0 0 6px; font-size:20px; }
   .cta p { margin:0 0 14px; color:var(--muted); }
@@ -158,6 +160,27 @@
       <tr><td>Standard colour</td><td>0.002252"</td></tr>
     </table>
     <p>KDP's help pages don't give a thickness for groundwood paper, only a warning that a cream book over 350 pages, or a white one over 525, needs a new cover if you switch. Their own cover calculator answers it: 0.235" of spine at 100 pages, 1.946" at 828, so 0.00235" a page (checked September 2026). That is thinner than cream and thicker than white. A 300-page book loses 0.045" of spine moving from cream to groundwood, and gains 0.029" moving from white.</p>
+  </section>
+
+  <section class="prose">
+    <h2 id="table">KDP spine width by page count</h2>
+    <p>The same formula, worked out for common page counts in black &amp; white. The last column is the whole cover PDF for a 6" × 9" book on cream paper, bleed included. For any other count, trim or paper, use the calculator at the top.</p>
+    <!-- spine-table:start -->
+    <div class="scroll"><table>
+      <tr><th>Pages</th><th>White</th><th>Cream</th><th>Groundwood</th><th>Full 6 × 9 cover, cream</th></tr>
+      <tr><td>24</td><td>0.054" <span class="dim">(1.4 mm)</span></td><td>0.060" <span class="dim">(1.5 mm)</span></td><td>0.056" <span class="dim">(1.4 mm)</span></td><td>12.310" × 9.250"</td></tr>
+      <tr><td>50</td><td>0.113" <span class="dim">(2.9 mm)</span></td><td>0.125" <span class="dim">(3.2 mm)</span></td><td>0.118" <span class="dim">(3.0 mm)</span></td><td>12.375" × 9.250"</td></tr>
+      <tr><td>75</td><td>0.169" <span class="dim">(4.3 mm)</span></td><td>0.188" <span class="dim">(4.8 mm)</span></td><td>0.176" <span class="dim">(4.5 mm)</span></td><td>12.438" × 9.250"</td></tr>
+      <tr><td>100</td><td>0.225" <span class="dim">(5.7 mm)</span></td><td>0.250" <span class="dim">(6.3 mm)</span></td><td>0.235" <span class="dim">(6.0 mm)</span></td><td>12.500" × 9.250"</td></tr>
+      <tr><td>120</td><td>0.270" <span class="dim">(6.9 mm)</span></td><td>0.300" <span class="dim">(7.6 mm)</span></td><td>0.282" <span class="dim">(7.2 mm)</span></td><td>12.550" × 9.250"</td></tr>
+      <tr><td>150</td><td>0.338" <span class="dim">(8.6 mm)</span></td><td>0.375" <span class="dim">(9.5 mm)</span></td><td>0.353" <span class="dim">(9.0 mm)</span></td><td>12.625" × 9.250"</td></tr>
+      <tr><td>200</td><td>0.450" <span class="dim">(11.4 mm)</span></td><td>0.500" <span class="dim">(12.7 mm)</span></td><td>0.470" <span class="dim">(11.9 mm)</span></td><td>12.750" × 9.250"</td></tr>
+      <tr><td>250</td><td>0.563" <span class="dim">(14.3 mm)</span></td><td>0.625" <span class="dim">(15.9 mm)</span></td><td>0.588" <span class="dim">(14.9 mm)</span></td><td>12.875" × 9.250"</td></tr>
+      <tr><td>300</td><td>0.676" <span class="dim">(17.2 mm)</span></td><td>0.750" <span class="dim">(19.0 mm)</span></td><td>0.705" <span class="dim">(17.9 mm)</span></td><td>13.000" × 9.250"</td></tr>
+      <tr><td>400</td><td>0.901" <span class="dim">(22.9 mm)</span></td><td>1.000" <span class="dim">(25.4 mm)</span></td><td>0.940" <span class="dim">(23.9 mm)</span></td><td>13.250" × 9.250"</td></tr>
+      <tr><td>500</td><td>1.126" <span class="dim">(28.6 mm)</span></td><td>1.250" <span class="dim">(31.8 mm)</span></td><td>1.175" <span class="dim">(29.8 mm)</span></td><td>13.500" × 9.250"</td></tr>
+    </table></div>
+    <!-- spine-table:end -->
   </section>
 
   <section class="prose">
