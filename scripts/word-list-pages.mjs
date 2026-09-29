@@ -263,7 +263,7 @@ for (const id of ids) writeFileSync(`${outDir}${id}.html`, themePage(id, THEMES[
 const total = ids.reduce((a, id) => a + THEMES[id].words.length, 0);
 const index = shell({
   title: `Word Search Word Lists — ${ids.length} Themes, Free to Use`,
-  description: `${total} words across ${ids.length} themed lists — animals, Halloween, Christmas, dinosaurs, gardening and more — each sized for a 15×15 word search. Free for any use, with a generator that turns any list into a KDP book.`,
+  description: `${total} words in ${ids.length} themed word search lists — animals, Halloween, Christmas, dinosaurs and more — each sized for a 15×15 grid. Free for any use.`,
   path: "/word-lists/",
   ogImage: "/cards/word-lists.png",
   jsonld: {
