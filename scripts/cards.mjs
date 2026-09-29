@@ -45,7 +45,7 @@ await card("crossword-book-generator.png", { kicker: "Puzzle Press", title: "The
 await card("large-print-word-search-generator.png", { kicker: "Puzzle Press", title: "Large print word search generator for seniors", body: "8.5 × 11 pages, automatic grid sizing, letters measured at 18–27pt. Free to use.", img: data("pins/10-large-print.png") });
 await card("compare.png", { kicker: "Compared", title: "Four ways to make a KDP puzzle book", body: "Subscription suites, free generators, by hand, and Puzzle Press — what each costs and produces.", img: data("pins/01-puzzle-press.png") });
 await card("margin-calculator.png", { kicker: "Free tool", title: "KDP margin calculator", body: "Page size, gutter, outside, top and bottom — for any trim, page count and bleed setting.", img: data("pins/02-spine.png") });
-await card("word-lists.png", { kicker: "Free word lists", title: "90 themed word search lists", body: "2,728 words, each list sized for a 15×15 grid. Free to use in books you sell.", img: data("pins/03-word-search.png") });
+await card("word-lists.png", { kicker: "Free word lists", title: "90 themed word search lists", body: "2,747 words, each list sized for a 15×15 grid. Free to use in books you sell.", img: data("pins/03-word-search.png") });
 for (const [id, t] of Object.entries(THEMES)) {
   await card(`word-list-${id}.png`, { kicker: "Free word list", title: `${t.title} word search words`, body: `${t.words.length} words, sized for a 15×15 grid. Free to use in any puzzle, including ones you sell.`, img: data("pins/03-word-search.png") });
 }

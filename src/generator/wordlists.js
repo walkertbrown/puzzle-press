@@ -628,6 +628,11 @@ export const THEMES = {
     words: [
       "topeka", "wichita", "sunflowerstate", "meadowlark", "sunflower", "cottonwood", "wheat", "dodgecity",
       "flinthills", "tornadoalley",
+      // Ten more official symbols (Wikipedia, "List of Kansas state symbols",
+      // 2026-09-28; "Home on the Range" is the state song). Ten words was one
+      // puzzle's worth, repeated through a whole book.
+      "bison", "boxturtle", "salamander", "bluestem", "tylosaurus", "pteranodon", "galena", "catfish",
+      "sandhillplum", "homeontherange",
     ],
   },
   mississippi: {
@@ -722,6 +727,9 @@ export const THEMES = {
     words: [
       "bismarck", "fargo", "peacegarden", "meadowlark", "wildrose", "elm", "badlands", "redriver",
       "flickertail", "sunflower",
+      // Nine more official symbols (Wikipedia, "List of North Dakota state
+      // symbols", from Title 54 of the Century Code, 2026-09-28).
+      "northernpike", "nokotahorse", "roughrider", "curling", "chokecherry", "rhubarb", "flint", "milk", "ladybug",
     ],
   },
   alaska: {
