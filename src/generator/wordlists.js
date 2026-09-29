@@ -465,6 +465,10 @@ export const THEMES = {
     words: [
       "richmond", "jamestown", "williamsburg", "cardinal", "dogwood", "shenandoah", "chesapeake", "pentagon", "peanut", "tobacco",
       "dominion",
+      // Nine more official symbols (Wikipedia, "List of Virginia state
+      // symbols", 2026-09-28; "Virginia is for Lovers" is the state slogan).
+      // Eleven words was one puzzle's worth, repeated through a whole book.
+      "foxhound", "bigearedbat", "chincoteague", "oyster", "gartersnake", "deadrise", "nelsonite", "milk", "lovers",
     ],
   },
   washington: {
@@ -689,6 +693,9 @@ export const THEMES = {
     words: [
       "augusta", "portlandhead", "pinetree", "chickadee", "whitepine", "katahdin", "acadia", "lobster", "moose",
       "blueberry", "aroostook",
+      // Eight more official symbols (Wikipedia, "List of Maine state
+      // symbols", 2026-09-28; the state flower is the pine cone and tassel).
+      "moxie", "mainecoon", "whoopiepie", "tourmaline", "wintergreen", "salmon", "bowdoin", "pinecone",
     ],
   },
   montana: {
