@@ -715,7 +715,11 @@ try {
     console.log(`        Read both left-hand numbers as crawlers until the middle one moves.`);
   }
   console.log(`    Clicked Download            ${clickedDownload}${clickedDownload && !fonts ? "   (and no font was ever fetched — nothing rendered)" : ""}`);
-  console.log(`    ...and a book came out      ${fonts ? `yes, ${fonts} ${fonts === 1 ? "person" : "people"} fetched fonts` : "no"}   <-- fonts embed at render time; the only proof a PDF exists`);
+  // Fonts used to be fetched only at the click, which made this line proof of a
+  // render. Since the fonts warm on the first touch of a control (main.js), a
+  // font fetch proves a touch, not a file; the `made` rung above is the proof.
+  // Caught 2026-09-29, writing up the first sale by this line's own standard.
+  console.log(`    Fetched the fonts           ${fonts}   <-- first touch or the click; not proof of a file since the touch warm-up — "the file came out" is`);
   console.log(`    Made a cover                ${covers}`);
   console.log(`    (scanner/bot noise ignored: ${noise} requests to paths that do not exist)`);
   if (scannerIps.length) console.log(`    (whole scanners ignored:    ${scannerIps.length} address${scannerIps.length > 1 ? "es" : ""}, ${scanPaths} requests — each asked for ${SCANNER_404S}+ things that do not exist, then read the site like a browser)`);
