@@ -501,6 +501,19 @@ try {
   const shownPrice = people(/^\/px\/coverpay\.gif$/);
   const toCheckout = people(/^\/px\/checkout\.gif$/);
   const returning = people(/^\/px\/unlock\.gif$/);
+  // `unlock` is a press of "Already paid? Unlock", not a refusal. On 09-30 this
+  // line read "already paid, locked out 2" and sent me hunting for a stranded
+  // buyer; the edge log showed both presses followed by a /api/verify that
+  // answered 200, which is a licence handed out (no payment found is 404,
+  // throttled 429, Stripe down 502). So the outcome is read from the status.
+  let verifyBy = new Map();
+  try {
+    const v = await graphql(`query { viewer { zones(filter: {zoneTag: "${ZONE}"}) {
+      httpRequestsAdaptiveGroups(limit: 20, filter: {datetime_geq: "${daySince}", clientRequestHTTPHost_like: "%puzzle%", clientRequestPath: "/api/verify"}) {
+        count dimensions { edgeResponseStatus }
+      } } } }`);
+    for (const r of v.viewer.zones[0].httpRequestsAdaptiveGroups) verifyBy.set(r.dimensions.edgeResponseStatus, r.count);
+  } catch { verifyBy = null; }
   const pxTotal = hits(/^\/px\//);
   // The one number the current strategy stands or falls on. The calculators
   // are the only pages search has ever carried here, and the whole bet is that
@@ -691,7 +704,12 @@ try {
     console.log(`    ...opened the price         ${openedPrice}   <-- pressed "$19 one-time" and read the dialog`);
     console.log(`    ...shown it after a cover   ${shownPrice}   <-- took a free cover; the dialog opened by itself`);
     console.log(`    ...went to Stripe           ${toCheckout}   <-- left this page for checkout; Stripe reports the ones that pay`);
-    if (returning) console.log(`    ...already paid, locked out ${returning}   <-- a customer asking to be let back in. Read the mail.`);
+    if (returning || verifyBy?.size) {
+      const n = (s) => verifyBy?.get(s) ?? 0;
+      const refused = [...(verifyBy ?? [])].filter(([s]) => s !== 200).reduce((a, [, c]) => a + c, 0);
+      console.log(`    ...pressed "Already paid"   ${returning}   <-- then /api/verify: ${verifyBy ? `${n(200)} unlocked, ${refused} refused (404 no payment ${n(404)}, 429 ${n(429)}, 502 ${n(502)})` : "could not read"}`);
+      if (refused) console.log(`        a refusal is a buyer who may be stuck — read the support mail`);
+    }
   } else {
     console.log("    (no /px/ beacons in this window — either nobody ran the app, or they are newer than the window)");
   }
