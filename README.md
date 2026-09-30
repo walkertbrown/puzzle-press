@@ -23,7 +23,10 @@ Free to use, and it makes the entire book. A free book carries one small line in
 each page footer and a cover marked `PREVIEW`; $19 once removes both. No
 account, no subscription.
 
-A [Bananafest Destiny](https://bananafest-destiny.com) app.
+A [Bananafest Destiny](https://bananafest-destiny.com) app. Making activity books
+for younger readers? [Trace Press](https://tracepress.bananafest-destiny.com/)
+makes KDP handwriting workbooks the same way: A–Z tracing pages, numbers 0–9,
+sight words and a matching cover, in the browser.
 
 ## See it without running anything
 
