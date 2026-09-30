@@ -48,13 +48,19 @@ const fail = (msg) => { failed++; console.log(`FAIL ${msg}`); };
 // and it is safe to do here only because RULE_STARTS bounds this to posts that
 // have not gone out: a published post naming a page that has since been renamed
 // is history, not a defect.
-const sitemap = readFileSync(new URL("../public/sitemap.xml", import.meta.url).pathname, "utf8");
-const published = new Set(
-  [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/\/$/, "")),
-);
+// Two products since 2026-09-29: Trace Press entries link tracepress.*, and
+// each host's links are checked against that host's own sitemap.
+const SITES = [
+  { host: HOST, sitemap: "../public/sitemap.xml" },
+  { host: "https://tracepress.bananafest-destiny.com", sitemap: "../../tracepress/public/sitemap.xml" },
+];
+const published = new Set(SITES.flatMap(({ sitemap }) =>
+  [...readFileSync(new URL(sitemap, import.meta.url).pathname, "utf8").matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/\/$/, ""))));
 const unpublished = (urls) =>
   // Fragment first, then the slash: "/#pricing" must reduce to the homepage.
   urls.filter((u) => !published.has(u.replace(/#.*$/, "").replace(/\/$/, "")));
+const URL_RE = /(\]\()?(https:\/\/(?:puzzlepress|tracepress)\.bananafest-destiny\.com[a-zA-Z0-9/_.#?=-]*)/g;
+const path = (u) => u.replace(/^https:\/\/[^/]+/, "").replace(/^\//, "");
 
 // A bare pasted URL still counts as a link, and the check above would pass on a
 // page full of them — but it tells a search engine nothing about where it
@@ -63,9 +69,7 @@ const unpublished = (urls) =>
 // does not. Only deep links are held to this: "Live: <homepage>" is idiomatic
 // and the homepage needs no describing.
 const bareDeep = (text) =>
-  [...text.matchAll(/(\]\()?(https:\/\/puzzlepress\.bananafest-destiny\.com[a-zA-Z0-9/_.#?=-]*)/g)]
-    .filter((m) => !m[1] && m[2].replace(HOST, "").replace(/^\//, "") !== "")
-    .map((m) => m[2]);
+  [...text.matchAll(URL_RE)].filter((m) => !m[1] && path(m[2]) !== "").map((m) => m[2]);
 
 // An empty set must not read as "everything passed" — same rule as
 // test/sample-promo.mjs. If no entry is ever checked, say so and fail.
@@ -73,8 +77,8 @@ if (files.length === 0) fail(`no actual/*.md entries dated ${RULE_STARTS} or lat
 
 for (const f of files) {
   const text = readFileSync(dir + f, "utf8");
-  const urls = [...text.matchAll(/https:\/\/puzzlepress\.bananafest-destiny\.com[a-zA-Z0-9/_.#?=-]*/g)].map((m) => m[0]);
-  const deep = [...new Set(urls.filter((u) => u.replace(HOST, "").replace(/#.*$/, "").replace(/^\//, "") !== ""))];
+  const urls = [...text.matchAll(URL_RE)].map((m) => m[2]);
+  const deep = [...new Set(urls.filter((u) => path(u).replace(/#.*$/, "") !== ""))];
   const sections = (text.match(/^## /gm) || []).length;
   if (deep.length === 0) {
     fail(`${f}: ${sections} sections, ${urls.length} product link(s), none of them deep — `
@@ -87,7 +91,7 @@ for (const f of files) {
     fail(`${f} links ${u}, which is not in the sitemap — renamed or mistyped`);
   }
   if (deep.length > 0 && bareDeep(text).length === 0 && unpublished([...new Set(urls)]).length === 0) {
-    console.log(`  ok    ${f}  ${sections} sections, ${deep.length} deep link(s): ${deep.map((u) => u.replace(HOST, "")).join(" ")}`);
+    console.log(`  ok    ${f}  ${sections} sections, ${deep.length} deep link(s): ${deep.map((u) => u.replace("https://", "").replace(".bananafest-destiny.com", "")).join(" ")}`);
   }
 }
 
