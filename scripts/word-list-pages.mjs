@@ -202,7 +202,12 @@ const themePage = (id, t) => {
     : `It draws ${drawn} words per puzzle and can make ${sets >= 500 ? "hundreds of" : sets} different puzzles from this list without repeating a set — a ${bookOf}-puzzle book comes to ${pages} pages at 6 × 9.`;
   const nested = removeNested(normalizeWords(t.words)).dropped.map((d) => ({ word: d.word, host: d.reason.replace("inside ", "") }));
   const title = `${t.title} Word List — ${n} Words with Crossword Clues, Free`;
-  const description = `${n} ${t.title.toLowerCase()} words for a word search: ${words.slice(0, 6).map(cap).join(", ")} and more. Free to use in puzzles you make or sell, each with a crossword clue, plus a sample ${puzzle.size}×${puzzle.size} puzzle and a tool that turns the list into a whole KDP book.`;
+  // Google shows about 155 characters of a description; past that the end is
+  // cut off. Drop sample words until it fits rather than lose "free to sell".
+  const describe = (k) => `${n} ${t.title.toLowerCase()} words for a word search: ${words.slice(0, k).map(cap).join(", ")} and more. Free to use in puzzles you sell, each with a crossword clue.`;
+  let shown = 6;
+  while (shown > 2 && describe(shown).length > 155) shown--;
+  const description = describe(shown);
   const body = `
   <h1>${esc(t.title)} word search word list</h1>
   <p class="lede">${n} words, hand-picked to fit a ${puzzle.size}×${puzzle.size} grid. Free to use in any puzzle you make, including ones you sell.${nested.length ? ` One thing to know if you build grids by hand: ${nested.map((d) => `${d.word} sits inside ${d.host}`).join(", ")} — never put both in the same puzzle, or the shorter one is found twice. The generator keeps them apart automatically.` : ""}</p>

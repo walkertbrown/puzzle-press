@@ -36,7 +36,7 @@ for (const loc of pages) {
   seen.title.set(title, path);
 
   const desc = tag(html, /<meta name="description" content="([^"]*)"/);
-  check(desc && desc.length >= 70 && desc.length <= 320, `${path}: description length ${desc?.length}`);
+  check(desc && desc.length >= 70 && desc.length <= 160, `${path}: description length ${desc?.length}`);
   const dclash = seen.desc.get(desc);
   check(!dclash, `${path}: description is unique (also on ${dclash})`);
   seen.desc.set(desc, path);
